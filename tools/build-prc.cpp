@@ -151,6 +151,7 @@ typedef std::map<ResKey, std::string> ResourceProvenance;
 static ResourceDatabase db;
 static ResourceProvenance prov;
 static struct binary_file_info bininfo;
+static void (*update_bininfo) (const ResourceDatabase&);
 static void (*check_resources) (const char*, const ResourceDatabase&,
 				const struct binary_file_info&);
 
@@ -165,6 +166,13 @@ add_resource (const char* origin, const ResKey& key, const Datablock& data) {
   else
     warning ("[%s] resource '%.4s' #%u already obtained from '%s'",
 	     origin, key.type, key.id, (*prev_supplier).second.c_str());
+  }
+
+
+static void
+update_bininfo_maincode_id (const ResourceDatabase& db) {
+  while (db.find (bininfo.maincode) != db.end())
+    bininfo.maincode.id++;
   }
 
 
@@ -316,6 +324,7 @@ static bool
 set_db_kind (database_kind kind, priority_level pri) {
   ResKey maincode;
   bool emit_appl_extras, emit_data;
+  void (*update) (const ResourceDatabase&);
   void (*check) (const char*, const ResourceDatabase&,
 		 const struct binary_file_info&);
 
@@ -324,6 +333,7 @@ set_db_kind (database_kind kind, priority_level pri) {
     maincode = ResKey ("code", 1);
     emit_appl_extras = true;
     emit_data = true;
+    update = NULL;
     check = check_maincode;
     break;
 
@@ -331,6 +341,7 @@ set_db_kind (database_kind kind, priority_level pri) {
     maincode = ResKey ("GLib", 0);
     emit_appl_extras = false;
     emit_data = true;
+    update = NULL;
     check = check_maincode;
     break;
 
@@ -338,6 +349,7 @@ set_db_kind (database_kind kind, priority_level pri) {
     maincode = ResKey ("libr", 0);
     emit_appl_extras = false;
     emit_data = false;
+    update = NULL;
     check = check_maincode;
     break;
 
@@ -345,6 +357,10 @@ set_db_kind (database_kind kind, priority_level pri) {
     maincode = ResKey ("code", 1000);
     emit_appl_extras = false;
     emit_data = false;
+    /* Hacks contain several patch resources.  Corresponding binary files
+       that don't have an explicit desired resource id depend on us to find
+       them an id that hasn't been used yet.  */
+    update = update_bininfo_maincode_id;
     check = check_hack;
     break;
 
@@ -353,6 +369,7 @@ set_db_kind (database_kind kind, priority_level pri) {
     maincode = ResKey ("code", 0);
     emit_appl_extras = false;
     emit_data = false;
+    update = NULL;
     check = NULL;
     break;
     }
@@ -361,6 +378,8 @@ set_db_kind (database_kind kind, priority_level pri) {
     bininfo.emit_appl_extras = emit_appl_extras;
   if (superior (bininfo.emit_data, pri))
     bininfo.emit_data = emit_data;
+  if (superior (update_bininfo, pri))
+    update_bininfo = update;
   if (superior (check_resources, pri))
     check_resources = check;
   if (superior (bininfo.maincode, pri)) {
@@ -725,6 +744,8 @@ main (int argc, char** argv) {
       break;
 
     case FT_BFD: {
+      if (update_bininfo)
+	update_bininfo (db);
       ResourceDatabase bfd_db = process_binary_file (argv[i], bininfo);
       for (ResourceDatabase::const_iterator it = bfd_db.begin();
 	   it != bfd_db.end();

@@ -513,7 +513,7 @@ arch_code_resource_type (bfd* abfd) {
   }
 
 ResourceDatabase
-process_binary_file (const char* fname, binary_file_info& normal_info) {
+process_binary_file (const char* fname, const binary_file_info& normal_info) {
   static bool bfd_inited = false;
 
   if (! bfd_inited) {
@@ -574,8 +574,6 @@ process_binary_file (const char* fname, binary_file_info& normal_info) {
       Datablock trap (2);
       if (get_section_contents (abfd, trap_sec, trap.writable_contents(), 0, 2))
 	db[ResKey ("TRAP", info.maincode.id)] = trap;
-
-      normal_info.maincode.id = info.maincode.id + 1;
       }
     }
   else {
