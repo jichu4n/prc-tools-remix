@@ -149,3 +149,12 @@ diff -urN orig-gcc-3.2/gcc/config/t-palmos gcc-3.2/gcc/config/t-palmos
 +# But these headers are generally not yet installed while building GCC,
 +# so there's no point trying to fix them.
 +STMP_FIXPROTO =
+diff -urN orig-gcc-3.2/gcc/version.c gcc-3.2/gcc/version.c
+--- orig-gcc-3.2/gcc/version.c	Wed Aug 14 11:01:17 2002
++++ gcc-3.2/gcc/version.c	Sun Oct 27 15:13:55 2002
+@@ -1,4 +1,4 @@
+ #include "ansidecl.h"
+ #include "version.h"
+ 
+-const char *const version_string = "3.2";
++const char *const version_string = "3.2 (prc-tools)";
