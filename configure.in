@@ -42,19 +42,6 @@ esac])
 AC_SUBST(build_sdk)
 
 
-static_cxxlibs=
-
-AC_ARG_WITH(shared-libstdcxx-for-tools,
-[  --without-shared-libstdcxx-for-tools
-                          try not to use shared libstdc++ in build-prc [with]],
-[case "${withval}" in
-no)	static_cxxlibs='$(STATIC_CXXLIBS)' ;;
-*)	;;
-esac])
-
-AC_SUBST(static_cxxlibs)
-
-
 AC_CANONICAL_SYSTEM
 
 AC_PROG_CC

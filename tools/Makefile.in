@@ -30,10 +30,6 @@ RANLIB = @RANLIB@
 LEX = @LEX@
 YACC = @YACC@
 
-# (Is this *really* what you have to do to get one library statically linked?)
-STATIC_CXXLIBS = -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lm -lgcc -lc -lgcc
-CXXLIBS = @static_cxxlibs@
-
 INCDIRS = -I. -I$(srcdir) -I$(srcdir)/../binutils/include -I../binutils/bfd
 LIBDIRS = -L. -L../binutils/bfd -L../binutils/libiberty
 
@@ -94,13 +90,11 @@ install-info:
 
 obj_res_objs = obj-res.o binres.o utils.o
 obj-res$(exeext): $(obj_res_objs) $(PFD)
-	$(CXX) $(ALL_LDFLAGS) -o $@ $(obj_res_objs) \
-	-lbfd -liberty -lpfd $(CXXLIBS)
+	$(CXX) $(ALL_LDFLAGS) -o $@ $(obj_res_objs) -lbfd -liberty -lpfd
 
 build_prc_objs = build-prc.o binres.o utils.o def.yy.o def.tab.o
 build-prc$(exeext): $(build_prc_objs) $(PFD)
-	$(CXX) $(ALL_LDFLAGS) -o $@ $(build_prc_objs) \
-	-lbfd -liberty -lpfd $(CXXLIBS)
+	$(CXX) $(ALL_LDFLAGS) -o $@ $(build_prc_objs) -lbfd -liberty -lpfd
 
 multigen_objs = multigen.o utils.o def.yy.o def.tab.o
 multigen$(exeext): $(multigen_objs) $(PFD)
