@@ -737,6 +737,22 @@ diff -urN orig/binutils-2.9.1/include/coff/internal.h binutils-2.9.1/include/cof
  
  /* This reloc identifies mov.b instructions with a 16bit absolute
     address.  The linker tries to turn insns with this reloc into
+diff -urN orig/binutils-2.9.1/include/libiberty.h binutils-2.9.1/include/libiberty.h
+--- orig/binutils-2.9.1/include/libiberty.h	Fri May  1 08:48:25 1998
++++ binutils-2.9.1/include/libiberty.h	Mon Jun 26 09:15:31 2000
+@@ -111,8 +111,12 @@
+ #ifndef __GNUC__
+ extern void xexit PARAMS ((int status));
+ #else
++#if ((__GNUC__ * 1000 + __GNUC_MINOR__) < 2007)
+ typedef void libiberty_voidfn PARAMS ((int status));
+ __volatile__ libiberty_voidfn xexit;
++#else
++extern void xexit PARAMS ((int status)) __attribute__ ((__noreturn__));
++#endif
+ #endif
+ 
+ /* Set the program name used by xmalloc.  */
 diff -urN orig/binutils-2.9.1/ld/Makefile.am binutils-2.9.1/ld/Makefile.am
 --- orig/binutils-2.9.1/ld/Makefile.am	Fri May  1 08:48:47 1998
 +++ binutils-2.9.1/ld/Makefile.am	Tue Aug 17 14:34:49 1999
