@@ -186,7 +186,7 @@ diff -urN orig-gdb-5.0/gdb/m68k-tdep.c gdb-5.0/gdb/m68k-tdep.c
  
 diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 --- orig-gdb-5.0/gdb/remote-palmos.c	Wed Dec 31 16:00:00 1969
-+++ gdb-5.0/gdb/remote-palmos.c	Sat Jul 22 15:53:44 2000
++++ gdb-5.0/gdb/remote-palmos.c	Sun Apr  8 20:54:53 2001
 @@ -0,0 +1,1251 @@
 +/* Remote target communications for serial-line targets in custom GDB protocol
 +   Copyright 1988, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
@@ -223,7 +223,7 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +#include "bfd.h"
 +#include "symfile.h"
 +#include "target.h"
-+#include "wait.h"
++#include "gdb_wait.h"
 +/*#include "terminal.h"*/
 +#include "gdbcmd.h"
 +#include "objfiles.h"
@@ -1357,9 +1357,9 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +  palmos_ops.to_shortname = "palmos";
 +  palmos_ops.to_longname = "Remote target in Palm OS-specific protocol";
 +  palmos_ops.to_doc = "\
-+Use Palm OS device via a serial line, or emulator via TCP/IP, using\n\
++Use a Palm OS device via a serial line, or emulator via TCP, using\n\
 +a Palm OS-specific protocol.  Specify the device it is connected to\n\
-+(e.g., /dev/ttya); localhost:2000 is assumed by default.";
++(e.g., /dev/ttyS0); localhost:2000 is assumed by default.";
 +
 +  palmos_ops.to_open = remote_open;
 +  palmos_ops.to_close = remote_close;
