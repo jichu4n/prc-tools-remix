@@ -737,11 +737,11 @@ Thus, in the following example, when optimisation is on, the string literal
 referenced from @code{bar} may well be in the @code{foosec} section, while
 @code{bar} itself is in the main code section:
 
-@smallexample
+@example
 const char *foo () __attribute__ ((section ("foosec")));
 const char *foo () @{ return "hello world"; @}
 const char *bar () @{ return "hello world"; @}
-@end smallexample
+@end example
 
 The code emitted for such a reference is similar to that emitted for an
 inter-section function call: when there is a data reference in which the
@@ -767,10 +767,10 @@ This can be arranged in the following ways, amongst others:
 Write functions used during no-globals launches so that they use read-only
 data with file or global scope:
 
-@smallexample
+@example
 const char greeting[] = "hello world";
 const char *bar () @{ return greeting; @}
-@end smallexample
+@end example
 
 @item
 Order the functions within a compilation unit so that all functions in the
@@ -800,30 +800,30 @@ If your Makefile uses @code{obj-res}, change it to use
 @code{build-prc} directly on your bfd executable.  For example,
 from an original
 
-@smallexample
+@example
 myapp.prc: code0000.myapp.grc @dots{}
         build-prc @dots{} *.myapp.grc @dots{}
 
 code0000.myapp.grc: myapp
         m68k-palmos-obj-res myapp
-@end smallexample
+@end example
 
 remove references to .grc files, and delete the obj-res rule altogether:
 
-@smallexample
+@example
 myapp.prc: myapp @dots{}
         build-prc @dots{} myapp @dots{}
-@end smallexample
+@end example
 
 @item
 Choose functions to be placed in other code sections, and annotate their
 declarations:
-@smallexample
+@example
 #define EDIT_SECTION  __attribute__ ((section ("editfns")))
 
 void EditFormHandler (@dots{}) EDIT_SECTION;
 void DrawEditForm () EDIT_SECTION;
-@end smallexample
+@end example
 (This also demonstrates using a macro to ease moving several functions at once.)
 
 Make very sure that the relevant annotated declaration is visible when you
@@ -844,31 +844,31 @@ to trouble.
 Add a multiple code clause to your definition file (or write a definition
 file and use it in your build-prc line if you're not already using one).
 
-@smallexample
+@example
 multiple code @{ "editfns" @}
-@end smallexample
+@end example
 
 @item
 Add rules to your Makefile to generate and build the assembler stub and linker
 script.
 
-@smallexample
+@example
 myapp-sections.o: myapp-sections.s
         m68k-palmos-gcc -c myapp-sections.s
 
 myapp-sections.s myapp-sections.ld: myapp.def
         multigen myapp.def
-@end smallexample
+@end example
 
 @item
 Link the assembler stub into your bfd executable, and use the linker script
 to place the extra code sections at appropriate addresses.
-@smallexample
+@example
 OBJS = @emph{@dots{}list of object files@dots{}} myapp-sections.o
 
 myapp: $(OBJS) myapp-sections.ld
         m68k-palmos-gcc -o myapp $(OBJS) myapp-sections.ld
-@end smallexample
+@end example
 @end enumerate
 
 
@@ -908,14 +908,14 @@ are ignored.
 A definition file consists of several clauses, which generally have
 syntax like the following:
 
-@smallexample
+@example
 @var{clause-kind} @{ @var{specific-data}@dots{} @}
-@end smallexample
+@end example
 
 For example, here is a complete definition file for a (hypothetical) fairly
 large non-beamable application:
 
-@smallexample
+@example
 application @{ "Dr McCoy" DAFp copy-prevention @}
 
 /* This app has three code resources: code #1 with all unannotated
@@ -923,7 +923,7 @@ application @{ "Dr McCoy" DAFp copy-prevention @}
    and #3 with "viewfns" functions.  */
 
 multiple code @{ editfns viewfns @}
-@end smallexample
+@end example
 
 @sc{Note:} some details of definition file syntax are subject to change as
 we figure out just what ought to be in a definition file.  For example,
@@ -937,9 +937,9 @@ You can specify the database header attributes which appeared in an
 old-style build-prc command line along with the kind of project being
 built in this clause:
 
-@smallexample
+@example
 @var{project-kind} [ @var{type} ] @{ @var{dbname} @var{crid} @var{miscellaneous}@dots{} @}
-@end smallexample
+@end example
 
 @noindent
 This clause must appear exactly once, and must be first in the file,
@@ -1025,9 +1025,9 @@ cause warnings instead of being converted.
 Each section name that you use in a function section attribute in your project
 needs to be listed in your definition file in a multiple code clause:
 
-@smallexample
+@example
 multiple code @{ @var{sectionname}@dots{} @}
-@end smallexample
+@end example
 
 @noindent
 This is used by multigen to produce an assembly language list of the
@@ -1045,9 +1045,9 @@ Both system shared libraries and GLibs require a dispatch table and a small
 amount of other assembler support code.  You can write this by hand, or you
 can use stubgen to generate the needed code from an export clause:
 
-@smallexample
+@example
 export @{ @var{function-name}@dots{} @}
-@end smallexample
+@end example
 
 Dispatch table entries are generated in the order in which function names are
 listed in the export clause.  Thus, for the sake of binary compatibility
@@ -1061,18 +1061,18 @@ the existing functions names.
 
 This clause is yet to be implemented; it will be something like
 
-@smallexample
+@example
 trap @{ @var{vector} <@var{filename}> @dots{} @}
-@end smallexample
+@end example
 
 
 @section Adding standalone code resources
 
 This clause is yet to be implemented; it will be something like
 
-@smallexample
+@example
 code @var{id} <@var{filename}>
-@end smallexample
+@end example
 
 It may be that it is better simply to list these on the command line.
 
@@ -1132,9 +1132,9 @@ to the Palm OS device where the application is running.  You generally
 specify the bfd executable on the command line (for example, to debug an
 application @file{myapp.prc})
 
-@smallexample
+@example
 $ m68k-palmos-gdb myapp
-@end smallexample
+@end example
 
 @noindent
 and connect using the @samp{target} command.
@@ -1219,7 +1219,7 @@ which you wish to build.
 
 @findex build-prc
 
-@smallexample
+@example
 build-prc [ -l ] [ -L ] [ -t @var{type} ] @var{prcfile} @var{app-name} @var{crid} @var{file}@dots{}
 
 build-prc [ -o @var{file} | --output @var{file} ]
@@ -1236,7 +1236,7 @@ build-prc [ -o @var{file} | --output @var{file} ]
           [ --launchable-data ] [ --recyclable ] [ --bundle ]
 	  [ -z @var{n} | --compress-data @var{n} ]
           @var{file}@dots{}
-@end smallexample
+@end example
 
 @code{build-prc} reads resources from the input files given and
 combines them into one output Palm OS .prc resource data file.  There are
@@ -1351,9 +1351,9 @@ compression, to 7, full (and somewhat experimental!) compression.
 
 @findex multigen
 
-@smallexample
+@example
 multigen [ -b @var{base} | --base @var{base} ] @var{deffile}.def
-@end smallexample
+@end example
 
 The @code{multigen} utility generates an assembly language source file
 and a linker script for use in projects with multiple code resources
@@ -1383,9 +1383,9 @@ script to @file{@var{base}.ld}.
 
 @findex stubgen
 
-@smallexample
+@example
 stubgen [ -b @var{base} | --base @var{base} ] @var{deffile}.def
-@end smallexample
+@end example
 
 The @code{stubgen} utility generates assembly language stub files for a
 GLib or an assembly language dispatch table for a SysLib.
@@ -1425,9 +1425,9 @@ BFD to PalmOS compatible resource files
 
 @subheading @sc{Synopsis}
 
-@smallexample
+@example
 obj-res [-lL] @var{object.file}
-@end smallexample
+@end example
 
 @subheading @sc{Description}
 
@@ -1470,11 +1470,11 @@ Compression of the data #0 resource is simple minded.
 
 @findex sdkfind
 
-@smallexample
+@example
 sdkfind -print-search-dirs
 
 sdkfind [ -v ] [ -palmos@var{n} ] [ -nopalmos ] @dots{}
-@end smallexample
+@end example
 
 The @code{sdkfind} utility expands @code{-palmos@var{n}} options into the
 corresponding GCC options (@code{-isystem} and @code{-L}) needed for the
@@ -1490,9 +1490,9 @@ real GCC compiler driver.
 It can also be used directly so that its effects can be observed, or if you
 wish to use it explicitly with the real compiler driver:
 
-@smallexample
+@example
 /path/to/m68k-palmos/real-bin/gcc @dots{} `m68k-palmos-sdkfind`
-@end smallexample
+@end example
 
 @table @code
 @item -print-search-dirs
@@ -1551,7 +1551,7 @@ code @file{mymain.c} and @file{myform.c}.
 We don't suggest that you set up a project like this!  These files are oddly
 named to demonstrate the lack of required relationships between the names.
 
-@smallexample
+@example
 $ m68k-palmos-gcc -g -c mymain.c
 $ m68k-palmos-gcc -g -c myform.c
 $ m68k-palmos-gcc -g -o simpleexec mymain.o myform.o
@@ -1561,7 +1561,7 @@ $ m68k-palmos-gdb simpleexec
 [loading symbols...]
 gdb> target pilot localhost:2000
 [...]
-@end smallexample
+@end example
 
 @c We'll change it to `target palmos' when they change the name of PilotMain()!
 @end ignore
