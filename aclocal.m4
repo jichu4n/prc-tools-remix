@@ -4,5 +4,5 @@
 # RPM_SPEC_VERSION is used from within AC_INIT, before AC_INIT has finished.
 # The funky translit() strips \n characters.)
 m4_define([RPM_SPEC_VERSION],
-[translit(esyscmd([sed -n '/^Version:/{s/.*: *//p;q}' $1]), [
+[translit(esyscmd([sed -n '/^Version:/s/.*: *//p' $1 | sed 1q]), [
 ])])
