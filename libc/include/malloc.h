@@ -1,6 +1,9 @@
 #ifndef _332_MALLOC_H_
 #define _332_MALLOC_H_
 
+#warning This non-standard header is deprecated; it will be removed in \
+the next prc-tools release; use stdlib.h instead
+
 extern void *malloc (int size);
 extern void free (void *ptr);
 

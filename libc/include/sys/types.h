@@ -1,6 +1,10 @@
 #ifndef _LINUX_TYPES_H
 #define _LINUX_TYPES_H
 
+#warning This non-standard header is deprecated; it will be removed in \
+the next prc-tools release unless you can provide a good reason why that \
+should not happen
+
 /*
  * This allows for 256 file descriptors: if NR_OPEN is ever grown beyond that
  * you'll have to change this too. But 256 fd's seem to be enough even for such
