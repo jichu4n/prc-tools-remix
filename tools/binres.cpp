@@ -70,10 +70,8 @@ make_code (bfd* abfd, asection* sec) {
   }
 
 
-/* A code resource with a few extra instructions at the beginning.  Jumping
-   to the entry point should be useful, but that `or' instruction is only
-   there because CodeWarrior puts one there.  It's very mysterious: %d0 is,
-   of course, dead at that point.  */
+/* A code resource containing an entry point.  If the entry point is not at
+   the start of the block, we insert a jump to it.  */
 
 static Datablock
 make_main_code (bfd* abfd, asection* sec, bool appl) {
@@ -97,14 +95,23 @@ make_main_code (bfd* abfd, asection* sec, bool appl) {
     put_byte (s, 0x60);		// bra.s OFF
     put_byte (s, entry);	// OFF = entry
     }
-  
+
+#if 0
+  /* We used to put this useless instruction at the start of the first
+     code resource because CodeWarrior puts one there.  This always seemed
+     pointless, and we now have a plausible explanation why it's pointless,
+     so it's gone.  Bob Petersen (bpetersen@handspring.com) says in the old
+     days on the Mac people would put essentially a NOP there so that the
+     code resource could be patched easily.  */
+
   if (appl) {
     res = res (-4, res.size () + 4);
     unsigned char* s = res.writable_contents ();
     put_word (s, 0x0000);	// ori.b #IMM,%d0
     put_word (s, 0x0001);	// IMM = 1
     }
-  
+#endif
+
   return res;
   }
 
