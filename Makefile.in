@@ -16,21 +16,24 @@ LN_S = @LN_S@
 
 subdirs = @all_extant_subdirs@
 extra_subdirs = @extra_subdirs@
-configure_args = @configure_args@
 
 all: $(subdirs)
 
 .PHONY: all install clean
 
-# These "dummy*" targets prevent errors when @extra_FOO@ etc are empty.
+# These configure rules are used only when --enable-targets is in effect.
+# (The "dummy" target prevent errors when @extra_targs@ is empty.)
 
-dummy1 @extra_target_configs@:
+configure_args = @configure_args@
+
+dummy @extra_target_configs@:
 	target=`echo $@ | sed 's:/.*::'`; \
 	cd $$target && \
 	$(up_srcdir)$(srcdir)/configure --target=$$target --disable-generic \
-	$(configure_args)
+	  $(configure_args)
 
 # For each extra_subdir, configure will supply a dependency of the form
+#
 #	extra_subdir: extra_subdir/config.status
 #
 # via @extra_deps@ below.  It is commented out so that the unconfigured
