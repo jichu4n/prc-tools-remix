@@ -9,6 +9,7 @@ dnl any later version.
 dnl
 dnl Process this file with autoconf to produce a configure script.
 
+AC_PREREQ(2.13)
 AC_INIT(prc-tools.spec)
 AC_CONFIG_HEADER(tools/config.h)
 
