@@ -25,8 +25,9 @@ INSTALL_DATA = @INSTALL_DATA@
 MAKEINFO = makeinfo
 MAKEINFOFLAGS =
 
+SPLITTYPE = node
 MAKEHTML = texi2html
-MAKEHTMLFLAGS = -DUSERMANUALONLY -glossary -menu -split_node
+MAKEHTMLFLAGS = -DUSERMANUALONLY -glossary -menu -split_$(SPLITTYPE)
 
 all:
 
@@ -51,9 +52,14 @@ install-info: info
 
 html: index.html texidocs-list
 
-install-html: html
+install-html: install-html-index install-html-docs
+
+install-html-index: index.html
 	$(INSTALL) -d $(htmldir)
 	$(INSTALL_DATA) index.html $(palmdev_prefix)/doc
+
+install-html-docs: texidocs-list
+	$(INSTALL) -d $(htmldir)
 	for file in `cat texidocs-list`; do \
 	  d=`echo $${file} | sed -e 's:/[^/]*$$::'`; \
 	  pkg=`echo $${file} | sed -e 's:^.*/::' -e 's:_.*$$::'`; \
