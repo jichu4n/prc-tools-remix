@@ -2,13 +2,9 @@
 @c %**start of header
 @setfilename prc-tools.info
 @settitle Using PRC-Tools
-@c @footnotestyle separate
-
-@set update-month June 2002
-@set update-date 13 @value{update-month}
-@set prc-tools-version 2.1.90
-
 @c %**end of header
+
+@include version.texi
 
 @ifinfo
 @dircategory Programming

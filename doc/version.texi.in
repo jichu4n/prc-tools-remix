@@ -1,0 +1,6 @@
+@c This file is @included by prc-tools.texi.
+@c @configure_input@
+
+@set update-month June 2002
+@set update-date 15 @value{update-month}
+@set prc-tools-version @prc_tools_version@

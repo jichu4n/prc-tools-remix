@@ -80,4 +80,4 @@ fi
 AC_MSG_RESULT($prc_tools_version)
 AC_SUBST(prc_tools_version)
 
-AC_OUTPUT(Makefile crt/Makefile doc/Makefile include/Makefile libc/Makefile libm/Makefile tools/Makefile)
+AC_OUTPUT(Makefile crt/Makefile doc/Makefile doc/version.texi include/Makefile libc/Makefile libm/Makefile tools/Makefile)
