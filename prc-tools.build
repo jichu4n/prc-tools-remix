@@ -11,7 +11,7 @@
 # parse patches in unidiff format and that line-terminates output correctly).
 : ${SOURCES:=.} ${PATCH:=patch}
 # This script is primarily for Cygwin, hence the PalmDev default
-: ${target:=m68k-palmos} ${palmdev_prefix:=/PalmDev}
+: ${palmdev_prefix:=/PalmDev}
 
 for pkg_ver in `grep '^%setup.*-n' prc-tools.spec | cut -d' ' -f3`; do
   pkg=`echo $pkg_ver | sed 's/-[^-]*//'`
@@ -34,7 +34,7 @@ touch "gcc/gcc/cstamp-h.in"
 : ${prefix:=/usr/local} ${docdir:=$prefix/doc/prc-tools}
 
 (cd build; ../configure \
-  --target=$target \
+  --enable-targets=m68k-palmos,arm-palmos \
   --enable-languages=c,c++ \
   --disable-nls \
   --with-headers=`pwd`/empty \
@@ -64,23 +64,31 @@ cp -p README COPYING $DESTDIR$docdir
 : ${bindir:=$exec_prefix/bin} ${libdir:=$exec_prefix/lib}
 : ${infodir:=$prefix/info} ${datadir:=$prefix/share}
 
-strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/$target/bin/* \
-  $DESTDIR$libdir/gcc-lib/$target/*/c*
+strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/*/bin/* \
+  $DESTDIR$libdir/gcc-lib/*/*/c*
 
 #package
 : ${PKGBASE:=`pwd`/prc-tools} ${PKGSHORTTAIL:=-binary} ${PKGTAIL:=$PKGSHORTTAIL}
 
 (cd $DESTDIR; tar cvf $PKGBASE$PKGTAIL.tar \
   `echo "
-    $bindir/*
-    $exec_prefix/$target
-    $libdir/gcc-lib/$target
+    $bindir/[b-z]*
+    $exec_prefix/m68k*
+    $libdir/gcc-lib/m68k*
     $datadir/prc-tools
     $infodir/prc-tools*
     $docdir/COPYING
     $docdir/README
   " | sed 's:^ */::' | sort`)
 bzip2 $PKGBASE$PKGTAIL.tar
+
+(cd $DESTDIR; tar cvf $PKGBASE-arm$PKGTAIL.tar \
+  `echo "
+    $bindir/arm*
+    $exec_prefix/arm*
+    $libdir/gcc-lib/arm*
+  " | sed 's:^ */::' | sort`)
+bzip2 $PKGBASE-arm$PKGTAIL.tar
 
 (cd $DESTDIR; tar cvf $PKGBASE-htmldocs$PKGTAIL.tar \
   `echo "
