@@ -93,7 +93,7 @@ index.html: index.html.in html-subtargets
 /@if-/   { discard = 1 } \
 !discard { print }' $(srcdir)/index.html.in | sed 's:"@:"./:' > index.html
 
-.PHONY: html-binutils html-gdb html-gcc html-make
+.PHONY: html-binutils html-gdb html-gcc295 html-make
 
 MKHTML = $(MAKEHTML) $(MAKEHTMLFLAGS)
 
@@ -124,11 +124,14 @@ html-gdb:
 	  -I $(srcdir)/../gdb/readline/doc -I $(srcdir)/../gdb/gdb/mi \
 	  $(srcdir)/../gdb/gdb/doc/gdb.texinfo
 
-html-gcc:
+# FIXME Revert this "gcc295" stuff to just "gcc" when we bring the m68k side
+# up to the single GCC version.
+
+html-gcc295:
 	-@rm -f gcc[_.]*html cpp[_.]*html
-	$(MKHTML) -D USERMANUALONLY -I $(srcdir)/../gcc/gcc \
-	  $(srcdir)/../gcc/gcc/gcc.texi
-	$(MKHTML) -I $(srcdir)/../gcc/gcc $(srcdir)/../gcc/gcc/cpp.texi
+	$(MKHTML) -D USERMANUALONLY -I $(srcdir)/../gcc295/gcc \
+	  $(srcdir)/../gcc295/gcc/gcc.texi
+	$(MKHTML) -I $(srcdir)/../gcc295/gcc $(srcdir)/../gcc295/gcc/cpp.texi
 
 html-make:
 	-@rm -f make[_.]*html
@@ -136,7 +139,7 @@ html-make:
 	$(MKHTML) -I $(srcdir)/../make $(srcdir)/../make/make.texinfo
 
 html-subtargets:
-	-for d in binutils gcc gdb make; do \
+	-for d in binutils gcc295 gdb make; do \
 	  if [ -d ../$$d ] || [ -d $(ngdir)/$$d ]; then echo html-$$d; fi; \
 	done > $@
 	$(MAKE) "MAKEHTML=$(MAKEHTML)" "MAKEHTMLFLAGS=$(MAKEHTMLFLAGS)" `cat $@`
