@@ -23,9 +23,10 @@ USING THESE TOOLS
 
 In addition to installing this package, you will also need to install
 a Palm OS SDK.  SDK versions 3.5 and greater work with prc-tools without
-modification.  Earlier SDKs require changes to work with prc-tools; you
-can find suitably modified SDKs on Palm's Web site at
-<URL:http://www.palmos.com/dev/tools/gcc/#sdks>.
+modification.  Earlier SDKs require changes to work with prc-tools; in the
+past it was possible to find suitably modified SDKs on Palm's Web site at
+<URL:http://www.palmos.com/dev/tools/gcc/#sdks>, but they were no longer
+available at the time of writing.
 
 You may wish to install several SDKs, and you will probably want to choose
 one as the default SDK, to be used when you compile without any "-palmosN"
