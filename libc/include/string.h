@@ -1,11 +1,31 @@
+/* This file is part of prc-tools.  */
+
+#ifndef _PRC_TOOLS_STRING_H
+#define _PRC_TOOLS_STRING_H
+
+/* FIXME As we replace the somewhat borked functions from the old Linux
+   sources, we'll move their declarations to this section.  Eventually
+   the _LINUX_STRING_H_ section below will disappear.  */
+
+#define __need_size_t
+#define __need_NULL
+#include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void *memcpy (void *_dst, const void *_src, size_t _n);
+void *memset (void *_s, int _c, size_t _n);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+
 #ifndef _LINUX_STRING_H_
 #define _LINUX_STRING_H_
-
-#include <sys/types.h>	/* for size_t */
-
-#ifndef NULL
-#define NULL ((void *) 0)
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,8 +50,6 @@ extern unsigned long strtoul(const char *cp,char **endp,unsigned int base);
 extern signed long strtol(const char *cp,char **endp,unsigned int base);
 extern int intodec(char * dest,signed int arg,unsigned short places,unsigned int base);
 
-extern void * memset(void *,char,size_t);
-extern void * memcpy(void *,const void *,size_t);
 extern void * memmove(void *,const void *,size_t);
 extern void * memscan(void *,int,size_t);
 extern int memcmp(const void *,const void *,size_t);

@@ -1,22 +1,44 @@
-/*
- *  linux/lib/string.c
- *
- *  Copyright (C) 1991, 1992  Linus Torvalds
- */
+/* C support library memset() function.
 
-#include <sys/types.h>
+   Placed in the public domain by John Marshall on 2002-08-02.  */
+
 #include <string.h>
-#include <ctype.h>
 
-#ifndef __HAVE_ARCH_MEMSET
-void * memset(void * s,char c,size_t count)
-{
-  char *xs = (char *) s;
+/* The memset function copies the value of IC (converted to an unsigned char)
+   into each of the first N characters of the object pointed to by VP, [and]
+   returns the value of VP.  (ISO/IEC 9899:1999 7.21.6.1)  */
 
-  while (count--)
-    *xs++ = c;
-  
-  return s;
-}
+void *
+memset (void *vp, int ic, size_t n) {
+  unsigned char *p = vp;
+  unsigned char c = ic;
+
+  if (n >= 11) {
+    unsigned short cs;
+    unsigned long cl, *pl;
+    size_t nl;
+
+#ifdef __m68k__
+    if (((unsigned long) p) & 1)  *p++ = c, n--;
+#else
+    while (((unsigned long) p) & 3)  *p++ = c, n--;
 #endif
 
+    cs = c;
+    cs |= c << 8;
+    cl = cs;
+    cl |= cl << 16;
+
+    pl = (unsigned long *) p;
+    nl = n / 4;
+
+    while (nl--)  *pl++ = cl;
+
+    p = (unsigned char *) pl;
+    n = n % 4;
+    }
+
+  while (n--)  *p++ = c;
+
+  return vp;
+  }
