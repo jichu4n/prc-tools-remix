@@ -43,7 +43,7 @@
 #include "pfd.hpp"
 #include "pfdio.hpp"
 
-static const char* version = "2.0";
+static const char* version = "2.1";
 
 void
 usage() {
@@ -475,9 +475,29 @@ main (int argc, char** argv) {
       read_def_file (argv[i], &def_funcs);
       break;
 
-    case FT_RAW:
-      add_resource (argv[i], ResKey (argv[i], strtoul (&argv[i][4], NULL, 16)),
+    case FT_RAW: {
+      char buffer[FILENAME_MAX];
+      strcpy (buffer, argv[i]);
+      char *key = basename_with_changed_extension (buffer, NULL);
+      char *dot = strchr (key, '.');
+      /* A dot in the first four characters might just possibly be a very
+	 strange resource type.  Any beyond there are extensions, which
+	 we'll remove.  */
+      if (dot && dot-key >= 4)  *dot = '\0';
+      if (strlen (key) < 8) {
+	while (strlen (key) < 4)  strcat (key, "x");
+	while (strlen (key) < 8)  strcat (key, "0");
+	filename = argv[i];
+	einfo (E_FILE | E_WARNING,
+	       "raw filename doesn't start with `typeNNNN'; treated as `%s'",
+	       key);
+	}
+      else
+	key[8] = '\0';  /* Ensure strtoul() doesn't get any extra digits.  */
+
+      add_resource (argv[i], ResKey (key, strtoul (&key[4], NULL, 16)),
 		    slurp_file_as_datablock (argv[i]));
+      }
       break;
 
     case FT_BFD: {
