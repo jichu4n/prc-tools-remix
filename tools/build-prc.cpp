@@ -43,7 +43,7 @@
 #include "pfd.hpp"
 #include "pfdio.hpp"
 
-const char* progversion = "2.1";
+const char progversion[] = "2.1";
 
 void
 usage() {
@@ -97,7 +97,7 @@ enum {
   OPTION_VERSION
   };
 
-static char* shortopts = "o:lLa:s:t:c:n:m:v:z:";
+static const char shortopts[] = "o:lLa:s:t:c:n:m:v:z:";
 
 static struct option longopts[] = {
   { "output", required_argument, NULL, 'o' },
@@ -580,6 +580,11 @@ main (int argc, char** argv) {
 	   ++it)
 	add_resource (argv[i], (*it).first, (*it).second);
       }
+      break;
+
+    case FT_UNKNOWN:
+      filename = argv[i];
+      einfo (E_FILE | E_WARNING, "ignoring unrecognized file type");
       break;
       }
     } catch (const char*& message) {

@@ -24,7 +24,7 @@
 
 
 const char *progname = "sdkfind";
-const char *progversion = "1.0";
+const char progversion[] = "1.0";
 
 
 char **args = NULL, **arglim = NULL, **argmax = NULL;

@@ -32,7 +32,7 @@
 #include "pfd.hpp"
 #include "utils.h"
 
-const char* progversion = "2.0";
+const char progversion[] = "2.0";
 
 static void
 usage() {
@@ -51,7 +51,7 @@ enum {
   OPTION_VERSION
   };
 
-static char* shortopts = "lL:vz:";
+static const char shortopts[] = "lL:vz:";
 
 static struct option longopts[] = {
   { "help", no_argument, NULL, OPTION_HELP },

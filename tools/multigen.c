@@ -17,7 +17,7 @@
 #include "utils.h"
 #include "def.h"
 
-const char* progversion = "1.2";
+const char progversion[] = "1.2";
 
 void
 usage() {
@@ -34,7 +34,7 @@ enum {
   OPTION_VERSION
   };
 
-char* shortopts = "b:";
+static const char shortopts[] = "b:";
 
 struct option longopts[] = {
   { "base", required_argument, NULL, 'b' },

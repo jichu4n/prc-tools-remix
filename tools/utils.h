@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 /* This one must be defined by the main program.  */
-extern const char *progversion;
+extern const char progversion[];
 
 extern const char *progname, *filename;
 extern int lineno;
