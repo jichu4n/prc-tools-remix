@@ -64,6 +64,29 @@ canonical_key (const char *name) {
   }
 
 
+/* FIXME autoconfiscate this.  */
+
+#ifdef __CYGWIN__
+#include <sys/cygwin.h>
+#endif
+
+/* Returns a "canonical form" of PATH.  Mostly this is just the same as
+   what is given (but theoretically we'd like to make it an absolute path),
+   but on Cygwin we both ensure that it's a POSIX path rather than a
+   Win32-style one (which we can't quote properly in the specs file) and
+   make it absolute.  */
+const char *
+canonical_path (const char *path) {
+#ifdef __CYGWIN__
+  static char posix_path[FILENAME_MAX];
+  cygwin_conv_to_full_posix_path (path, posix_path);
+  return posix_path;
+#else
+  return path;
+#endif
+  }
+
+
 /* A ROOT is a directory with "include" and/or "lib" subdirectories, etc,
    i.e., the base of a SDK directory tree; either really a Palm OS SDK
    (e.g., /opt/palmdev/sdk-3.5) or the generic SDK-neutral part of a
@@ -155,9 +178,10 @@ print_report (const char *name, const struct root *root,
   }
 
 void
-analyze_palmdev_tree (const char *prefix, int report) {
+analyze_palmdev_tree (const char *prefix_as_given, int report) {
   static struct root **last_generic_root = &generic_root_list;
 
+  const char *prefix = canonical_path (prefix_as_given);
   DIR *dir = opendir (prefix);
 
   if (dir) {
@@ -166,7 +190,7 @@ analyze_palmdev_tree (const char *prefix, int report) {
     int n = 0;
 
     if (report)
-      printf ("Checking SDKs in %s\n", prefix);
+      printf ("Checking SDKs in %s\n", prefix_as_given);
 
     while ((e = readdir (dir)) != NULL)
       if (matches ("sdk-", e->d_name) &&
@@ -202,7 +226,8 @@ analyze_palmdev_tree (const char *prefix, int report) {
     root = make_root ("%s", prefix);
     if (root->sub[include] || root->sub[lib]) {
       if (report) {
-	printf ("  and material in %s used regardless of SDK choice\n", prefix);
+	printf ("  and material in %s used regardless of SDK choice\n",
+		prefix_as_given);
 	print_report ("  (common)", root, NULL, 0);
 	}
 
@@ -436,7 +461,7 @@ main (int argc, char **argv) {
 
     if (dump_target)
       write_specs (stdout, dump_target, default_sdk);
-    else {
+    else if (generic_root_list || sdk_root_list) {
       const char **target;
       const char *message = "...done";
 
@@ -466,6 +491,16 @@ main (int argc, char **argv) {
 
       if (report)
 	printf ("%s\n", message);
+      }
+    else {
+      error ("no Palm OS development material detected");
+      if (report)
+	printf ("\n"
+"Either make SDKs and other material available at %s\n"
+"and rerun palmdev-prep, or specify a directory in which they can be found\n"
+"when you rerun palmdev-prep.\n"
+"See <URL:http://prc-tools.sourceforge.net/install/> for details.\n",
+		PALMDEV_PREFIX);
       }
 
     free_root_list (generic_root_list);
