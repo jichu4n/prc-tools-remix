@@ -11,7 +11,7 @@ Source0: http://prdownloads.sourceforge.net/prc-tools/%{name}-%{version}.tar.gz
 Source1: ftp://sources.redhat.com/pub/binutils/releases/binutils-2.12.tar.gz
 Source2: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.0.tar.gz
 Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.3/gcc-2.95.3.tar.gz
-Source4: ftp://ftp.gnu.org/pub/gnu/make/make-3.77.tar.gz
+Source4: ftp://ftp.gnu.org/pub/gnu/make/make-3.79.1.tar.gz
 NoSource: 1
 NoSource: 2
 NoSource: 3
@@ -35,16 +35,25 @@ You will also need a Palm OS SDK and some way of creating resources, such as
 PilRC.
 
 %package htmldocs
-Summary: GCC, binutils, gdb, and general prc-tools documentation as HTML
+Summary: GCC, binutils, gdb, make, and prc-tools documentation as HTML
 Group: Development/Palm OS
+Prefix: %{palmdev_prefix}
 %description htmldocs
-GCC, binutils, gdb, and general prc-tools documentation in HTML format
+GCC, binutils, gdb, make, and general prc-tools documentation in HTML
+format.  The various native development packages and the main prc-tools
+package, respectively, provide exactly this documentation in info format.
+This optional package is for those who prefer HTML-formatted documentation.
+
+By default, this package will be installed at %{palmdev_prefix}/doc, and
+you should point your web browser at %{palmdev_prefix}/doc/index.html.
+If you want to install it elsewhere, you can do so via the prefix and/or
+relocation facilities of your RPM installation tool.
 
 %prep
 %setup -n binutils-2.12 -T -b 1
 %setup -n gdb-5.0 -T -b 2
 %setup -n gcc-2.95.3 -T -b 3
-%setup -n make-3.77 -T -b 4
+%setup -n make-3.79.1 -T -b 4
 %setup
 
 cat *.palmos.diff | (cd .. && patch -p0)
@@ -52,7 +61,7 @@ cat *.palmos.diff | (cd .. && patch -p0)
 mv ../binutils-2.12 binutils
 mv ../gdb-5.0 gdb
 mv ../gcc-2.95.3 gcc
-mv ../make-3.77 make
+mv ../make-3.79.1 make
 
 # The patch touches a file this depends on, and you need autoconf to remake
 # it.  There's no changes, so let's just touch it so people don't have to
@@ -77,6 +86,7 @@ LDFLAGS=-L`pwd`/static-libs ../configure \
   --enable-languages=c,c++ \
   --with-headers=`pwd`/empty \
   --with-palmdev-prefix=%{palmdev_prefix} \
+  --enable-html-docs=%{palmdev_prefix}/doc \
   --prefix=%{_prefix} --exec-prefix=%{_exec_prefix} \
   --bindir=%{_bindir} --sbindir=%{_sbindir} --libexecdir=%{_libexecdir} \
   --localstatedir=%{_localstatedir} --sharedstatedir=%{_sharedstatedir} \
@@ -86,18 +96,10 @@ LDFLAGS=-L`pwd`/static-libs ../configure \
 
 make
 
-## FIXME
-## cd $RPM_BUILD_DIR/build-prc-tools/doc
-## make html
-
 %install
 [ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
 cd build
-%makeinstall
-
-## FIXME
-## cd $RPM_BUILD_DIR/build-prc-tools/doc
-## make install-html
+%makeinstall htmldir=$RPM_BUILD_ROOT%{palmdev_prefix}/doc
 
 %clean
 [ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
@@ -137,4 +139,4 @@ fi
 %doc COPYING README
 
 %files htmldocs
-## FIXME
+%doc %{palmdev_prefix}/doc
