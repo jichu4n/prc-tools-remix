@@ -53,6 +53,21 @@
 #endif
 
 
+/* Use this instead of using bfd_get_section_contents directly, so that we
+   can report read errors just once, here, instead of in every caller.  */
+
+static bool
+get_section_contents (bfd *abfd, asection* sec,
+		      void* buffer, file_ptr offset, bfd_size_type count) {
+  bool success = bfd_get_section_contents (abfd, sec, buffer, offset, count);
+  if (! success)
+    error ("[%s] can't read '%s' section",
+	   bfd_get_filename (abfd), bfd_section_name (abfd, sec));
+
+  return success;
+  }
+
+
 /* A normal code resource: this is just a copy of the corresponding BFD
    section.  */
 
@@ -61,11 +76,7 @@ make_code (bfd* abfd, asection* sec) {
   bfd_size_type size = bfd_section_size (abfd, sec);
 
   Datablock res (size);
-
-  if (!bfd_get_section_contents (abfd, sec, res.writable_contents (), 0, size))
-    error ("[%s] can't read '%s' section",
-	   bfd_get_filename (abfd), bfd_section_name (abfd, sec));
-
+  get_section_contents (abfd, sec, res.writable_contents (), 0, size);
   return res;
   }
 
@@ -172,10 +183,8 @@ make_rloc_and_chains (int nchains, const resource_info* res_from_sec,
   bfd_byte* reloc = NULL;
   if (reloc_size > 0) {
     reloc = static_cast<bfd_byte*>(xmalloc (reloc_size));
-    if (!bfd_get_section_contents (abfd, reloc_sec, reloc, 0, reloc_size)) {
-      error ("[%s] can't read '.reloc' section", bfd_get_filename (abfd));
+    if (! get_section_contents (abfd, reloc_sec, reloc, 0, reloc_size))
       reloc_size = 0;  // Short circuit the for loop
-      }
     }
 
   for (bfd_byte* rel = reloc; rel < reloc + reloc_size; rel += 12) {
@@ -533,7 +542,7 @@ process_binary_file (const char* fname, const binary_file_info& info) {
   if (info.emit_data) {
     bfd_byte* data = static_cast<bfd_byte*>(xmalloc (data_size));
 
-    if (bfd_get_section_contents (abfd, data_sec, data, 0, data_size)) {
+    if (get_section_contents (abfd, data_sec, data, 0, data_size)) {
       asection* reloc_sec = bfd_get_section_by_name (abfd, ".reloc");
       bfd_size_type reloc_size = (reloc_sec)? bfd_section_size (abfd, reloc_sec)
 					    : 0;
@@ -546,8 +555,6 @@ process_binary_file (const char* fname, const binary_file_info& info) {
       db[ResKey ("data", 0)] = make_data (data, data_size, total_data_size,
 					  info.data_compression);
       }
-    else
-      error ("[%s] can't read '.data' section", fname);
 
     free (data);
     }
