@@ -1,6 +1,6 @@
 diff -urN orig-binutils-2.11.2/bfd/coff-m68k.c binutils-2.11.2/bfd/coff-m68k.c
 --- orig-binutils-2.11.2/bfd/coff-m68k.c	Thu Jun  7 03:08:23 2001
-+++ binutils-2.11.2/bfd/coff-m68k.c	Tue Jan  8 22:55:42 2002
++++ binutils-2.11.2/bfd/coff-m68k.c	Wed Jan  9 11:32:52 2002
 @@ -106,6 +106,7 @@
    HOWTO(R_PCRWORD,	       0,  1, 	16, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP16",   true, 0x0000ffff,0x0000ffff, false),
    HOWTO(R_PCRLONG,	       0,  2, 	32, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP32",   true, 0xffffffff,0xffffffff, false),
@@ -121,6 +121,33 @@ diff -urN orig-binutils-2.11.2/bfd/coff-m68k.c binutils-2.11.2/bfd/coff-m68k.c
    if (sym != NULL && sym->n_scnum == 0 && sym->n_value != 0)
      {
        /* This is a common symbol.  The section contents include the
+@@ -499,20 +548,193 @@
+ 	    targetsec = NULL;
+ 	}
+ 
++      bfd_put_16 (abfd, 1, p);
++      bfd_put_16 (abfd, datasec->output_section->index, p + 2);
+       bfd_put_32 (abfd,
+-		  (irel->r_vaddr - datasec->vma + datasec->output_offset), p);
+-      memset (p + 4, 0, 8);
++		  (irel->r_vaddr - datasec->vma + datasec->output_offset),
++		  p + 4);
+       if (targetsec != NULL)
+-	strncpy (p + 4, targetsec->output_section->name, 8);
++	bfd_put_16 (abfd, targetsec->output_section->index, p + 8);
++      else
++	{
++	  /* Probably can't happen, but let's try to be compatible with the
++	     previous version.  */
++	  p -= 12;
++	}
++      bfd_put_16 (abfd, 0, p + 10);
+     }
+ 
+   return true;
+ }
+ #endif /* neither ONLY_DECLARE_RELOCS not STATIC_RELOCS  */
+ 
 diff -urN orig-binutils-2.11.2/bfd/config.bfd binutils-2.11.2/bfd/config.bfd
 --- orig-binutils-2.11.2/bfd/config.bfd	Thu Jun 14 11:16:59 2001
 +++ binutils-2.11.2/bfd/config.bfd	Wed Jan  2 14:05:07 2002
@@ -373,3 +400,46 @@ diff -urN orig-binutils-2.11.2/ld/configure.tgt binutils-2.11.2/ld/configure.tgt
  hppa*64*-*)		targ_emul=elf64hppa ;;
  hppa*-*-linux-gnu*)	targ_emul=hppalinux ;;
  hppa*-*-*elf*)		targ_emul=hppaelf ;;
+diff -urN orig-binutils-2.11.2/ld/emultempl/m68kcoff.em binutils-2.11.2/ld/emultempl/m68kcoff.em
+--- orig-binutils-2.11.2/ld/emultempl/m68kcoff.em	Thu Jun  7 03:17:16 2001
++++ binutils-2.11.2/ld/emultempl/m68kcoff.em	Tue Jan  8 13:53:01 2002
+@@ -88,22 +88,25 @@
+ 	{
+ 	  asection *relsec;
+ 
+-	  relsec = bfd_make_section (abfd, ".emreloc");
++	  relsec = bfd_make_section (abfd, ".reloc");
+ 	  if (relsec == NULL
+ 	      || ! bfd_set_section_flags (abfd, relsec,
+-					  (SEC_ALLOC
+-					   | SEC_LOAD
+-					   | SEC_HAS_CONTENTS
++					  (SEC_HAS_CONTENTS
+ 					   | SEC_IN_MEMORY))
+ 	      || ! bfd_set_section_alignment (abfd, relsec, 2)
+ 	      || ! bfd_set_section_size (abfd, relsec,
+ 					 datasec->reloc_count * 12))
+-	    einfo ("%F%B: can not create .emreloc section: %E\n");
++	    einfo ("%F%B: can not create .reloc section: %E\n");
+ 	}
+ 
+       /* Double check that all other data sections are empty, as is
+          required for embedded PIC code.  */
++#if 0
++      /* This is NOT required for embedded PIC.  In fact, since we have
++         sections like [be]hook which can be data sections on input but
++	 are output in the .text section, this is wrong wrong wrong.  */
+       bfd_map_over_sections (abfd, check_sections, (PTR) datasec);
++#endif
+     }
+ }
+ 
+@@ -146,7 +149,7 @@
+       if (datasec == NULL || datasec->reloc_count == 0)
+ 	continue;
+ 
+-      relsec = bfd_get_section_by_name (abfd, ".emreloc");
++      relsec = bfd_get_section_by_name (abfd, ".reloc");
+       ASSERT (relsec != NULL);
+ 
+       if (! bfd_m68k_coff_create_embedded_relocs (abfd, &link_info,
