@@ -125,6 +125,11 @@ if [ "$1" = 0 ]; then
   palmdev-prep --remove
 fi
 
+%preun arm
+if [ "$1" = 0 ]; then
+  rm -f %{_libdir}/gcc-lib/arm-palmos/specs
+fi
+
 %files
 %defattr(-, root, root)
 %{_bindir}/[b-z]*
