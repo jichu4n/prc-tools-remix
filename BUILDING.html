@@ -26,7 +26,7 @@ projects.)
 <ul>
 <li>
 The 3.5 SDK is suitable for use with prc-tools, and contains instructions
-detailing how to install it for a prc-tools 2.0 tool chain.
+detailing how to install it for a prc-tools 2.x tool chain.
 
 <li>
 Previous SDKs require modifications to be usable with this version of
@@ -66,7 +66,7 @@ you have a recent GCC installed as, e.g., <code>gcc295</code>,
 you can specify that the tools be built using the non-default compiler
 by defining variables for the configure command:
 <blockquote><pre>
-~/build$ CC=gcc295 CXX=g++295 ../prc-tools-2.0/configure <i>...etc...</i>
+~/build$ CC=gcc295 CXX=g++295 ../prc-tools-2.1/configure <i>...etc...</i>
 </pre></blockquote>
 
 <li>
@@ -106,12 +106,12 @@ if you want to generate this, you will also need
 Once you have downloaded the packages, you need to unpack them and apply
 the patches:
 <blockquote><pre>
-~$ tar xfz prc-tools-2.0.tar.gz
+~$ tar xfz prc-tools-2.1.tar.gz
 ~$ tar xfz binutils-2.9.1.tar.gz
 ~$ tar xfz gdb-4.18.tar.gz
 ~$ tar xfz gcc-2.95.2.tar.gz
 ~$ tar xfz make-3.77.tar.gz
-~$ cat prc-tools-2.0/*.palmos.diff | patch -p0
+~$ cat prc-tools-2.1/*.palmos.diff | patch -p0
 </pre></blockquote>
 (Omit <code>make-3.77.tar.gz</code> and <code>make-docs-3.77.palmos.diff</code>
 if you don't want to generate make documentation.)
@@ -119,7 +119,7 @@ if you don't want to generate make documentation.)
 <p>
 On Windows, you should also apply the Cygwin-specific patches:
 <blockquote><pre>
-~$ cat prc-tools-2.0/*.cygwin.diff | patch -p0
+~$ cat prc-tools-2.1/*.cygwin.diff | patch -p0
 </pre></blockquote>
 
 <p>
@@ -136,12 +136,12 @@ script and top-level Makefile so that building all the packages can be
 integrated into just one build:
 
 <blockquote><pre>
-~$ cd prc-tools-2.0
-~/prc-tools-2.0$ ln -s ../binutils-2.9.1 binutils
-~/prc-tools-2.0$ ln -s ../gdb-4.18 gdb
-~/prc-tools-2.0$ ln -s ../gcc-2.95.2 gcc
-~/prc-tools-2.0$ ln -s ../make-3.77 make
-~/prc-tools-2.0$ cd ..
+~$ cd prc-tools-2.1
+~/prc-tools-2.1$ ln -s ../binutils-2.9.1 binutils
+~/prc-tools-2.1$ ln -s ../gdb-4.18 gdb
+~/prc-tools-2.1$ ln -s ../gcc-2.95.2 gcc
+~/prc-tools-2.1$ ln -s ../make-3.77 make
+~/prc-tools-2.1$ cd ..
 </pre></blockquote>
 (On Windows, if you use any non-Cygwin programs in your build (such as the
 texi2html perl script), you should use <code>mv</code> instead of
@@ -158,7 +158,7 @@ their source trees:
 ~$ mkdir build
 ~$ cd build
 ~/build$ mkdir empty
-~/build$ ../prc-tools-2.0/configure --target=m68k-palmos \
+~/build$ ../prc-tools-2.1/configure --target=m68k-palmos \
          --enable-languages=c,c++ \
 	 --with-headers=`pwd`/empty \
 	 --sharedstatedir=/usr/local/palmdev
@@ -176,7 +176,7 @@ just plain makes more sense.  But at the moment <code>m68k-palmos</code>
 is merely an alias for <code>m68k-palmos-coff</code>, so you can use
 the full name for compatibility with prc-tools-0.5.0 for now if you like.
 <dt>
-<code>--enable-language=c,c++</code>
+<code>--enable-languages=c,c++</code>
 <dd>
 Only build C and C++ compilers.  In particular, the Objective-C runtime
 hasn't been ported to Palm OS, so <code>objc</code> won't work here.
@@ -248,7 +248,7 @@ The multistage process is needed because GCC requires binutils to be installed
 before it can be built (or we could use the
 <a href="http://www.objsw.com/CrossGCC/FAQ-4.html#ss4.2">unified binutils/gcc
 tree</a> trick, but that would cause other problems for us); and in turn
-<code>prc-tools-2.0/crt</code> needs GCC to be installed before it can be
+<code>prc-tools-2.1/crt</code> needs GCC to be installed before it can be
 built.
 
 <p>
