@@ -87,24 +87,29 @@ install-info:
 .cpp.o:
 	$(CXX) $(CXXFLAGS) $(BINUTILS_INCDIRS) -o $@ -c $<
 
-obj-res$(exeext): obj-res.o binres.o utils.o $(PFD)
-	$(CXX) $(LDFLAGS) -o $@ $^ \
+obj_res_objs = obj-res.o binres.o utils.o
+obj-res$(exeext): $(obj_res_objs) $(PFD)
+	$(CXX) $(LDFLAGS) -o $@ $(obj_res_objs) \
 	$(BINUTILS_LIBDIRS) -lbfd -liberty -L. -lpfd $(CXXLIBS)
 
-build-prc$(exeext): build-prc.o binres.o utils.o def.yy.o def.tab.o $(PFD)
-	$(CXX) $(LDFLAGS) -o $@ $^ \
+build_prc_objs = build-prc.o binres.o utils.o def.yy.o def.tab.o
+build-prc$(exeext): $(build_prc_objs) $(PFD)
+	$(CXX) $(LDFLAGS) -o $@ $(build_prc_objs) \
 	$(BINUTILS_LIBDIRS) -lbfd -liberty -L. -lpfd $(CXXLIBS)
 
-multigen$(exeext): multigen.o utils.o def.yy.o def.tab.o $(PFD)
-	$(CC) $(LDFLAGS) -o $@ $^ $(BINUTILS_LIBDIRS) -liberty -L. -lpfd
+multigen_objs = multigen.o utils.o def.yy.o def.tab.o
+multigen$(exeext): $(multigen_objs) $(PFD)
+	$(CC) $(LDFLAGS) -o $@ $(multigen_objs) \
+	$(BINUTILS_LIBDIRS) -liberty -L. -lpfd
 
-stubgen$(exeext): stubgen.o utils.o def.yy.o def.tab.o $(PFD)
-	$(CC) $(LDFLAGS) -o $@ $^ $(BINUTILS_LIBDIRS) -liberty -L. -lpfd
+stubgen_objs = stubgen.o utils.o def.yy.o def.tab.o
+stubgen$(exeext): $(stubgen_objs) $(PFD)
+	$(CC) $(LDFLAGS) -o $@ $(stubgen_objs) \
+	$(BINUTILS_LIBDIRS) -liberty -L. -lpfd
 
 sdkfind_objs = sdkfind.o utils.o
 sdkfind$(exeext): $(sdkfind_objs)
-	$(CC) $(LDFLAGS) -o sdkfind$(exeext) $(sdkfind_objs) \
-	$(BINUTILS_LIBDIRS) -liberty
+	$(CC) $(LDFLAGS) -o $@ $(sdkfind_objs) $(BINUTILS_LIBDIRS) -liberty
 
 build-prc.o: build-prc.cpp utils.h def.h binres.hpp \
 	     pfd.hpp pfdheader.h pfdio.hpp
