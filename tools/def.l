@@ -1,7 +1,6 @@
 /* def.l: lexical analyser for .def files.
 
-   Copyright (c) 1998, 1999, 2001 by John Marshall.
-   <jmarshall@acm.org>
+   Copyright 1998, 1999, 2001, 2002 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,6 +48,7 @@ static char *sdup (const char *s);
 %x fstr
 
 _	[_\-]?
+NL	(\n|\r|\r\n)
 
 D	[0-9]
 HD	[0-9A-Fa-f]
@@ -61,7 +61,7 @@ HD	[0-9A-Fa-f]
    portably.  This means we pick up Latin-1 punctuation characters, but the
    parser won't have special meanings for these, so it doesn't matter.  */
 %}
-ALNUM	[^ \t\n!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
+ALNUM	[^ \t\n\r!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
 
 %%
 	char str_buffer[1024];
@@ -82,8 +82,8 @@ ALNUM	[^ \t\n!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
 <dstr>\"		{ BEGIN(INITIAL); *strp = '\0';
 			  yylval.str = sdup (str_buffer); return STR; }
 
-<sstr,dstr>\\\n		lineno++;
-<sstr,dstr>\n		{ warnf ("string constant terminated by end of line");
+<sstr,dstr>\\{NL}	lineno++;
+<sstr,dstr>{NL}		{ warnf ("string constant terminated by end of line");
 			  lineno++;
 			  BEGIN(INITIAL); *strp = '\0';
 			  yylval.str = sdup (str_buffer); return STR; }
@@ -101,8 +101,8 @@ ALNUM	[^ \t\n!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
 <sstr,dstr>\\.		*strp++ = yytext[1];
 
 <sstr,dstr>\\		|
-<sstr>[^\\\n\']+	|
-<dstr>[^\\\n\"]+	{ strcpy (strp, yytext); strp += yyleng; }
+<sstr>[^\\\n\r\']+	|
+<dstr>[^\\\n\r\"]+	{ strcpy (strp, yytext); strp += yyleng; }
 
 	/* Filenames: */
 
@@ -111,24 +111,24 @@ ALNUM	[^ \t\n!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
 <fstr>\>		{ BEGIN(INITIAL); *strp = '\0';
 			  yylval.str = sdup (str_buffer); return FNAME; }
 
-<fstr>\n		{ warnf ("filename terminated by end of line");
+<fstr>{NL}		{ warnf ("filename terminated by end of line");
 			  lineno++;
 			  BEGIN(INITIAL); *strp = '\0';
 			  yylval.str = sdup (str_buffer); return FNAME; }
 
-<fstr>[^\n\>]+		{ strcpy (strp, yytext); strp += yyleng; }
+<fstr>[^\n\r\>]+	{ strcpy (strp, yytext); strp += yyleng; }
 
 	/* Comments and whitespace: */
 
 "/*"			BEGIN(comment);
-<comment>[^*\n]*	/* eat anything that's not a '*' */
-<comment>"*"+[^*/\n]*	/* eat up '*'s not followed by '/'s */
-<comment>\n		lineno++;
+<comment>[^*\n\r]*	/* eat anything that's not a '*' */
+<comment>"*"+[^*/\n\r]*	/* eat up '*'s not followed by '/'s */
+<comment>{NL}		lineno++;
 <comment>"*"+"/"	BEGIN(INITIAL);
 
-"//"[^\n]*		/* eat C++-style comments */
+"//"[^\n\r]*		/* eat C++-style comments */
 [ \t]+			/* eat whitespace */
-\n			lineno++;
+{NL}			lineno++;
 
 	/* Reserved words: */
 
