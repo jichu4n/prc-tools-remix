@@ -14,7 +14,10 @@
 for pkg_ver in `grep '^%setup.*-n' prc-tools.spec | cut -d' ' -f3`; do
   pkg=`echo $pkg_ver | sed 's/-[^-]*//'`
   if [ ! -d $pkg ]; then
-    tar xvfz $SOURCES/$pkg_ver.tar.gz
+    decompression="" extension=""
+    [ -f $SOURCES/$pkg_ver.tar.bz2 ] && decompression=j extension=.bz2
+    [ -f $SOURCES/$pkg_ver.tar.gz  ] && decompression=z extension=.gz
+    tar xvf$decompression $SOURCES/$pkg_ver.tar$extension
     [ -f $pkg_ver.palmos.diff ] && patch -p0 < $pkg_ver.palmos.diff
     mv $pkg_ver $pkg
   fi
@@ -44,7 +47,7 @@ touch "gcc/gcc/cstamp-h.in"
 (cd build; make)
 
 #install
-: ${DESTDIR:=buildroot}
+: ${DESTDIR:=`pwd`/buildroot}
 
 rm -rf $DESTDIR $DESTDIR-htmldocs
 (cd build; make install \
