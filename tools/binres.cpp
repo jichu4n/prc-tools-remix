@@ -74,7 +74,7 @@ make_code (bfd* abfd, asection* sec) {
    the start of the block, we insert a jump to it.  */
 
 static Datablock
-make_main_code (bfd* abfd, asection* sec, bool /*appl*/) {
+make_main_code (bfd* abfd, asection* sec) {
   Datablock res = make_code (abfd, sec);
 
   unsigned int entry =
@@ -94,22 +94,6 @@ make_main_code (bfd* abfd, asection* sec, bool /*appl*/) {
     put_byte (s, 0x60);		// bra.s OFF
     put_byte (s, entry);	// OFF = sizeof(insn)-2 + entry
     }
-
-#if 0
-  /* We used to put this useless instruction at the start of the first
-     code resource because CodeWarrior puts one there.  This always seemed
-     pointless, and we now have a plausible explanation why it's pointless,
-     so it's gone.  Bob Petersen (bpetersen@handspring.com) says in the old
-     days on the Mac people would put essentially a NOP there so that the
-     code resource could be patched easily.  */
-
-  if (appl) {
-    res = res (-4, res.size () + 4);
-    unsigned char* s = res.writable_contents ();
-    put_word (s, 0x0000);	// ori.b #IMM,%d0
-    put_word (s, 0x0001);	// IMM = 1
-    }
-#endif
 
   return res;
   }
@@ -525,7 +509,7 @@ process_binary_file (const char* fname, const binary_file_info& info) {
   res_from_sec[text_sec->index].chain = 1;
   res_from_sec[text_sec->index].offset = 0;
 
-  db[info.maincode] = make_main_code (abfd, text_sec, info.emit_appl_extras);
+  db[info.maincode] = make_main_code (abfd, text_sec);
 
   for (std::map<const char*,ResKey>::const_iterator it = info.extracode.begin();
        it != info.extracode.end();
