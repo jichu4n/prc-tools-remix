@@ -10,7 +10,10 @@ Source1: ftp://sources.redhat.com/pub/binutils/releases/binutils-2.9.1.tar.gz
 Source2: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.0.tar.gz
 Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.3/gcc-2.95.3.tar.gz
 Source4: ftp://ftp.gnu.org/pub/gnu/make/make-3.77.tar.gz
-NoSource: 1 2 3 4
+NoSource: 1
+NoSource: 2
+NoSource: 3
+NoSource: 4
 %ifos cygwin
 # We don't have find-requires/find-provides scripts for Cygwin
 AutoReqProv: no
@@ -20,7 +23,7 @@ AutoReqProv: no
 %define prefix /usr/local
 %define exec_prefix %{prefix}
 %define palmdev_prefix /usr/local/palmdev
-%define exeext
+%define exeext %{nil}
 %else
 %define prefix /prc-tools
 # If you want to install into the Cygwin directory, use this one:
