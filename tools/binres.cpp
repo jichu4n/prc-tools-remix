@@ -182,9 +182,8 @@ make_rloc_and_chains (int nchains, const resource_info* res_from_sec,
 		      bfd_byte* data, bfd_size_type data_size) {
   Datablock res (2 * nchains);
   unsigned char* rloc_res = res.writable_contents ();
-  unsigned char* s;
 
-  s = rloc_res;
+  unsigned char* s = rloc_res;
   for (int i = 0; i < nchains; i++)
     put_word (s, 0xffff);
 
@@ -247,10 +246,11 @@ make_rloc_and_chains (int nchains, const resource_info* res_from_sec,
 	  (bfd_get_32 (abfd, data + reloffset) - bfd_section_vma (abfd, symsec)
 	   + res_from_sec[symsecndx].offset);
       unsigned char* reshead = rloc_res + 2 * res_from_sec[symsecndx].chain;
-      unsigned int prevoffset = (s = reshead, get_word (s));
+      const unsigned char* cs = reshead;
+      unsigned int prevoffset = get_word (cs);
       bfd_put_16 (abfd, prevoffset, data+reloffset);
       bfd_put_16 (abfd, value, data+reloffset+2);
-      s = reshead, put_word (s, reloffset);
+      put_word (reshead, reloffset);
       }
       break;
 
