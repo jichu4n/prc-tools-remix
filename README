@@ -34,15 +34,14 @@ command line option.  Use the palmdev-prep utility, which you should rerun
 whenever you upgrade prc-tools or install new SDKs or other Palm OS development
 material, to select a default and to teach GCC where to find SDKs.  See the
 palmdev-prep section of the prc-tools documentation, which is also available
-on the Web at <URL:http://prc-tools.sourceforge.net/cgi-bin/info/palmdev-prep>,
-for details.
+on the Web at <URL:http://prc-tools.sourceforge.net/cgi-bin/info/palmdev-prep>.
 
 
 DOCUMENTATION
 
 This package contains documentation in info format:  the prc-tools info
 page gives an overview of the whole tool chain and Palm OS-specific details,
-and the GCC, GDB, etc info pages are also relevant.
+and the GCC, GDB, etc packages provide info pages that are also relevant.
 
 The same documentation is also available in HTML format; you can install
 the prc-tools-htmldocs package or read the manuals on the Web at
