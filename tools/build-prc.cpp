@@ -1,6 +1,6 @@
 /* build-prc.cpp: build a .prc from a pile of files.
 
-   Copyright 2002 John Marshall.
+   Copyright 2002, 2003 John Marshall.
    Portions copyright 1998-2001 Palm, Inc. or its subsidiaries.
 
    This is free software; you can redistribute it and/or modify
@@ -36,6 +36,10 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "getopt.h"
 #include "utils.h"
@@ -661,6 +665,12 @@ main (int argc, char** argv) {
   if (first == FT_PRC && !output_fname) {  // Old-style arguments
     if (argc - optind >= 3) {
       output_fname = argv[optind++];
+
+      struct stat st;
+      if (stat (argv[optind], &st) == 0 && stat (argv[optind + 1], &st) == 0)
+	warning ("database name ('%s') and creator id ('%s') arguments also "
+		 "denote existing files (did you really intend to use "
+		 "old-style syntax?)", argv[optind], argv[optind + 1]);
 
       if (superior (db.name, old_cli_pri))
 	strncpy (db.name, argv[optind], 32);
