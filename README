@@ -101,22 +101,27 @@ LICENSING
 * The run-time support code in the crt subdirectory is in the public domain,
   and the resulting object code may be freely linked into your programs.
 
-* The code in the libc subdirectory is redistributable as follows:
+* The C library code in the libc subdirectory has assorted licenses,
+  as follows:
 
-  libc.a,
-  libc.sa
-	Small standard C library (static and shared versions).
-	Includes type stuff, printf and friends.  putchar()
-	and printf() send output to the LCD (even does scrolling!).
-	I would not expect this to be terribly useful for anything
-	except debugging, or perhaps a terminal program.  String
-	functions are also included, as are memmove, bcopy and
-	those sorts of things.  Much of this library thanks to
-	Linus Torvalds, from the Linux kernel lib directory.  He
-	gave me permission to release this stuff _without_ GPL
-	encumbrance.
+  various *.c files containing the functions declared in the headers
+  ctype.h, stdlib.h, and string.h
+	This code is in the public domain, and the resulting object code
+	may be freely linked into your programs.
 
-  [From the prc-tools 0.5.0 README, by Jeff Dionne]
+  conio.c
+	Released under the LGPL v2 by Jeff Dionne, who described the routines
+	provided as follows:  "putchar() and printf() send output to the LCD
+	(even does scrolling!).  I would not expect this to be terribly useful
+	for anything except debugging, or perhaps a terminal program."
+
+  bcopy.c, vsprintf.c
+	The licensing of this portion of the code in the libc subdirectory was
+	described as follows by Jeff Dionne in the prc-tools 0.5.0 README:
+
+	Much of this library thanks to Linus Torvalds, from the Linux kernel
+	lib directory.  He gave me permission to release this stuff _without_
+	GPL encumbrance.
 
 * The code in the libm subdirectory is based on the Cephes Math Library
   <URL:http://www.moshier.net/#Cephes> and is freely redistributable
