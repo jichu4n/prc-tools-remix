@@ -843,9 +843,9 @@ located in the application's global data.
 
 This means that you must ensure that this sort of reference doesn't occur
 when globals are not available.  Because this compiler optimisation (of
-course) occurs only within a single compilation unit, a sufficient (but not
+course) occurs only within a single translation unit, a sufficient (but not
 necessary) way to ensure this is by placing functions which are in different
-sections in different compilation units (e.g., in separate @file{.c} files).
+sections in different translation units (e.g., in separate @file{.c} files).
 
 In particular, all read-only data referenced while processing a launch code
 that doesn't give you globals must be in the main code section.  (Thus, in
@@ -865,7 +865,7 @@ const char *bar () @{ return greeting; @}
 @end example
 
 @item
-Order the functions within a compilation unit so that all functions in the
+Order the functions within a translation unit so that all functions in the
 main code section are defined before any functions in other code sections.
 Then any shared read-only data will be in the main code section.
 
