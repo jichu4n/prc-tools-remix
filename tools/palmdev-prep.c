@@ -328,7 +328,7 @@ void
 write_traps (FILE *f, char *s) {
   char *slim;
   const char *key, *trap[TRAPNO_MAX - TRAPNO_MIN + 1];
-  unsigned int i, value, value_min, value_max, n, maxkeylen;
+  unsigned int i, n, value, value_min, value_max;
 
   for (i = TRAPNO_MIN; i <= TRAPNO_MAX; i++)
     trap[i - TRAPNO_MIN] = NULL;
@@ -336,7 +336,6 @@ write_traps (FILE *f, char *s) {
   n = 0;
   value_min = TRAPNO_MAX;
   value_max = TRAPNO_MIN;
-  maxkeylen = 0;
 
   /* Find occurences of "#<ws>define<ws>sysTrap<word><ws><number>".
      Thus we're assuming that any comments occur *after* the <number>;
@@ -367,7 +366,6 @@ write_traps (FILE *f, char *s) {
       n++;
       if (value > value_max)  value_max = value;
       if (value < value_min)  value_min = value;
-      if (maxkeylen < strlen (key))  maxkeylen = strlen (key);
       }
 
     s = slim;
@@ -379,7 +377,7 @@ write_traps (FILE *f, char *s) {
 
   for (i = value_min; i <= value_max; i++)
     if (trap[i - TRAPNO_MIN])
-      fprintf (f, "- %-*s  0x%x\n", maxkeylen, trap[i - TRAPNO_MIN], i);
+      fprintf (f, "0x%x %s\n", i, trap[i - TRAPNO_MIN]);
   }
 
 

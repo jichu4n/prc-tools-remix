@@ -30,9 +30,8 @@ load_trapnumbers () {
   traptext = slurp_file (fname, "r", &traptext_size);
   if (traptext) {
     unsigned int i;
-    const char *name;
 
-    /* Skip the first line, which could contain spurious '*'s and '-'s.  */
+    /* Skip the first line, which could contain spurious '*' characters.  */
     char *s = strchr (traptext, '\n');
 
     s = strchr (s, '*');
@@ -44,8 +43,8 @@ load_trapnumbers () {
     /* Skip to the end of the line, so we're aimed at the first trap line.  */
     s = strchr (s, '\n');
 
-    for (name = strtok (s, " \t\n-"); name; name = strtok (NULL, " \t\n-"))
-      trapname[strtoul (strtok (NULL, " \t\n-"), NULL, 0) - minvector] = name;
+    for (s = strtok (s, " \t\n"); s; s = strtok (NULL, " \t\n"))
+      trapname[strtoul (s, NULL, 0) - minvector] = strtok (NULL, " \t\n");
     }
   else {
     error ("can't open '%s': @P", fname);
