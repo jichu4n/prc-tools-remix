@@ -83,6 +83,18 @@ diff -urN orig-binutils-2.14/ChangeLogs.palmos binutils-2.14/ChangeLogs.palmos
 +      * Makefile.am (em68kcoff.c): Depend upon m68kcoff.em rather than
 +      generic.em.
 +      * Makefile.in (em68kcoff.c): Likewise.
+diff -urN orig-binutils-2.14/Makefile.in binutils-2.14/Makefile.in
+--- orig-binutils-2.14/Makefile.in	Thu Jun 12 16:31:31 2003
++++ binutils-2.14/Makefile.in	Wed Sep 10 23:15:12 2003
+@@ -1089,7 +1089,7 @@
+ .PHONY: info installcheck dvi install-info
+ .PHONY: clean distclean mostlyclean maintainer-clean realclean
+ .PHONY: local-clean local-distclean local-maintainer-clean
+-info: do-info
++info: configure-host do-info
+ installcheck: do-installcheck
+ dvi: do-dvi
+ 
 diff -urN orig-binutils-2.14/bfd/Makefile.am binutils-2.14/bfd/Makefile.am
 --- orig-binutils-2.14/bfd/Makefile.am	Mon Apr 21 15:24:18 2003
 +++ binutils-2.14/bfd/Makefile.am	Fri May 16 01:15:43 2003
