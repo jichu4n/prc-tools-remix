@@ -6,6 +6,12 @@
 
 @include version.texi
 
+@ifset development-version
+@clear version
+@c This doesn't read very well, but should never appear anyway
+@set version  as in current development
+@end ifset
+
 @ifinfo
 @dircategory Programming
 @direntry
@@ -17,14 +23,14 @@
 * palmdev-prep: (prc-tools)palmdev-prep.        Preparing PalmDev trees.
 @end direntry
 
-This file documents the use of PRC-Tools, version @value{prc-tools-version}.
+This file documents the use of PRC-Tools, version @value{version}.
 @end ifinfo
 
 @titlepage
 @title Using PRC-Tools
 @subtitle Compiling for Palm OS with GCC
-@subtitle For version @value{prc-tools-version}
-@subtitle @value{update-month}
+@subtitle For version @value{version}
+@subtitle @value{updatedmonth}
 @author
 
 @page
@@ -58,8 +64,15 @@ by the Free Software Foundation.
 
 This manual documents the extra tools and particular caveats associated
 with using the GNU Compiler Collection, GCC, to compile programs for Palm OS.
-It corresponds to prc-tools @w{version @value{prc-tools-version}}, and was
-last modified on @value{update-date}.
+@ifclear development-version
+It corresponds to prc-tools @w{version @value{version}},
+@end ifclear
+@ifset development-version
+It corresponds to the current pre-release development version of prc-tools
+(so some functionality described may not be present in earlier releases),
+@end ifset
+and was last modified on @value{updatedfull}.
+
 
 @menu
 * GCC on Palm OS::    Features (and mis-features) specific to Palm OS.
