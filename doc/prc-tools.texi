@@ -1436,6 +1436,7 @@ build-prc [ -o @var{file} | --output @var{file} ]
           [ --launchable-data ] [ --recyclable ] [ --bundle ]
           [ -z @var{n} | --compress-data @var{n} ]
           [ --no-check-header ] [ --no-check-resources ]
+          [ --no-check ]
           @var{file}@dots{}
 @end example
 
@@ -1566,6 +1567,10 @@ to be numbered consecutively and to have corresponding `code' resources.
 By default, build-prc will check for these resources and emit diagnostics
 accordingly, which helps you detect mistakes such as the omission of a bfd
 executable from the build-prc invocation.
+
+@item --no-check
+Suppress all checking of the generated database; this is equivalent to using
+all of the @code{--no-check-@var{foo}} options listed above.
 @end table
 
 

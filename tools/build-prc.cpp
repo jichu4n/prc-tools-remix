@@ -80,6 +80,7 @@ usage () {
   propt ("--no-check-header", "Suppress database header validity warnings");
   propt ("--no-check-resources",
 	 "Suppress diagnosis of missing vital resources");
+  propt ("--no-check", "Suppress all checking of the generated database");
   // propt ("-x, --provenance", "Output resource cross-reference");
   }
 
@@ -97,6 +98,7 @@ enum {
   OPTION_BUNDLE,
   OPTION_NO_CHECK_HEADER,
   OPTION_NO_CHECK_RESOURCES,
+  OPTION_NO_CHECK,
   OPTION_HELP,
   OPTION_VERSION
   };
@@ -134,6 +136,7 @@ static struct option longopts[] = {
   { "bundle", no_argument, NULL, OPTION_BUNDLE },
   { "no-check-header", no_argument, NULL, OPTION_NO_CHECK_HEADER },
   { "no-check-resources", no_argument, NULL, OPTION_NO_CHECK_RESOURCES },
+  { "no-check", no_argument, NULL, OPTION_NO_CHECK },
 
   { "help", no_argument, NULL, OPTION_HELP },
   { "version", no_argument, NULL, OPTION_VERSION },
@@ -595,6 +598,11 @@ main (int argc, char** argv) {
       break;
 
     case OPTION_NO_CHECK_RESOURCES:
+      if (superior (check_resources, option_pri))  check_resources = NULL;
+      break;
+
+    case OPTION_NO_CHECK:
+      check_header = false;
       if (superior (check_resources, option_pri))  check_resources = NULL;
       break;
 
