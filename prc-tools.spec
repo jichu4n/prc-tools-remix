@@ -9,7 +9,7 @@ Group: Development/Tools
 Source0: http://download.sourceforge.net/prc-tools/prc-tools-%{version}.tar.gz
 Source1: ftp://sources.redhat.com/pub/binutils/releases/binutils-2.9.1.tar.gz
 Source2: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.0.tar.gz
-Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.2/gcc-2.95.2.tar.gz
+Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.3/gcc-2.95.3.tar.gz
 Source4: ftp://ftp.gnu.org/pub/gnu/make/make-3.77.tar.gz
 NoSource: 1 2 3 4
 %ifos cygwin
@@ -37,7 +37,7 @@ AutoReqProv: no
 
 %description
 A complete compiler tool chain for building Palm OS applications in C or C++.
-Includes (patched versions of) binutils 2.9.1, gdb 5.0, and GCC 2.95.2, along
+Includes (patched versions of) binutils 2.9.1, gdb 5.0, and GCC 2.95.3, along
 with various post-linker tools to produce Palm OS .prc files.
 
 You will also need a Palm OS SDK and some way of creating resources, such as
@@ -52,7 +52,7 @@ GCC, binutils, gdb, and general prc-tools documentation in HTML format
 %prep
 %setup -n binutils-2.9.1 -T -b 1
 %setup -n gdb-5.0 -T -b 2
-%setup -n gcc-2.95.2 -T -b 3
+%setup -n gcc-2.95.3 -T -b 3
 %setup -n make-3.77 -T -b 4
 %setup
 
@@ -63,7 +63,7 @@ cat *.cygwin.diff | (cd .. && patch -p0)
 
 mv ../binutils-2.9.1 binutils
 mv ../gdb-5.0 gdb
-mv ../gcc-2.95.2 gcc
+mv ../gcc-2.95.3 gcc
 mv ../make-3.77 make
 
 %ifos cygwin
@@ -111,7 +111,7 @@ strip build-prc%{exeext} multigen%{exeext} stubgen%{exeext} obj-res%{exeext} \
 %{target}-protoize%{exeext} %{target}-ranlib%{exeext} %{target}-size%{exeext} \
 %{target}-strings%{exeext} %{target}-strip%{exeext} \
 %{target}-unprotoize%{exeext}
-cd %{exec_prefix}/lib/gcc-lib/%{target}/2.95.2-kgpd
+cd %{exec_prefix}/lib/gcc-lib/%{target}/2.95.3-kgpd
 strip cc1%{exeext} cc1plus%{exeext} collect2%{exeext} cpp%{exeext}
 cd %{exec_prefix}/%{target}/bin
 strip ar%{exeext} as%{exeext} gcc%{exeext} ld%{exeext} nm%{exeext} \
@@ -183,9 +183,9 @@ fi
 %doc %{prefix}/man/man1/%{target}-*.1
 
 # support stuff tucked away in GCC's directories
-%{exec_prefix}/lib/gcc-lib/%{target}/2.95.2-kgpd/[A-o]*
-%config %{exec_prefix}/lib/gcc-lib/%{target}/2.95.2-kgpd/pilot.ld
-%config %{exec_prefix}/lib/gcc-lib/%{target}/2.95.2-kgpd/specs
+%{exec_prefix}/lib/gcc-lib/%{target}/2.95.3-kgpd/[A-o]*
+%config %{exec_prefix}/lib/gcc-lib/%{target}/2.95.3-kgpd/pilot.ld
+%config %{exec_prefix}/lib/gcc-lib/%{target}/2.95.3-kgpd/specs
 %{exec_prefix}/%{target}/bin/
 %{exec_prefix}/%{target}/include/
 %{exec_prefix}/%{target}/lib/
