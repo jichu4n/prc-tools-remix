@@ -1,7 +1,6 @@
-# Makefile for prc-tools.
+# Top-level makefile for prc-tools.
 #
-# Copyright 2002 John Marshall
-# Portions copyright 1999-2001 Palm, Inc. or its subsidiaries
+# Copyright 2002 John Marshall.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,59 +10,27 @@
 srcdir = @srcdir@
 VPATH = @srcdir@
 
-configured_subdirs = @subdirs@
-
-prefix = @prefix@
-exec_prefix = @exec_prefix@
-bindir = @bindir@
-target = @target@
-target_alias = @target_alias@
 exeext = @EXEEXT@
-tooldir = $(exec_prefix)/$(target_alias)
-
-INSTALL = @INSTALL@
-INSTALL_DATA = @INSTALL_DATA@
 LN_S = @LN_S@
 
-host_subdirs = $(configured_subdirs) doc tools
-target_subdirs = crt libc libm include
+subdirs = @all_extant_subdirs@
 
-# FIXME: Do we need more stamping or something to be -j friendly?
-all: all-host all-gcc all-target
+all: $(subdirs)
+
+.PHONY: all install clean
+.PHONY: crt doc include libc libm tools
+.PHONY: binutils real-binutils gcc real-gcc gdb make
 
 BUILT_AS = binutils/gas/as-new$(exeext)
 BUILT_LD = binutils/ld/ld-new$(exeext)
 BUILT_AR = binutils/binutils/ar$(exeext)
 BUILT_RANLIB = binutils/binutils/ranlib$(exeext)
-BUILT_GCC = gcc/gcc/xgcc$(exeext)
+BUILT_GCC_DIR = gcc/gcc
+BUILT_GCC = $(BUILT_GCC_DIR)/xgcc$(exeext)
+INSTALLED_TARGET_GCC = @target_alias@-gcc$(exeext)
 
-minitooldir = $(target_alias)
-
-all-host:
-	-rm -rf $(minitooldir)
-	for dir in `echo $(host_subdirs) | sed -e 's/gcc//' -e 's/make//'`; do \
-	  if [ -f ./$${dir}/Makefile ]; then \
-	    if (cd $${dir} && $(MAKE) all); then true; else exit 1; fi; \
-	  fi; \
-	done
-	if [ -f ./binutils/Makefile ]; then \
-	  mkdir $(minitooldir) && mkdir $(minitooldir)/bin; \
-	  cd $(minitooldir)/bin; \
-	  [ -x ../../$(BUILT_AS) ] && $(LN_S) ../../$(BUILT_AS) as$(exeext); \
-	  [ -x ../../$(BUILT_LD) ] && $(LN_S) ../../$(BUILT_LD) ld$(exeext); \
-	fi
-
-all-gcc:
-	r=`pwd`; \
-	ar1="XFOO="; ranlib1="XFOO="; bt1="XFOO="; \
-	[ -x ./$(BUILT_AR) ] && ar1="AR_FOR_TARGET=$$r/$(BUILT_AR)"; \
-	[ -x ./$(BUILT_RANLIB) ] \
-	    && ranlib1="RANLIB_FOR_TARGET=$$r/$(BUILT_RANLIB)"; \
-	[ -d ./$(minitooldir) ] && bt1="build_tooldir=$$r/$(minitooldir)"; \
-	if [ -f ./gcc/Makefile ]; then \
-	  if (cd gcc; $(MAKE) "$${ar1}" "$${ranlib1}" "$${bt1}" all); \
-	      then true; else exit 1; fi; \
-	fi
+target_gcc_flags = @target_gcc_flags@
+targetlib_flags = @targetlib_flags@
 
 # Selection between bootstrap headers and real SDKs used to be done at
 # configure time, but now we just always use the bootstrap headers during
@@ -76,61 +43,57 @@ all-gcc:
 SDKFLAGS = -DBOOTSTRAP -I$${abssrcdir}/bootstrap \
 	   -specs=$${abssrcdir}/bootstrap/bootstrap-specs -palmos-none
 
-all-target:
-	r=`pwd`; \
-	ar1="XFOO="; ranlib1="XFOO="; \
-	[ -x ./$(BUILT_AR) ] && ar1="AR=$$r/$(BUILT_AR)"; \
-	[ -x ./$(BUILT_RANLIB) ] && ranlib1="RANLIB=$$r/$(BUILT_RANLIB)"; \
-	if [ -x ./$(BUILT_GCC) ]; then \
-	  cc1="CC=$$r/$(BUILT_GCC) -B$$r/gcc/gcc/"; \
-	else \
-	  cc1="CC=$(target_alias)-gcc"; \
-	fi; \
-	[ -d ./$(minitooldir) ] && cc1="$${cc1} -B$$r/$(minitooldir)/bin/"; \
+binutils: binutils.stamp
+
+gcc: gcc.stamp
+
+real-binutils:
+	cd binutils && $(MAKE) all
+
+real-gcc: @target_gcc_prereqs@
+	cwd=`pwd`; cd gcc && $(MAKE) $(target_gcc_flags) all
+
+gdb doc include tools:
+	cd $@ && $(MAKE) all
+
+make:
+
+crt libc libm: @targetlib_prereqs@
+	cwd=`pwd`; \
 	case "$(srcdir)" in \
 	  /*) abssrcdir="$(srcdir)" ;; \
-	  *)  abssrcdir="$$r/$(srcdir)" ;; \
+	  *)  abssrcdir="$$cwd/$(srcdir)" ;; \
 	esac; \
-	for dir in $(target_subdirs); do \
-	  if [ -f ./$${dir}/Makefile ]; then \
-	    if (cd $${dir}; $(MAKE) "$${ar1}" "$${ranlib1}" "$${cc1}" \
-	        SDKFLAGS="$(SDKFLAGS)" all); \
-	        then true; else exit 1; fi; \
-	  fi; \
+	cd $@ && $(MAKE) $(targetlib_flags) SDKFLAGS="$(SDKFLAGS)" all
+
+
+binutils.stamp: real-binutils
+	-rm -rf minitooldir
+	mkdir minitooldir
+	mkdir minitooldir/bin
+	cd minitooldir/bin; $(LN_S) ../../$(BUILT_AS) as$(exeext)
+	cd minitooldir/bin; $(LN_S) ../../$(BUILT_LD) ld$(exeext)
+	touch $@
+
+gcc.stamp: real-gcc
+	touch $@
+
+
+# Binutils and GDB would probably like us to tell them to "make install-info"
+# but we don't really want them to install their cross-info anyway.
+
+install:
+	for dir in `echo $(subdirs) | sed 's/make//'`; do \
+	  (cd $${dir} && $(MAKE) install) || exit 1; \
 	done
-
-install: install-host install-gcc install-target
-
-# FIXME: these three want unifying too -- will fix install properly soon
-# FIXME: install-info removed until this is fixed properly
-install-host:
-	for dir in `echo $(host_subdirs) | sed -e 's/gcc//' -e 's/make//'`; do \
-	  if [ -f ./$${dir}/Makefile ]; then \
-	    if (cd $${dir} && $(MAKE) install); then true; else exit 1; fi; \
-	  fi; \
-	done
-
-install-gcc:
-	if [ -f ./gcc/Makefile ]; then \
-	  if (cd gcc && $(MAKE) LANGUAGES="c c++" install); then true; else exit 1; fi; \
-	fi
-
-install-target:
-	for dir in $(target_subdirs); do \
-	  if [ -f ./$${dir}/Makefile ]; then \
-	    if (cd $${dir} && $(MAKE) install); then true; else exit 1; fi; \
-	  fi; \
-	done
-
 
 
 clean:
-	for dir in $(host_subdirs) $(target_subdirs); do \
-	  if [ -f ./$${dir}/Makefile ]; then \
-	    if (cd $${dir} && $(MAKE) clean); then true; else exit 1; fi; \
-	  fi; \
+	-rm -rf minitooldir
+	-rm -f *.stamp
+	for dir in $(subdirs); do \
+	  (cd $${dir} && $(MAKE) clean) || exit 1; \
 	done
-	-rm -rf $(minitooldir)
 
 
 distdir = prc-tools

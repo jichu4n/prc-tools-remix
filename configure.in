@@ -50,8 +50,19 @@ AC_CANONICAL_SYSTEM
 AC_ARG_ENABLE(generic,
 [  --disable-generic       omit tools etc that are not target-specific])
 
-config_subdirs=""
+config_subdirs=
 output_files="Makefile"
+all_subdirs=
+
+target_gcc_prereqs=
+target_gcc_flags=
+targetlib_prereqs=
+targetlib_flags=
+
+AC_SUBST(target_gcc_prereqs)
+AC_SUBST(target_gcc_flags)
+AC_SUBST(targetlib_prereqs)
+AC_SUBST(targetlib_flags)
 
 if false; then
   # FIXME handle "top level configury"
@@ -60,20 +71,57 @@ else
   case "$target_cpu" in
   m68k)	config_subdirs="$config_subdirs binutils gcc gdb"
   	output_files="$output_files crt/Makefile libc/Makefile libm/Makefile"
+	all_subdirs="$all_subdirs binutils gcc gdb crt libc libm"
 	;;
   arm)	config_subdirs="$config_subdirs binutils gcc"
   	output_files="$output_files"
+	all_subdirs="$all_subdirs binutils gcc"
 	;;
   *)	AC_MSG_ERROR($target is not supported as a Palm OS target)
   	;;
   esac
+
+  # The extra variables to be passed down to GCC and the target libraries
+  # depend on which of binutils and GCC is being built in the tree.  This is
+  # easiest to determine here at configure time.
+
+  targetgcc=
+  targetgcc_extra=
+
+  if test -d $srcdir/binutils; then
+    target_gcc_prereqs="binutils"
+    target_gcc_flags='AR_FOR_TARGET="$$cwd/$(BUILT_AR)" RANLIB_FOR_TARGET="$$cwd/$(BUILT_RANLIB)" build_tooldir="$$cwd/minitooldir"'
+    targetlib_prereqs="binutils"
+    targetlib_flags='AR="$$cwd/$(BUILT_AR)" RANLIB="$$cwd/$(BUILT_RANLIB)"'
+    targetgcc='$(INSTALLED_TARGET_GCC)'
+    targetgcc_extra=' -B$$cwd/minitooldir/bin/'
+  fi
+
+  if test -d $srcdir/gcc; then
+    targetlib_prereqs="$targetlib_prereqs gcc"
+    targetgcc='$$cwd/$(BUILT_GCC) -B$$cwd/$(BUILT_GCC_DIR)/'
+  fi
+
+  if test -n "$targetgcc$targetgcc_extra"; then
+    targetlib_flags="$targetlib_flags CC=\"$targetgcc$targetgcc_extra\""
+  fi
 fi
 
 if test x$enable_generic != xno; then
   config_subdirs="$config_subdirs make"
   output_files="$output_files doc/Makefile doc/version.texi include/Makefile
 		tools/Makefile"
+  all_subdirs="$all_subdirs make doc include tools"
 fi
+
+all_extant_subdirs=
+AC_SUBST(all_extant_subdirs)
+
+for dir in $all_subdirs; do
+  if test -d $srcdir/$dir || test -d $dir; then
+    all_extant_subdirs="$all_extant_subdirs $dir"
+  fi
+done
 
 
 AC_PROG_CC
