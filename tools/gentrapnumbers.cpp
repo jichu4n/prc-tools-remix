@@ -23,6 +23,7 @@
 
 #include "libiberty.h"
 
+#include "config.h"
 #include "utils.h"
 
 const char *progname = "gentrapnumbers";
@@ -90,10 +91,10 @@ run_preprocessor (char *fname_i, char *fname_c, int argc, char **argv) {
 
 void
 parse_definitions (FILE *fout, FILE *fin) {
-  map<long, string> traps;
+  std::map<long, std::string> traps;
 
   char line[2048];
-  int maxkeylen = 0;
+  unsigned maxkeylen = 0;
   while (fgets (line, sizeof line, fin)) {
     char key[120];
     long value;
@@ -110,7 +111,7 @@ parse_definitions (FILE *fout, FILE *fin) {
 	   long (traps.size ()),
 	   (*(traps.begin ())).first, (*(traps.rbegin ())).first);
 
-  for (map<long, string>::const_iterator it = traps.begin ();
+  for (std::map<long, std::string>::const_iterator it = traps.begin ();
        it != traps.end ();
        ++it)
     fprintf (fout, "- %-*s  0x%lx\n",
