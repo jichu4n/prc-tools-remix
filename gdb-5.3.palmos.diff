@@ -171,8 +171,8 @@ diff -urN orig-gdb-5.3/gdb/m68k-tdep.c gdb-5.3/gdb/m68k-tdep.c
  
 diff -urN orig-gdb-5.3/gdb/remote-palmos.c gdb-5.3/gdb/remote-palmos.c
 --- orig-gdb-5.3/gdb/remote-palmos.c	Thu Jan  1 00:00:00 1970
-+++ gdb-5.3/gdb/remote-palmos.c	Thu Dec 12 14:29:48 2002
-@@ -0,0 +1,1288 @@
++++ gdb-5.3/gdb/remote-palmos.c	Wed Sep 17 22:45:48 2003
+@@ -0,0 +1,1300 @@
 +/* Remote target communications for serial-line targets in custom GDB protocol
 +   Copyright 1988, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 +   
@@ -781,8 +781,8 @@ diff -urN orig-gdb-5.3/gdb/remote-palmos.c gdb-5.3/gdb/remote-palmos.c
 +	  }
 +	  else if (buf[10] == (char)0x80) { /* Break & state */
 +	    unsigned long sr;
-+	    int i;
 +
++#define State_resetted 12
 +#define State_exception 14
 +#define State_D0 16
 +#define State_D1 20
@@ -817,10 +817,22 @@ diff -urN orig-gdb-5.3/gdb/remote-palmos.c gdb-5.3/gdb/remote-palmos.c
 +	    set_long(regs+REGISTER_BYTE(16), sr); /* SR */
 +	    memcpy(regs+REGISTER_BYTE(17), buf+State_PC, 4); /* PC */
 +	    
-+	    for (i=0;i<6;i++) {
-+	      breakpoint[i].address = get_long(buf+Breakpoint_0+i*6);
-+	      breakpoint[i].on = get_byte(buf+Breakpoint_0+4+i*6);
-+	    }
++	    if (get_byte(buf+State_resetted) != 0)
++	      {
++		/* If the target has just been reset we will ignore the
++		   breakpoint state and forcibly clear all extant breakpoints,
++		   thus avoiding out of date information from the target.  */
++		memset(breakpoint, 0, sizeof breakpoint);
++	      }
++	    else
++	      {
++		int i;
++		for (i=0;i<6;i++)
++		  {
++		    breakpoint[i].address = get_long(buf+Breakpoint_0+i*6);
++		    breakpoint[i].on = get_byte(buf+Breakpoint_0+4+i*6);
++		  }
++	      }
 +
 +	    if (get_long(buf+State_PC) == wbreakpoint_addr) {
 +	      enum target_signal truesig = remote_remove_wbreakpoint();
