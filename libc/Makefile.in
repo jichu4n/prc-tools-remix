@@ -48,19 +48,18 @@ INSTALL_LIBS_m68k    = libc.a mown-gp/libc.a libg.a mown-gp/libg.a libstdc++.a
 
 LIBC_OBJS_m68k = \
 	conio.o vsprintf.o printf.o setjmp.o \
-	bcopy.o memmove.o strchr.o strncat.o strspn.o \
-	strcmp.o strncmp.o strstr.o \
-	memset.o strcpy.o strncpy.o strtok.o \
+	bcopy.o bzero.o \
 	ctype.o isalnum.o isalpha.o isblank.o iscntrl.o isdigit.o isgraph.o \
 	islower.o isprint.o ispunct.o isspace.o isupper.o isxdigit.o \
 	tolower.o toupper.o \
 	atoi.o atol.o atoll.o \
 	_Strtoul.o _Strtoull.o strtol.o strtoll.o strtoul.o strtoull.o \
 	malloc.o free.o realloc.o calloc.o \
+	abort.o atexit.o \
 	abs.o labs.o llabs.o div.o ldiv.o lldiv.o \
-	memcmp.o memchr.o \
-	memcpy.o strcat.o strlen.o strpbrk.o \
-	abort.o atexit.o bzero.o
+	memcpy.o memmove.o strcpy.o strncpy.o strcat.o strncat.o \
+	memcmp.o strcmp.o strncmp.o memchr.o strchr.o strcspn.o strpbrk.o \
+	strrchr.o strspn.o strstr.o strtok.o memset.o strlen.o
 
 LIBG_OBJS_m68k =
 
@@ -69,6 +68,10 @@ INSTALL_DIRS_arm    = lib
 INSTALL_HEADERS_arm =
 INSTALL_LIBS_arm    = libc.a libstdc++.a
 
+# The strtok() function is missing from the list of objects for ARM
+# because, requiring a global, it doesn't work in an armlet.
+# FIXME maybe add strtok_r() to help with this.
+
 LIBC_OBJS_arm = \
 	ctype.o isalnum.o isalpha.o isblank.o iscntrl.o isdigit.o isgraph.o \
 	islower.o isprint.o ispunct.o isspace.o isupper.o isxdigit.o \
@@ -76,7 +79,9 @@ LIBC_OBJS_arm = \
 	atoi.o atol.o atoll.o \
 	_Strtoul.o _Strtoull.o strtol.o strtoll.o strtoul.o strtoull.o \
 	abs.o labs.o llabs.o div.o ldiv.o lldiv.o \
-	memcpy.o memmove.o memcmp.o memchr.o memset.o
+	memcpy.o memmove.o strcpy.o strncpy.o strcat.o strncat.o \
+	memcmp.o strcmp.o strncmp.o memchr.o strchr.o strcspn.o strpbrk.o \
+	strrchr.o strspn.o strstr.o memset.o strlen.o
 
 LIBG_OBJS_arm =
 
@@ -132,6 +137,11 @@ div.o ldiv.o lldiv.o: division.c ../include/stdlib.h
 
 memcpy.o memmove.o memcmp.o memchr.o memset.o: memstring.c ../include/string.h
 	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/memstring.c
+
+strcpy.o strncpy.o strcat.o strncat.o strcmp.o strncmp.o \
+strchr.o strcspn.o strpbrk.o strrchr.o strspn.o strstr.o \
+strtok.o strlen.o: string.c ../include/string.h
+	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/string.c
 
 conio.o: conio.c include/stdio.h $(bootstrap_h) ../bootstrap/bootstrap-ui.h
 
