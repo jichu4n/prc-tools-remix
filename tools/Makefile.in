@@ -147,7 +147,7 @@ def.tab.o: def.tab.c utils.h def.h pfdheader.h
 def.tab.h: def.tab.c
 
 def.yy.c: def.l def.tab.h utils.h pfdheader.h
-	$(LEX) -is $(srcdir)/def.l \
+	$(LEX) -i -s $(srcdir)/def.l \
 	  && mv lex.yy.c def.yy.c
 
 def.tab.c: def.y utils.h def.h pfdheader.h
