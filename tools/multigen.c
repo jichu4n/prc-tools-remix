@@ -142,12 +142,12 @@ main (int argc, char **argv) {
 
   read_def_file (deffname, &funcs);
 
-  if (first_section_entry == NULL)
-    einfo (E_FILE | E_WARNING, "no multiple code sections specified");
-
   if (nerrors == 0) {
     char buffer[FILENAME_MAX];
     char *outfname, *eos;
+
+    if (first_section_entry == NULL)
+      einfo (E_FILE | E_WARNING, "no multiple code sections specified");
 
     if (outfbase) {
       strcpy (buffer, outfbase);

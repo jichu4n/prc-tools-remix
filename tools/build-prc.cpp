@@ -169,7 +169,7 @@ slurp_file_as_datablock (const char* fname) {
     }
   else {
     einfo (E_NOFILE | E_PERROR, "can't open `%s'", fname);
-    return Datablock();
+    throw "";
     }
 #else
   long length;
@@ -183,7 +183,7 @@ slurp_file_as_datablock (const char* fname) {
     }
   else {
     einfo (E_NOFILE | E_PERROR, "can't read raw file `%s'", fname);
-    return Datablock();
+    throw "";
     }
 #endif
   }
@@ -369,6 +369,7 @@ main (int argc, char** argv) {
   bininfo.data_compression = 0;
 
   while ((c = getopt_long (argc, argv, shortopts, longopts, &longind)) != -1)
+    try {
     switch (c) {
     case 'o':
       output_fname = optarg;
@@ -466,6 +467,9 @@ main (int argc, char** argv) {
       work_desired = false;
       break;
       }
+    } catch (const char*& message) {
+      if (*message)  einfo (E_FILE, "%s", message);
+      }
 
   if (!work_desired)
     return EXIT_SUCCESS;
@@ -521,6 +525,7 @@ main (int argc, char** argv) {
     return EXIT_FAILURE;
 
   for (int i = optind; i < argc; i++)
+    try {
     switch (file_type (argv[i])) {
     case FT_DEF:
       einfo (E_NOFILE,
@@ -529,6 +534,7 @@ main (int argc, char** argv) {
       break;
 
     case FT_RAW: {
+      Datablock block = slurp_file_as_datablock (argv[i]);
       char buffer[FILENAME_MAX];
       strcpy (buffer, argv[i]);
       char *key = basename_with_changed_extension (buffer, NULL);
@@ -548,8 +554,7 @@ main (int argc, char** argv) {
       else
 	key[8] = '\0';  /* Ensure strtoul() doesn't get any extra digits.  */
 
-      add_resource (argv[i], ResKey (key, strtoul (&key[4], NULL, 16)),
-		    slurp_file_as_datablock (argv[i]));
+      add_resource (argv[i], ResKey (key, strtoul (&key[4], NULL, 16)), block);
       }
       break;
 
@@ -571,6 +576,9 @@ main (int argc, char** argv) {
 	add_resource (argv[i], (*it).first, (*it).second);
       }
       break;
+      }
+    } catch (const char*& message) {
+      if (*message)  einfo (E_FILE, "%s", message);
       }
 
   if (nerrors == 0) {
