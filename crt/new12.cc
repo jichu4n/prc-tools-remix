@@ -18,10 +18,30 @@ operator new (size_t sz) throw (std::bad_alloc)
 
 #endif
 
+#ifdef Lvnew
+
+void *
+operator new[] (size_t sz) throw (std::bad_alloc)
+{
+  return malloc (sz? sz : 1);
+}
+
+#endif
+
 #ifdef Lnewnt
 
 void *
 operator new (size_t sz, const std::nothrow_t&) throw ()
+{
+  return malloc (sz? sz : 1);
+}
+
+#endif
+
+#ifdef Lvnewnt
+
+void *
+operator new[] (size_t sz, const std::nothrow_t&) throw ()
 {
   return malloc (sz? sz : 1);
 }
