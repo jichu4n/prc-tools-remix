@@ -140,7 +140,7 @@ static struct option longopts[] = {
   };
 
 
-typedef map<ResKey, string> ResourceProvenance;
+typedef std::map<ResKey, std::string> ResourceProvenance;
 
 static ResourceDatabase db;
 static ResourceProvenance prov;
@@ -210,7 +210,7 @@ enum priority_level {
   default_pri, def_default_pri, def_specific_pri, old_cli_pri, option_pri
   };
 
-static map<const void*, priority_level> priority;
+static std::map<const void*, priority_level> priority;
 
 template <class T> static bool
 superior (T& key, priority_level pri) {

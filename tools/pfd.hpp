@@ -1,6 +1,6 @@
 /* pfd.hpp: read/write PRC and PDB files.
 
-   Copyright (c) 1999 Palm Computing, Inc. or its subsidiaries.
+   Copyright (c) 1999, 2001 Palm Computing, Inc. or its subsidiaries.
    All rights reserved.
 
    This is free software; you can redistribute it and/or modify
@@ -73,8 +73,8 @@ operator< (const ResKey& a, const ResKey& b) {
   }
 
 
-typedef map<ResKey, Datablock> ResourceMap;
-typedef map<RecKey, Record> RecordMap;
+typedef std::map<ResKey, Datablock> ResourceMap;
+typedef std::map<RecKey, Record> RecordMap;
 
 class PalmOSDatabase: public DatabaseHeader {
 public:

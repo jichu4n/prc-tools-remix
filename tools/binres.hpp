@@ -1,6 +1,6 @@
 /* binres.hpp: header file for binres.cpp.
 
-   Copyright (c) 1998, 1999 by John Marshall.
+   Copyright (c) 1998, 1999, 2001 by John Marshall.
    <jmarshall@acm.org>
 
    This is free software; you can redistribute it and/or modify
@@ -37,7 +37,7 @@
 struct binary_file_info {
   // Generic information for all kinds of projects:
   ResKey maincode;
-  map<const char*, ResKey> extracode;  // section_name -> ResKey
+  std::map<const char*, ResKey> extracode;  // section_name -> ResKey
 
   // Information specific to applications:
   bool emit_appl_extras;  // code#0, pref#0, and the ori.b #1,%d0 trash

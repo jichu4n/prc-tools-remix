@@ -530,7 +530,7 @@ process_binary_file (const char* fname, const binary_file_info& info,
 
   db[info.maincode] = make_main_code (abfd, text_sec, info.emit_appl_extras);
 
-  for (map<const char*, ResKey>::const_iterator it = info.extracode.begin();
+  for (std::map<const char*,ResKey>::const_iterator it = info.extracode.begin();
        it != info.extracode.end();
        ++it) {
     asection* sec = bfd_get_section_by_name (abfd, (*it).first);
