@@ -4959,8 +4959,8 @@ diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68k.md gcc-2.95.2/gcc/config/m68k/m68
  ;; This is the first machine-dependent peephole optimization.
 diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68k/m68kpalmos.h
 --- orig-gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Wed Dec 31 16:00:00 1969
-+++ gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Mon Jun 26 17:11:41 2000
-@@ -0,0 +1,336 @@
++++ gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Tue Dec 12 17:43:20 2000
+@@ -0,0 +1,339 @@
 +/* Definitions of target machine for GNU compiler.  "naked" 68020,
 +   COFF object files and debugging, version.
 +   Copyright (C) 1994 Free Software Foundation, Inc.
@@ -5104,6 +5104,9 @@ diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68
 +define CONSTANT_POOL_BEFORE_FUNCTION 0
 +define CONSTANT_AFTER_FUNCTION_P(EXP) 1
 +*/
++
++/* Palm OS headers are C++-aware.  */
++#define NO_IMPLICIT_EXTERN_C
 +
 +#undef PROMOTE_PROTOTYPES
 +
