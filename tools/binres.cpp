@@ -464,7 +464,7 @@ make_data (const bfd_byte* raw_data, size_t data_size, size_t total_data_size,
 
 
 ResourceDatabase
-process_binary_file (const char* fname, const binary_file_info& info) {
+process_binary_file (const char* fname, binary_file_info& info) {
   static bool bfd_inited = false;
 
   if (!bfd_inited) {
