@@ -24,7 +24,6 @@ libdir = @libdir@
 target = @target@
 target_alias = @target_alias@
 exeext = @EXEEXT@
-tooldir = $(exec_prefix)/$(target_alias)
 
 INSTALL = @INSTALL@
 RANLIB = @RANLIB@
@@ -63,7 +62,6 @@ all: $(INSTALL_FILES)
 
 install: $(INSTALL_FILES)
 	$(INSTALL) -d $(bindir)
-	$(INSTALL) -d $(tooldir)/bin
 	for f in $(GENERIC_PROGS); do \
 	  echo $${f}; \
 	  $(INSTALL) $${f} $(bindir)/$${f}; \
@@ -71,20 +69,6 @@ install: $(INSTALL_FILES)
 	for f in $(PREFIXED_PROGS); do \
 	  echo $${f}; \
 	  $(INSTALL) $${f} $(bindir)/$(target_alias)-$${f}; \
-	  rm -f $(tooldir)/bin/$${f}; \
-	  ln $(bindir)/$(target_alias)-$${f} $(tooldir)/bin/$${f} \
-	  || ln -s $(bindir)/$(target_alias)-$${f} $(tooldir)/bin/$${f} \
-	  || $(INSTALL) $(bindir)/$(target_alias)-$${f} $(tooldir)/bin/$${f}; \
-	done
-	# These ones shouldn't have been installed under the unprefixed
-	# names, but they were for a while.  We'll keep them a while longer
-	# for compatibility.
-	cd $(bindir); \
-	for f in obj-res$(exeext) multigen$(exeext) stubgen$(exeext); do \
-	  rm -f $${f}; \
-	  ln $(target_alias)-$${f} $${f} \
-	  || ln -s $(target_alias)-$${f} $${f} \
-	  || $(INSTALL) ./$(target_alias)-$${f} ./$${f}; \
 	done
 
 
