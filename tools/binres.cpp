@@ -85,14 +85,9 @@ make_code (bfd* abfd, asection* sec) {
    the start of the block, we insert a jump to it.  */
 
 static Datablock
-make_main_code (bfd* abfd, asection* sec) {
-  Datablock res = make_code (abfd, sec);
-
-  unsigned int entry =
-      (bfd_get_start_address (abfd) - bfd_section_vma (abfd, sec));
-
+make_main_code_m68k (Datablock& res, const char* fname, unsigned long entry) {
   if (entry > 32766)
-    error ("[%s] entry point 0x%x too distant", bfd_get_filename (abfd), entry);
+    error ("[%s] entry point 0x%lx too distant", fname, entry);
   else if (entry > 126) {
     res = res (-4, res.size () + 4);
     unsigned char* s = res.writable_contents ();
@@ -107,6 +102,44 @@ make_main_code (bfd* abfd, asection* sec) {
     }
 
   return res;
+  }
+
+static Datablock
+make_main_code_arm (Datablock& res, const char* fname, unsigned long entry) {
+  if (entry > 33554432)
+    error ("[%s] entry point 0x%lx too distant", fname, entry);
+  else if (entry > 0) {
+    res = res (-4, res.size () + 4);
+    unsigned char* s = res.writable_contents ();
+
+    /* This is the first code that needs to write something ARM-endian!
+       FIXME Use some put_arm_word-style functions.  */
+
+    // On ARM, a jump offset is measured in 32-bit words and is relative to the
+    // instruction after next -- 0 corresponds to skipping one instruction.
+    entry = (entry - 4) >> 2;
+
+    put_byte (s, entry & 0xff);
+    put_byte (s, (entry >>  8) & 0xff);
+    put_byte (s, (entry >> 16) & 0xff);
+    put_byte (s, 0xea);		// b OFF
+    }
+
+  return res;
+  }
+
+static Datablock
+make_main_code (bfd* abfd, asection* sec) {
+  Datablock res = make_code (abfd, sec);
+  const char* fname = bfd_get_filename (abfd);
+  unsigned long entry =
+      (bfd_get_start_address (abfd) - bfd_section_vma (abfd, sec));
+
+  switch (bfd_get_arch (abfd)) {
+  case bfd_arch_m68k:	return make_main_code_m68k (res, fname, entry);
+  case bfd_arch_arm:	return make_main_code_arm  (res, fname, entry);
+  default:		return res;
+    }
   }
 
 
