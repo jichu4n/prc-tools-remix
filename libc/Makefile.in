@@ -76,7 +76,7 @@ LIBC_OBJS_arm = \
 	atoi.o atol.o atoll.o \
 	_Strtoul.o _Strtoull.o strtol.o strtoll.o strtoul.o strtoull.o \
 	abs.o labs.o llabs.o div.o ldiv.o lldiv.o \
-	memcpy.o memset.o
+	memcpy.o memmove.o memcmp.o memchr.o memset.o
 
 LIBG_OBJS_arm =
 
@@ -130,7 +130,7 @@ abs.o labs.o llabs.o: abs.c ../include/stdlib.h
 div.o ldiv.o lldiv.o: division.c ../include/stdlib.h
 	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/division.c
 
-memcpy.o memchr.o memset.o: memstring.c ../include/string.h
+memcpy.o memmove.o memcmp.o memchr.o memset.o: memstring.c ../include/string.h
 	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/memstring.c
 
 conio.o: conio.c include/stdio.h $(bootstrap_h) ../bootstrap/bootstrap-ui.h
