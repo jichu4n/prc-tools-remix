@@ -1,0 +1,49 @@
+Here is the announcement of relocation support from Kresten Krab Thorup.
+Note that these changes are included in this release of prc-tools,
+you don't need to go get them seperately.  You still have to compile
+and replace crt0.o (as below) and when using obj-res, pass it the
+-reloc option on the command line before the COFF object file name.
+
+Jeff.
+
+---------------------------
+Return-Path: pilot-unix-errors@lists.best.com
+Subject: [Pilot-Unix] Data relocations...
+Date: Thu, 13 Mar 1997 16:34:48 +0100 (MET)
+BestServHost: lists.best.com
+Sender: pilot-unix-errors@lists.best.com
+Errors-To: pilot-unix-errors@lists.best.com
+To: pilot-unix@lists.best.com
+
+I've implemented the relocation stuff for gcc.  This is an unofficial
+patch for prc-tools-4.0.1.  It will solve the problem which is being
+reported almost daily that:
+
+  CharPtr days[] = {"mon", "tue", "wed", ... }
+
+doesn't work with gcc.  This fix actually has nothing to do with gcc
+itself, it changes the startup code (crt0.o) and the obj-res tool.
+There probably won't be a new release of prc-tools right now, so if
+you're having this problem maybe it's worth a try.
+
+The pieces you need are in
+ftp://ftp.daimi.aau.dk/Staff/krab/PalmOS/gcc-reloc.tar.
+
+To use this, you need to follow these 4 steps:
+
+Compile palmos_crt0.c (gcc -c) and put copy it on top of crt0.o in
+$prefix/lib/gcc-lib/m68k-palmos-coff/2.7.2.2/ (The last path is
+/2.7.2.2-krab-030597/ if you have the 0.4.1 compiler)
+
+Add "-Wl,-r" in your makefiles to the gcc command(s) that does the
+linking.  This will be the command that does not pass -c to the
+compiler.
+
+Replace obj-res.c with the one in the archive, and re-build prc-tools.
+
+When you run obj-res a new ressource called 'rloc' with ID 0000 will
+be generated.  INCLUDE this in you app by adding it to the build-prc
+command line.  This file tells the startup code how to relocate
+pointers in the data segment.
+
+Good luck!

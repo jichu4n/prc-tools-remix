@@ -1,0 +1,111 @@
+			prc-tools Version 0.5.0
+
+This is minimal release notes for the utilities that make up the public
+release of prc-tools version 0.5.0.  To install code in the Pilot device
+from a UNIX box, you will need to get the pilot-link package as well.
+
+You will want to pick up Andrew Howlett's <mailto:howlett@iosphere.net>
+_excellent_ GNU Pilot SDK Tutorial from his site...
+http://www.iosphere.net/~howlett/pilot/GNU_Pilot.html
+
+This is a major public release.  The top level Makefile has a bunch of 
+new targets...
+   gnuuntar will untar the FSF sources for gcc binutils and gdb
+   patch    will apply the UNIX patches to the untarred trees
+   gnutools will build and install the gnutools for you.
+   doeverything will build and install the whole lot, prc-tools included.
+Make sure you edit the Makefile for your paths and such first, though.
+
+As of version 0.4.0, this code can actually be used to build a working 
+application using gcc without any special hacks.  Thanks to Wes Cherry, 
+pilrc 1.5 is included so resources can be built. Andy Sackheim's txt2bitm
+with endin bugs fixes is included to compile bitmap resources.  The USR 
+headers for both PalmOS1 and 2 are included.  The patches to gcc are mostly
+thanks to Kresten Krab Thorup mailto:krab@california.daimi.aau.dk.  This is a
+complete port of gcc, versions of prc-tools < 0.4.0 provided macros to be
+compatible with PalmOS.  Many thanks to Kresten for eliminating the need for
+them!  This version also does relocation and supports Ian Goldberg's GLib
+shared libraries, as well as 'standard PalmOS2' shared libraries.
+
+NOTE:  You need to rebuild gcc, binutils and gdb to use this version!
+
+If you're impatient, edit Makefile to point at you're GNU tools source
+and the PREFIX where you want it to go, and do...
+
+# make doeverything
+
+or
+
+1. untar the gnutools, patch them, install them or
+   # make gnuuntar
+   # make patch
+   # make gnutools
+
+   AS ROOT (yuck, I'm working on it...).
+
+2. 
+   # make
+
+Iff all goes well, you should get...
+
+obj-res		Takes an m68k-palmos-coff executable and produces code, data
+		and pref resources to be included in the .prc file.
+
+pilrc		Takes a resource spec and produces binary resources.
+
+txt2bitm	Takes a description of bitmap and makes a binary resource.
+
+build-prc	Takes a pile of binary resources and builds a .prc file
+		out of them.
+
+exportlist	Takes a COFF object or library archive and builds a sorted
+		export list from it
+
+stubgen		Takes an export list and makes GNU style 'GLib' stubs
+		for building a shared library.
+
+gdbpanel.prc	In the gdbpanel directory.  This turns the initial debugging
+		hook for gdb on or off for apps compiled with -g.
+
+pilrctst.prc	In the example directory.  This is a test of all the various
+		UI resorces (as well as an example of how to use them).
+
+libc.a,
+libc.sa		Small standard C library (static and shared versions).
+		Includes type stuff, printf and friends.  putchar()
+		and printf() send output to the LCD (even does scrolling!).
+		I would not expect this to be terribly useful for anything
+		except debugging, or perhaps a terminal program.  String
+		functions are also included, as are memmove, bcopy and
+		those sorts of things.  Much of this library thanks to
+		Linus Torvalds, from the Linux kernel lib directory.  He
+		gave me permission to release this stuff _without_ GPL
+		encumberance.
+
+libm.a		Single precision math library.  The standard kind of stuff
+		(like multiply, add etc) will be included with libgcc.a
+		when the compiler was built, this stuff is what one expects
+		from a complete libm.a.  This library was ported from
+		the Cephes Math Library Release 2.2:  June, 1992 and is
+		Copyright 1984, 1987, 1988 by Stephen L. Moshier.  Really
+		neet stuff!
+
+libGLib.a	Dynamic loader library.
+
+# make install
+
+Will put everything in place as specified in Makefile (PREFIX that is :-)
+This will set up a softlink $PREFIX/m68k-palmos/include/PalmOS to point
+at the PalmOS2 headers.  If you want the v1 headers you can change it.
+
+Look at
+
+FTP site ftp://ftp.netcom.com/pub/pa/palm/os_sdk has the USR SDK docs in
+.pdf format.  A must have if you're going to do anything.
+
+Until next time :-) Happy Hacking.
+
+Jeff Dionne
+
+Jeff@RyeHam.EE.Ryerson.Ca
+jeff@maribor.pfnet.com

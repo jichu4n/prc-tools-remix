@@ -1,0 +1,46 @@
+.TH OBJ-RES 1 "PalmOS Pilot tools" "Contrib to FSF" \" -*- nroff -*-
+.SH NAME
+obj-res \- convert an object/executable file in a format supported by
+.B GNU BFD 
+to 
+.B PalmOS 
+compatible resource files
+.SH SYNOPSIS
+.B obj-res [-lL] <object.file>
+.SH DESCRIPTION
+This manual page
+documents the utility
+.BR obj-res .
+.B obj-res
+reads a file in a 
+.B BFD 
+supported object file format (most usually COFF) and generates the files 
+necessary to make up a
+.B PalmOS
+executable in the current directory.  These files can be bound together
+into a
+.B PalmOS
+executable using the
+.B build-prc
+utility.
+.SS OPTIONS
+.TP
+-l generate resources for a GNU style 'GLib' shared library
+.TP
+-L generate resources for a PalmOS version 2 shared library
+.SH USEAGE
+Pass the file name of the
+.B BFD
+compatible executable file on the command line.
+.B obj-res
+will generate the necessary resource files in the current directory ending
+in the extension
+.B .grc
+.SH BUGS
+code #0 resources are generated with magic values for some fields that
+are unused by the current versions of
+.B PalmOS.
+Compression of the data #0 resource is simple minded.
+.SH AUTHOR
+.B obj-res
+was written by D.Jeff Dionne, relocation by Kresten Krab Thorup.

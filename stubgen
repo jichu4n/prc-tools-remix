@@ -1,0 +1,83 @@
+#!/usr/bin/perl
+
+## Expect a list of function names on STDIN, one per line.
+## Something like:
+##    m68k-palmos-coff-nm libfoo.a | grep ' T ' | cut -c12- | sort -u | \
+##       stubgen "Foo Library" FooL foostub.c FooLib.S
+
+die "Usage: $0 library_name creator_id stubfile.c libfile.S\n" .
+    "\tExample: $0 \"Foo Library\" FooL foostub.c FooLib.S\n".
+    "\tNote that stubfile.c and libfile.S are _written_ by this program.\n"
+    unless $#ARGV == 3;
+
+($libname, $creator, $stubfile, $libfile) = @ARGV;
+
+open(STUBFILE, ">$stubfile") or die "Cannot write to $stubfile: $!\n";
+open(LIBFILE, ">$libfile") or die "Cannot write to $libfile: $!\n";
+
+print STUBFILE <<EOS;
+#include <Pilot.h>
+
+static struct LibRef *libref = 0;
+
+extern void GLibClose(struct LibRef *);
+
+void GLib_${creator}(void)
+{
+    asm ("
+EOS
+
+print LIBFILE <<'EOS';
+.text
+.even
+.globl jmptable
+jmptable:
+    dc.w 0
+EOS
+
+$id = 0;
+while(<STDIN>) {
+    chomp;
+    ++$id;
+    print STUBFILE ".global $_\n$_: move.l #$id,%%d0; braw dispatch\n";
+    print LIBFILE "    dc.w $_-jmptable\n";
+}
+
+close(LIBFILE);
+
+print STUBFILE <<EOS;
+
+libname:
+    .asciz \\"$libname\\"
+    .even
+
+dispatch:
+    lea libname(%%pc),%%a1
+    move.l %%a1,%%d2
+    move.l %%a4,%%d1
+    move.l %%d1,%%d1
+    jbeq noglobals
+    lea libref(%%a4),%%a1
+noglobals:
+    move.l %0,%%d1
+    braw GLibDispatch
+    " : : "i" (\'${creator}\') );
+}
+
+register void *reg_a4 asm("%a4");
+
+void GLib_${creator}_clean(Word cmd, Ptr PBP, Word flags)
+{
+    if (reg_a4 && libref) {
+	GLibClose(libref);
+	libref = 0;
+    }
+}
+
+asm("
+.section ehook
+.long GLib_${creator}_clean
+");
+EOS
+
+close(STUBFILE);

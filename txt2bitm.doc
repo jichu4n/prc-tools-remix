@@ -1,0 +1,69 @@
+txt2bitm Documentation
+----------------------
+
+Copyright 1996 Thruput Data Systems, Inc.
+(Released into the public domain through the GNU license program).
+All of the standard GNU licensing stuff applies...
+
+The txt2bitm program is used to transform a standard text file
+edited with vi, or other editor,  into a Pilot bit map resource that gets 
+linked into a Pilot application.  By default it will build a program Icon.
+
+Usage: txt2bitm -I<resource ID> -T<resource Type> input_file_name
+
+The -I flag will override the standard program Icon Id of 1000
+The -T flag will override the standard Icon type of tAIB
+
+These overrides are used to build other kinds of bit map resources.
+The output file name will by default be 'tAIB03e8.bin'.
+
+Each line of the input file can contain up to 163 characters.  Each
+character position corresponds to a pixel on the line.  If a character
+position contains a '-' or a space (' ') then the pixel will be white.
+Any other character will cause the pixel to be black.  The width of the
+bitmap will be determined by the largest exsursive bit position and the
+height is determined by the number of lines in the file, not to exceed 163.
+
+Any bugs should be reported to:
+Andy Sackheim
+andys@tds-inc.com
+
+Good luck an happy bit compiling.
+
+Following is a sample text icon bit file (don't laugh at the artwork):
+Note that even though there are 32 lines only the first 23 are available
+for a program Icon.:w
++++++++++++++++++++++++++++++++ CUT HERE +++++++++++++++++++++++++++++++
+-------------##-----------------
+--------##--#--#--##------------
+---##--#--#-#--#-#--##----------
+--#--#-#--#-#--#-#--##----------
+--#--#-#--#-#--#-#--##----------
+--#--#-#--#-#--#-#--##----------
+--#--#-#--#-#--#-#--##----------
+--#--#-#--#-#--#-#--##----####--
+--#--###--###--###--##---#---#--
+--#-----------------##--#---##--
+--#--------#--#-----##-#---##---
+--#-----#########---###---##----
+--#----#---#--#--#-------##-----
+--#----# --#--#---------##------
+--#-----#########------##-------
+--#--------#--#--#----##--------
+--##---#---#--#--#----##--------
+---#----#########----##---------
+---##------#--#------##---------
+----#---------------##----------
+----##################----------
+-----################-----------
+--------------------------------
+--------------------------------
+--------------------------------
+--------------------------------
+--------------------------------
+--------------------------------
+--------------------------------
+--------------------------------
+--------------------------------
+--------------------------------
++++++++++++++++++++++++++++++++ END OF SAMPLE+++++++++++++++++++++++++++

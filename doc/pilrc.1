@@ -1,0 +1,25 @@
+.TH PILRC 1 "PalmOS Pilot tools" "Wes Cherry" \" -*- nroff -*-
+.SH NAME
+pilrc \- Convert a text file into
+.B PalmOS
+compatible binary UI resources.
+.SH SYNOPSIS
+.B pilrc [-L LANGUAGE] infile [outfiledir]
+.SH DESCRIPTION
+This manual page
+describes the utility
+.BR pilrc .
+.B pilrc
+reads a text file given on the command line and writes a set of
+.B PalmOS
+compatible binary resource files into the current or the optionally
+specified directory.
+.SS OPTIONS
+.BR -L Languge
+Specifies the language translation to use.  Defaults to none.
+.SH BUGS
+Tables generation is broken.
+.SH AUTHOR
+.B pilrc
+was written by Wes Cherry (wesc@ricochet.net).
+This man page written by D.Jeff Dionne.

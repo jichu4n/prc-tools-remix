@@ -1,0 +1,47 @@
+This release goes a long way towards building "out of the box" on
+Win32.  It includes patches that originated from Hoshi Takanori.  His
+original patches can be found at 
+http://www.sra.co.jp/people/hoshi/gcc-win32.html.  There is also a
+Makefile.win32 that will help you build a so called "Canadian Cross"
+on a UN*X host for Win32, but there is still quite a bit of manual copy/move
+of various bits required all the way along the build process.  Have a look
+at the various targets in the Makefile.win32.  After moving the Makefile.win32
+to Makefile, you'll need something like...
+
+# make gnuuntar
+# make patch
+# make winpatch
+# make stamp.binutils
+# make build.gcc
+This build will have an error, you can likely ignore it (unless it's a
+different error than I get :-)
+
+# make install.gcc
+# make stamp.gdb
+# make
+# make install
+
+At this point, you'll need some files from another installed distribution
+to complete the process.  Copy over all the libs, includes and such.
+Make sure you check any symbolic links that get copied point at the right
+place on the Windoze box (yes, cygwin32 has symbolic links).  Make sure that
+the end user executables are not symlinks, or they will only work in BASH.
+The GNU install, and my install for UN*X platforms puts the execuatbles
+in $PREFIX/m68k-palmos-coff/bin with the short (root) name.  That's no
+good here, you want the executables in $PREFIX/bin and symlinks in 
+$PREFIX/m68k-palmos-coff/bin.
+
+If you're building right on a Win32 host, you may fair better, but be warned 
+that it takes f_o_r_e_v_e_r, orders of magnitude longer than on a similar
+machine running Linux.  To build right on Win32, you should use the normal 
+Makefile.  After editing it, try...
+
+# make windoeverthing
+
+You'll still need to clean things up a little, but you should not even
+need an install from another system.
+
+I'd be interested in knowing how it goes if anyone actually tries this :-)
+
+Jeff.
+jeff@pfnet.com
