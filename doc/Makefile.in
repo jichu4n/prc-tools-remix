@@ -118,7 +118,7 @@ texidocs-list:
 	  d=`echo $${file} | sed -e 's:/[^/]*$$::'`; \
 	  f=`echo $${file} | sed -e 's:^.*/::'`; \
 	  if [ -f ./$${d}/Makefile ]; then \
-	    if (cd $${d} && make MAKEHTMLFLAGS="$(MAKEHTMLFLAGS)" $${f}); \
+	    if (cd $${d} && make MAKEHTML="$(MAKEHTML)" MAKEHTMLFLAGS="$(MAKEHTMLFLAGS)" $${f}); \
 	    then true; else exit 1; fi; \
 	    echo $${file} >> texidocs-list; \
 	  else true; fi; \
