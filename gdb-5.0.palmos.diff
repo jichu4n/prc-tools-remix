@@ -186,8 +186,8 @@ diff -urN orig/gdb-5.0/gdb/m68k-tdep.c gdb-5.0/gdb/m68k-tdep.c
  
 diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 --- orig/gdb-5.0/gdb/remote-palmos.c	Wed Dec 31 16:00:00 1969
-+++ gdb-5.0/gdb/remote-palmos.c	Wed Jun 14 19:22:13 2000
-@@ -0,0 +1,1191 @@
++++ gdb-5.0/gdb/remote-palmos.c	Tue Jun 20 15:16:51 2000
+@@ -0,0 +1,1222 @@
 +/* Remote target communications for serial-line targets in custom GDB protocol
 +   Copyright 1988, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 +   
@@ -961,6 +961,37 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +	return done;
 +}
 +
++static char *
++remote_get_macsbug_name (CORE_ADDR memaddr)
++{
++  static const char sysPktGetRtnNameCmd = '\x04';
++  static const char sysPktGetRtnNameRsp = '\x84';
++
++  char buffer[6];
++  char *pkt;
++
++  buffer[0] = sysPktGetRtnNameCmd;
++  buffer[1] = 0;
++  set_long (buffer+2, memaddr);
++
++  putpkt (buffer, sizeof buffer);
++
++  getpkt (&pkt, 0);
++  if (pkt[10] == sysPktGetRtnNameRsp)
++    {
++      char *name = &pkt[24];
++      return (name[0] == '\0')? NULL : name;
++    }
++  else
++    return "funky packet";
++}
++
++char *
++last_chance_lookup_by_pc (CORE_ADDR pc)
++{
++  return remote_get_macsbug_name (pc);
++}
++
 +/* Read memory data directly from the remote machine.
 +   This does not use the data cache; the data cache uses this.
 +   MEMADDR is the address in the remote memory space.
@@ -1379,3 +1410,19 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +  init_palmos_ops ();
 +  add_target (&palmos_ops);
 +}
+diff -urN orig/gdb-5.0/gdb/stack.c gdb-5.0/gdb/stack.c
+--- orig/gdb-5.0/gdb/stack.c	Mon Feb 28 23:17:15 2000
++++ gdb-5.0/gdb/stack.c	Tue Jun 20 15:29:30 2000
+@@ -547,6 +547,12 @@
+ 	  funname = SYMBOL_NAME (msymbol);
+ 	  funlang = SYMBOL_LANGUAGE (msymbol);
+ 	}
++      else
++	{
++	  extern char *last_chance_lookup_by_pc (CORE_ADDR);
++	  funname = last_chance_lookup_by_pc (fi->pc);
++	  funlang = language_unknown;
++	}
+     }
+ 
+   annotate_frame_begin (level == -1 ? 0 : level, fi->pc);
