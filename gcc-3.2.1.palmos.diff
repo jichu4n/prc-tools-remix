@@ -65,8 +65,8 @@ diff -urN orig-gcc-3.2.1/gcc/config.gcc gcc-3.2.1/gcc/config.gcc
  	tmake_file=arm/t-pe
 diff -urN orig-gcc-3.2.1/gcc/config/arm/palmos.h gcc-3.2.1/gcc/config/arm/palmos.h
 --- orig-gcc-3.2.1/gcc/config/arm/palmos.h	Thu Jan  1 00:00:00 1970
-+++ gcc-3.2.1/gcc/config/arm/palmos.h	Thu Sep 12 06:04:47 2002
-@@ -0,0 +1,30 @@
++++ gcc-3.2.1/gcc/config/arm/palmos.h	Wed Dec 18 11:20:43 2002
+@@ -0,0 +1,45 @@
 +/* Definitions for Palm OS on ARM.
 +   Copyright 2002 John Marshall.  (Until it is contributed.)
 +
@@ -97,6 +97,21 @@ diff -urN orig-gcc-3.2.1/gcc/config/arm/palmos.h gcc-3.2.1/gcc/config/arm/palmos
 +
 +#undef TARGET_VERSION
 +#define TARGET_VERSION  fputs (" (ARM/ELF Palm OS armlet)", stderr);
++
++/* We don't want a PLT at all.  */
++#undef NEED_PLT_RELOC
++#define NEED_PLT_RELOC  0
++
++/* Put constant data in .text instead of a separate .rodata.  */
++#undef EXTRA_SECTIONS
++#undef EXTRA_SECTION_FUNCTIONS
++#undef READONLY_DATA_SECTION
++#undef SELECT_SECTION
++#undef SELECT_RTX_SECTION
++
++#undef USE_CONST_SECTION
++#undef CONST_SECTION_ASM_OP
++#undef CONST_SECTION_FUNCTION
 diff -urN orig-gcc-3.2.1/gcc/config/palmos.h gcc-3.2.1/gcc/config/palmos.h
 --- orig-gcc-3.2.1/gcc/config/palmos.h	Thu Jan  1 00:00:00 1970
 +++ gcc-3.2.1/gcc/config/palmos.h	Tue Dec 17 22:58:32 2002
