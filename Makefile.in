@@ -67,13 +67,15 @@ all-gcc:
 
 all-target:
 	r=`pwd`; \
-	ar1="XFOO="; ranlib1="XFOO="; cc1="XFOO="; \
+	ar1="XFOO="; ranlib1="XFOO="; \
 	[ -x ./$(BUILT_AR) ] && ar1="AR=$$r/$(BUILT_AR)"; \
 	[ -x ./$(BUILT_RANLIB) ] && ranlib1="RANLIB=$$r/$(BUILT_RANLIB)"; \
 	if [ -x ./$(BUILT_GCC) ]; then \
 	  cc1="CC=$$r/$(BUILT_GCC) -B$$r/gcc/gcc/"; \
-	  [ -d ./$(minitooldir) ] && cc1="$${cc1} -B$$r/$(minitooldir)/bin/"; \
+	else \
+	  cc1="CC=$(target_alias)-gcc"; \
 	fi; \
+	[ -d ./$(minitooldir) ] && cc1="$${cc1} -B$$r/$(minitooldir)/bin/"; \
 	for dir in $(target_subdirs); do \
 	  if [ -f ./$${dir}/Makefile ]; then \
 	    if (cd $${dir}; $(MAKE) "$${ar1}" "$${ranlib1}" "$${cc1}" all); \
