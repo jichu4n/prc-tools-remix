@@ -75,7 +75,7 @@
 
    Similarly, for toupper(), by masking off all bits but O|U we get an index
    in the range {0--3, 8--11}.  For uppercase (and uncased) letters, the index
-   will be {8--11}; for others, it will be the correct index info OFFSETS.
+   will be {8--11}; for others, it will be the correct index into OFFSETS.
 
    Thus an array with _Cconv[0--3] = OFFSETS and _Cconv[4--11] = 0 provides
    the differences (usually 0!) needed to add to or subtract from each
@@ -110,7 +110,7 @@
 
 #define LATIN1(ff) \
 	 /*	0	1	2	3	4	5	6	7 */ \
-/* 80-87 */	P,	0,	P,	P,	P,	P,	P,	P,   \
+/* 80-87 */	P,	0,	P,    L|P,	P,	P,	P,	P,   \
 /* 88-8f */	P,	P,  1|U|P,	P,  1|U|P,	P,	P,	P,   \
 /* 90-97 */	P,	P,	P,	P,	P,	P,	P,	P,   \
 /* 98-9f */	P,	P,  1|L|P,	P,  1|L|P,	0,	0,  3|U|P,   \
