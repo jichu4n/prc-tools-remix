@@ -5,8 +5,8 @@ USING THESE TOOLS
 In addition to installing this package, you will also need to install
 a Palm OS SDK.  SDK versions 3.5 and greater work with prc-tools without
 modification.  Earlier SDKs require changes to work with prc-tools; you
-can find suitably modified SDKs in Palm's devzone at
-<http://www.palmos.com/dev/tech/tools/gcc/#sdks>.  
+can find suitably modified SDKs on Palm's web site at
+<URL:http://www.palmos.com/dev/tech/tools/gcc/#sdks>.  
 
 You may wish to install several SDKs, and you will probably want to choose
 one as the default SDK, to be used when you compile without any `-palmosN'
@@ -39,9 +39,13 @@ or
 BUILDING FROM SOURCE
 
 To build these tools yourself, you will need to download the source from
-<http://prc-tools.sourceforge.net/>.  You will also need the source
-for GCC 2.95.3, binutils 2.9.1, and gdb 5.0, which can be found via
-<http://www.gnu.org/software/software.html>.  See the file BUILDING.html.
+<URL:http://prc-tools.sourceforge.net/>.  The prc-tools source contains
+patches against specific versions of GCC, binutils, and GDB.  You will
+also need the source code for these versions of these packages.
+
+See the file BUILDING.html for details.  This file can be found in
+the prc-tools source tarball and also on the web at
+<URL:http://prc-tools.sourceforge.net/install/BUILDING.html>.
 
 
 LICENSING
@@ -67,12 +71,12 @@ LICENSING
 	those sorts of things.  Much of this library thanks to
 	Linus Torvalds, from the Linux kernel lib directory.  He
 	gave me permission to release this stuff _without_ GPL
-	encumberance.
+	encumbrance.
 
   [From the prc-tools 0.5.0 README, by Jeff Dionne]
 
 * The code in the libm subdirectory is based on the Cephes Math Library
-  <http://people.ne.mediaone.net/moshier/index.html> and is freely
+  <URL:http://people.ne.mediaone.net/moshier/index.html> and is freely
   redistributable as follows:
 
   libm.a
@@ -82,7 +86,7 @@ LICENSING
 	from a complete libm.a.  This library was ported from
 	the Cephes Math Library Release 2.2:  June, 1992 and is
 	Copyright 1984, 1987, 1988 by Stephen L. Moshier.  Really
-	neet stuff!
+	neat stuff!
 
   [From the prc-tools 0.5.0 README, by Jeff Dionne]
 
@@ -100,21 +104,26 @@ suggestions, patches, bug reports, and other support; many thanks to
 
 	Kenneth Albanowski, Marc Balmer, Simon Burge, Jesse Donaldson,
 	Tom Dyas, Mark W. Eichin, Peter Eisenlohr, Christian Falch,
-	Rick Flower, Brian Foley, Lonnie Foster, Ian Goldberg, John Ioannidis,
-	Oliver Kasten, Scott Knight, David Loomes, Jonathan Lupa, Todd Mokros,
-	Bret Musser, Kjell M. Myksvoll, Joakim Ogren, Bob Petersen,
-	Thomas Pundt, Daniel R. Risacher, Alex Robinson, Keith Rollin,
-	Jørgen Seland, Craig Setera, Katherine Smith, Michael Sokolov,
-	Leon van Stuivenberg, Peter Trommler, Valeriy "Uwe" Ushakov,
-	Andrew Vasquez, Brian Warner, David Williams, Ben Williamson, and
-	Naoki Yamaya.
+	Rick Flower, Brian Foley, Lonnie Foster, Ian Goldberg,
+	John Ioannidis, Oliver Kasten, Scott Knight, David Loomes,
+	Jonathan Lupa, Todd Mokros, Bret Musser, Kjell M. Myksvoll,
+	Joakim Ogren, Ton van Overbeek, Bob Petersen, Thomas Pundt,
+	Daniel R. Risacher, Alex Robinson, Keith Rollin, Jørgen Seland,
+	Craig Setera, Katherine Smith, Michael Sokolov, Leon van Stuivenberg,
+	Peter Trommler, Valeriy "Uwe" Ushakov, Andrew Vasquez,
+	Brian Warner, David Williams, Ben Williamson, Hans-Christoph Wirth,
+	and Naoki Yamaya.
 
 	(If I've missed anybody out, please send me email.) 
 
-The prc-tools project is at SourceForge; the homepage is
-http://prc-tools.sourceforge.net/ .  Most discussion of further prc-tools
-development takes place on the prc-tools-devel mailing list, accessible
-via the SourceForge page.
+The prc-tools project home page is <URL:http://prc-tools.sourceforge.net/>.
+Discussion of further prc-tools development and maintenance takes place on
+the prc-tools-devel mailing list, accessible via the home page.
+
+(Note that discussion of Palm OS programming problems encountered while
+using prc-tools is off-topic on prc-tools-devel; such questions are more
+likely to receive knowledgeable answers on the more appropriate fora
+listed at <URL:http://www.palmos.com/dev/tech/forums/>.)
 
 Happy hacking!
 
