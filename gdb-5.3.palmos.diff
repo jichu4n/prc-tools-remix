@@ -1477,6 +1477,21 @@ diff -urN orig-gdb-5.3/gdb/stack.c gdb-5.3/gdb/stack.c
      }
  
    annotate_frame_begin (level == -1 ? 0 : level, fi->pc);
+diff -urN orig-gdb-5.3/gdb/symfile.c gdb-5.3/gdb/symfile.c
+--- orig-gdb-5.3/gdb/symfile.c	Thu Aug  1 19:18:32 2002
++++ gdb-5.3/gdb/symfile.c	Thu Dec 12 14:37:37 2002
+@@ -1603,8 +1603,10 @@
+       val = sect_opts[i].value;
+       if (val[0] == '0' && val[1] == 'x')
+ 	addr = strtoul (val+2, NULL, 16);
+-      else
++      else if (isdigit (val[0]))
+ 	addr = strtoul (val, NULL, 10);
++      else
++	addr = parse_and_eval_address (val);
+ 
+       /* Here we store the section offsets in the order they were
+          entered on the command line. */
 diff -urN orig-gdb-5.3/libiberty/fnmatch.c gdb-5.3/libiberty/fnmatch.c
 --- orig-gdb-5.3/libiberty/fnmatch.c	Fri Dec 29 21:16:02 2000
 +++ gdb-5.3/libiberty/fnmatch.c	Tue Nov 12 23:22:10 2002
