@@ -87,19 +87,19 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
 --- orig-binutils-2.12/bfd/coff-m68k.c	Tue Sep 18 11:57:22 2001
 +++ binutils-2.12/bfd/coff-m68k.c	Wed Apr 17 18:46:27 2002
 @@ -107,6 +107,7 @@
-   HOWTO(R_PCRWORD,	       0,  1, 	16, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP16",   true, 0x0000ffff,0x0000ffff, false),
-   HOWTO(R_PCRLONG,	       0,  2, 	32, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP32",   true, 0xffffffff,0xffffffff, false),
-   HOWTO(R_RELLONG_NEG,	       0,  -2, 	32, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "-32",	true, 0xffffffff,0xffffffff, false),
-+  HOWTO(R_RELENDWORD,	       0,  1,   16, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "END16",    true, 0x0000ffff,0x0000ffff, false),
- };
+     HOWTO (R_PCRWORD,	       0,  1, 	16, true,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP16",   true, 0x0000ffff,0x0000ffff, false),
+     HOWTO (R_PCRLONG,	       0,  2, 	32, true,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP32",   true, 0xffffffff,0xffffffff, false),
+     HOWTO (R_RELLONG_NEG,      0, -2, 	32, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "-32",	true, 0xffffffff,0xffffffff, false),
++    HOWTO (R_RELENDWORD,       0,  1, 	16, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "END16",	true, 0x0000ffff,0x0000ffff, false),
+   };
  #endif /* not ONLY_DECLARE_RELOCS */
  
 @@ -149,6 +150,7 @@
-    case R_PCRWORD:	internal->howto = m68kcoff_howto_table + 4; break;
-    case R_PCRLONG:	internal->howto = m68kcoff_howto_table + 5; break;
-    case R_RELLONG_NEG:	internal->howto = m68kcoff_howto_table + 6; break;
-+   case R_RELENDWORD:	internal->howto = m68kcoff_howto_table + 7; break;
-   }
+     case R_PCRWORD:	internal->howto = m68kcoff_howto_table + 4; break;
+     case R_PCRLONG:	internal->howto = m68kcoff_howto_table + 5; break;
+     case R_RELLONG_NEG:	internal->howto = m68kcoff_howto_table + 6; break;
++    case R_RELENDWORD:	internal->howto = m68kcoff_howto_table + 7; break;
+     }
  }
  
 @@ -156,6 +158,10 @@
@@ -111,8 +111,8 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
 +    abort ();
 +
    if (internal->pc_relative)
-   {
-     switch (internal->bitsize)
+     {
+       switch (internal->bitsize)
 @@ -193,6 +199,7 @@
      case BFD_RELOC_16_PCREL:	return m68kcoff_howto_table + 4;
      case BFD_RELOC_32_PCREL:	return m68kcoff_howto_table + 5;
@@ -497,7 +497,7 @@ diff -urN orig-binutils-2.12/gas/config/m68k-parse.y binutils-2.12/gas/config/m6
 +	  {
 +	    yylval.exp.pic_reloc = pic_endrel;
 +	    tail += 4;
-+	  } 
++	  }
        }
    }
  #endif
@@ -619,7 +619,7 @@ diff -urN orig-binutils-2.12/gas/m68k-parse.c binutils-2.12/gas/m68k-parse.c
 +	  {
 +	    yylval.exp.pic_reloc = pic_endrel;
 +	    tail += 4;
-+	  } 
++	  }
        }
    }
  #endif
@@ -683,7 +683,7 @@ diff -urN orig-binutils-2.12/ld/emultempl/m68kcoff.em binutils-2.12/ld/emultempl
           required for embedded PIC code.  */
 +#if 0
 +      /* This is NOT required for embedded PIC.  In fact, since we have
-+         sections like [be]hook which can be data sections on input but
++	 sections like [be]hook which can be data sections on input but
 +	 are output in the .text section, this is wrong wrong wrong.  */
        bfd_map_over_sections (abfd, check_sections, (PTR) datasec);
 +#endif
