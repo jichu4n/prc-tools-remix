@@ -78,9 +78,84 @@ Datablock::dup (long off, long len) const {
   }
 
 
+// Bit masks for the header attributes from DataMgr.h
+
+static const unsigned int resource_mask		   = 0x0001;
+static const unsigned int readonly_mask		   = 0x0002;
+static const unsigned int appinfo_dirty_mask	   = 0x0004;
+static const unsigned int backup_mask		   = 0x0008;
+static const unsigned int ok_to_install_newer_mask = 0x0010;
+static const unsigned int reset_after_install_mask = 0x0020;
+static const unsigned int copy_prevention_mask	   = 0x0040;
+static const unsigned int stream_mask		   = 0x0080;
+static const unsigned int hidden_mask		   = 0x0100;
+static const unsigned int launchable_data_mask	   = 0x0200;
+
+// We consider a database header to include everything up to the "next
+// directory offset" (which is always 0), but not the entry count, which
+// is more usefully considered part of the directory.
+
+static const long directory_offset = 76;
 
 PalmOSDatabase::PalmOSDatabase (bool res0) : gap (2), resource (res0) {
   memset (gap.writable_contents(), 0, gap.size());
+  }
+
+PalmOSDatabase::PalmOSDatabase (bool res0, const Datablock& block,
+				long info, long infolim) : resource (res0) {
+  const unsigned char* s = block.contents();
+
+  memcpy (name, s, 32), s += 32;
+
+  unsigned int attributes = get_word (s);
+
+  bool file_resource	= (attributes & resource_mask) != 0;
+  readonly		= (attributes & readonly_mask) != 0;
+  appinfo_dirty		= (attributes & appinfo_dirty_mask) != 0;
+  backup		= (attributes & backup_mask) != 0;
+  ok_to_install_newer	= (attributes & ok_to_install_newer_mask) != 0;
+  reset_after_install	= (attributes & reset_after_install_mask) != 0;
+  copy_prevention	= (attributes & copy_prevention_mask) != 0;
+  stream		= (attributes & stream_mask) != 0;
+  hidden		= (attributes & hidden_mask) != 0;
+  launchable_data	= (attributes & launchable_data_mask) != 0;
+
+  if (resource && !file_resource)
+    throw "database is not a resource database";
+  else if (!resource && file_resource)
+    throw "database is not a record database";
+
+  version = get_word (s);
+  tm_of_palmostime (&created, get_long (s));
+  tm_of_palmostime (&modified, get_long (s));
+  tm_of_palmostime (&backedup, get_long (s));
+  modnum = get_long (s);
+  long appinfo_offset = get_long (s);
+  long sortinfo_offset = get_long (s);
+  memcpy (type, s, 4), s += 4;
+  memcpy (creator, s, 4), s += 4;
+  uidseed = get_long (s);
+  s += 4;
+
+  if (info > infolim || info > block.size() || infolim > block.size())
+    throw "corrupt 1";
+
+  if (sortinfo_offset) {
+    if (sortinfo_offset < info || sortinfo_offset >= infolim)
+      throw "corrupt 2";
+    sortinfo = block (sortinfo_offset, infolim - sortinfo_offset);
+    infolim = sortinfo_offset;
+    }
+
+  if (appinfo_offset) {
+    if (appinfo_offset < info || appinfo_offset >= infolim)
+      throw "corrupt 3";
+    appinfo = block (appinfo_offset, infolim - appinfo_offset);
+    infolim = appinfo_offset;
+    }
+
+  if (infolim > info)
+    gap = block (info, infolim - info);
   }
 
 PalmOSDatabase::~PalmOSDatabase() {
@@ -93,17 +168,17 @@ write_datablock (FILE* f, const Datablock& block) {
 
 bool
 PalmOSDatabase::write (FILE* f) const {
-  unsigned short attributes = 0;
-  if (resource)		attributes |= 0x0001;
-  if (readonly)		attributes |= 0x0002;
-  if (appinfo_dirty)	attributes |= 0x0004;
-  if (backup)		attributes |= 0x0008;
-  if (ok_to_install_newer)  attributes |= 0x0010;
-  if (reset_after_install)  attributes |= 0x0020;
-  if (copy_prevention)	attributes |= 0x0040;
-  if (stream)		attributes |= 0x0080;
-  if (hidden)		attributes |= 0x0100;
-  if (launchable_data)	attributes |= 0x0200;
+  unsigned int attributes = 0;
+  if (resource)			attributes |= resource_mask;
+  if (readonly)			attributes |= readonly_mask;
+  if (appinfo_dirty)		attributes |= appinfo_dirty_mask;
+  if (backup)			attributes |= backup_mask;
+  if (ok_to_install_newer)	attributes |= ok_to_install_newer_mask;
+  if (reset_after_install)	attributes |= reset_after_install_mask;
+  if (copy_prevention)		attributes |= copy_prevention_mask;
+  if (stream)			attributes |= stream_mask;
+  if (hidden)			attributes |= hidden_mask;
+  if (launchable_data)		attributes |= launchable_data_mask;
 
   unsigned char header[78];
   unsigned char* s = header;
@@ -126,7 +201,7 @@ PalmOSDatabase::write (FILE* f) const {
   memcpy (s, creator, 4), s += 4;
   put_long (s, uidseed);
   put_long (s, 0);
-  put_word (s, dbsize());
+  put_word (s, dbsize());  // BP DOLATER shouldn't this be # records, not total Datablock size?
 
   return fwrite (header, 1, sizeof header, f) == sizeof header
       && write_directory (f, offset)
@@ -141,12 +216,55 @@ PalmOSDatabase::write (FILE* f) const {
 ResourceDatabase::ResourceDatabase() : PalmOSDatabase (true) {
   }
 
+long
+ResourceDatabase::find_info (const Datablock& block) {
+  // The info blocks start after the header and all the directory entries:
+  const unsigned char* s = block.contents() + directory_offset;
+  unsigned int nrecs = get_word (s);
+  return s - block.contents() + 10 * nrecs;
+  }
+
+long
+ResourceDatabase::find_infolim (const Datablock& block) {
+  const unsigned char* s = block.contents() + directory_offset;
+  unsigned int nrecs = get_word (s);
+  // ...and end at the offset of the first resource:
+  if (nrecs > 0) {
+    s += 6;  // Skip type & id
+    return get_long (s);
+    }
+  else
+    return block.size();
+  }
+
+ResourceDatabase::ResourceDatabase (const Datablock& block)
+  : PalmOSDatabase (true, block, find_info (block), find_infolim (block)) {
+  long infolim = find_infolim (block);
+  long entrylim = block.size();
+
+  const unsigned char* dir = block.contents() + directory_offset;
+  unsigned int nrecs = get_word (dir);
+
+  for (const unsigned char *d = dir + 10 * (nrecs-1); d >= dir; d -= 10) {
+    const unsigned char *s = d;
+    ResKey key;
+    memcpy (key.type, s, 4), s += 4;
+    key.id = get_word (s);
+    long entry = get_long (s);
+
+    if (entry < infolim || entry > entrylim)
+      throw "corrupt 4";
+
+    insert (ResourceMap::value_type (key, block (entry, entrylim - entry)));
+    entrylim = entry;
+    }
+  }
+
 ResourceDatabase::~ResourceDatabase() {
   }
 
 bool
 ResourceDatabase::write_directory (FILE* f, unsigned long& offset) const {
-
   for (ResourceMap::const_iterator it = begin(); it != end(); ++it) {
     unsigned char buffer[10];
     unsigned char* s = buffer;
@@ -172,7 +290,65 @@ ResourceDatabase::write_data (FILE* f, unsigned long& offset) const {
 
 
 
+// Bit masks for the record attributes from DataMgr.h
+
+static const unsigned char category_mask  = 0x0f;
+static const unsigned char secret_mask	  = 0x10;
+static const unsigned char busy_mask	  = 0x20;
+static const unsigned char dirty_mask	  = 0x40;
+static const unsigned char deletable_mask = 0x80;
+
 RecordDatabase::RecordDatabase() : PalmOSDatabase (false) {
+  }
+
+long
+RecordDatabase::find_info (const Datablock& block) {
+  // The info blocks start after the header and all the directory entries:
+  const unsigned char* s = block.contents() + directory_offset;
+  unsigned int nrecs = get_word (s);
+  return s - block.contents() + 8 * nrecs;
+  }
+
+long
+RecordDatabase::find_infolim (const Datablock& block) {
+  const unsigned char* s = block.contents() + directory_offset;
+  unsigned int nrecs = get_word (s);
+  // ...and end at the offset of the first resource:
+  if (nrecs > 0)
+    return get_long (s);
+  else
+    return block.size();
+  }
+
+RecordDatabase::RecordDatabase(const Datablock& block)
+  : PalmOSDatabase (false, block, find_info (block), find_infolim (block)) {
+  long infolim = find_infolim (block);
+  long entrylim = block.size();
+
+  const unsigned char* dir = block.contents() + directory_offset;
+  unsigned int nrecs = get_word (dir);
+
+  for (const unsigned char *d = dir + 8 * (nrecs-1); d >= dir; d -= 8) {
+    const unsigned char *s = d;
+    long entry = get_long (s);
+    RecKey key = get_long (s) & 0xfffffful;
+    s -= 4;
+    unsigned char attributes = get_byte (s);
+
+    if (entry < infolim || entry > entrylim)
+      throw "corrupt 5";
+
+    Record rec;
+    static_cast<Datablock>(rec) = block (entry, entrylim - entry);
+    rec.category  =  attributes & category_mask;
+    rec.deletable = (attributes & deletable_mask) != 0;
+    rec.dirty	  = (attributes & dirty_mask) != 0;
+    rec.busy	  = (attributes & busy_mask) != 0;
+    rec.secret	  = (attributes & secret_mask) != 0;
+
+    insert (RecordMap::value_type (key, rec));
+    entrylim = entry;
+    }
   }
 
 RecordDatabase::~RecordDatabase() {
@@ -184,11 +360,11 @@ RecordDatabase::write_directory (FILE* f, unsigned long& offset) const {
     unsigned char buffer[8];
     unsigned char* s = buffer;
 
-    unsigned char attributes = (*it).second.category;
-    if ((*it).second.deletable)	attributes |= 0x80;
-    if ((*it).second.dirty)	attributes |= 0x40;
-    if ((*it).second.busy)	attributes |= 0x20;
-    if ((*it).second.secret)	attributes |= 0x10;
+    unsigned char attributes = (*it).second.category & category_mask;
+    if ((*it).second.deletable)	attributes |= deletable_mask;
+    if ((*it).second.dirty)	attributes |= dirty_mask;
+    if ((*it).second.busy)	attributes |= busy_mask;
+    if ((*it).second.secret)	attributes |= secret_mask;
 
     put_long (s, offset);
     put_long (s, (*it).first);

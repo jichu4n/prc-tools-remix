@@ -118,7 +118,7 @@ file_type (const char *fname) {
     *s = tolower (*s);
 
   return   (strcmp (ext, "grc") == 0 || strcmp (ext, "bin") == 0)?  FT_RAW
-	 : (strcmp (ext, "prc") == 0)? FT_PRC
+	 : (strcmp (ext, "prc") == 0 || strcmp (ext, "ro") == 0)? FT_PRC
 	 : (strcmp (ext, "def") == 0)? FT_DEF
 	 : FT_BFD;
   }

@@ -53,7 +53,7 @@ Usage: Old-style: %s [options] outfile.prc 'App Name' apid file...\n",
   printf ("       New-style: %s [options] file...\n", progname);
   // Commented out options are intended but not yet implemented
   printf ("\
-Files may be .bin, .grc, .def (new-style only), or linked executables\n");
+Files may be .bin/.grc, .prc/.ro, .def (new-style only), or linked executables\n");
   /* printf ("\
 Files may be .bin, .grc, .prc, .def (new-style only), or linked executables,\n\
 and may specify `f=#' to renumber and `f(type[#[-#]][,...])' to select\n"); */
@@ -534,10 +534,14 @@ main (int argc, char** argv) {
       }
       break;
 
-    case FT_PRC:
-      // @@@ implement this later
-      einfo (E_NOFILE | E_WARNING,
-	     "`%s' ignored: PRC reading not yet implemented", argv[i]);
+    case FT_PRC: {
+      Datablock block = slurp_file_as_datablock (argv[i]);
+      ResourceDatabase prc_db (block);
+      for (ResourceDatabase::const_iterator it = prc_db.begin();
+	   it != prc_db.end();
+	   ++it)
+	add_resource (argv[i], (*it).first, (*it).second);
+      }
       break;
       }
 
