@@ -48,6 +48,16 @@ _	[_\-]?
 D	[0-9]
 HD	[0-9A-Fa-f]
 
+%{
+/* We approximate {ALNUM} by "not whitespace or punctuation".  It'd be nice
+   to omit all the control characters in [\0, ' ') as well, but we can't
+   name them portably.  We use this instead of just [_A-Za-z0-9] so that
+   we can include Latin-1 alphabetic characters, which also can't be named
+   portably.  This means we pick up Latin-1 punctuation characters, but the
+   parser won't have special meanings for these, so it doesn't matter.  */
+%}
+ALNUM	[^ \t\n!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
+
 %%
 	char str_buffer[1024];
 	char *strp = NULL;
@@ -86,6 +96,7 @@ HD	[0-9A-Fa-f]
 
 <sstr,dstr>\\.		*strp++ = yytext[1];
 
+<sstr,dstr>\\		|
 <sstr>[^\\\n\']+	|
 <dstr>[^\\\n\"]+	{ strcpy(strp, yytext); strp += yyleng; }
 
@@ -150,13 +161,11 @@ launchable{_}data	return LAUNCHABLE_DATA;
 
 	/* Other words ("identifiers", but for us they're unquoted strings): */
 
-[A-Za-z_][A-Za-z0-9_]*	{ yylval.str = dup(yytext); return STR; }
+{ALNUM}+		{ yylval.str = dup(yytext); return STR; }
 
 	/* Punctuation: */
 
-[{}\[\]()=]	return yytext[0];
-
-<*>.	einfo(E_FILELINE | E_WARNING, "unexpected character `%c'", yytext[0]);
+.			return yytext[0];
 
 %%
 
