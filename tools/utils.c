@@ -217,42 +217,6 @@ slurp_file (const char *fname, const char *mode, long *sizep) {
   return buffer;
   }
 
-int
-copy_file (const char *outfname, const char *infname, const char *mode) {
-  char buffer[8192];
-  char readmode[20], writemode[20];
-  FILE *inf, *outf;
-  size_t n;
-  int err = 0;
-
-  sprintf (readmode, "r%.16s", mode);
-  sprintf (writemode, "w%.16s", mode);
-
-  if ((inf = fopen (infname, readmode)) == NULL) {
-    error ("can't open '%s': @P", infname);
-    return 0;
-    }
-
-  if ((outf = fopen (outfname, writemode)) == NULL) {
-    fclose (inf);
-    error ("can't create '%s': @P", outfname);
-    return 0;
-    }
-
-  while (!err && (n = fread (buffer, 1, sizeof buffer, inf)) > 0)
-    err = (fwrite (buffer, 1, n, outf) != n);
-
-  if (err)  error ("error writing to '%s': @P", outfname);
-
-  err = ferror (inf);
-  if (err)  error ("error reading file: @P");
-
-  fclose (outf);
-  fclose (inf);
-
-  return !err;
-  }
-
 
 void
 generate_file_from_template (const char *fname, const char *const *tmpl,

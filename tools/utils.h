@@ -96,8 +96,6 @@ char *basename_with_changed_extension (char *fname, const char *newext);
 
 void *slurp_file (const char *fname, const char *mode, long *sizep);
 
-int copy_file (const char *outfname, const char *infname, const char *mode);
-
 void generate_file_from_template (const char *fname, const char *const *tmpl,
 				  int (*filter)(FILE *f, const char *key));
 
