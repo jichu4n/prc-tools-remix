@@ -27,6 +27,10 @@ RANLIB = @RANLIB@
 LEX = @LEX@
 YACC = @YACC@
 
+# Eventually write configury goop to select this if needed
+# (Is this *really* what you have to do to get one library statically linked?)
+CXXLIBS = -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lm -lgcc -lc -lgcc
+
 BINUTILS_INCDIRS = -I$(srcdir)/../binutils/include -I../binutils/bfd
 BINUTILS_LIBDIRS = -L../binutils/bfd -L../binutils/libiberty
 
@@ -59,10 +63,12 @@ install-info:
 	$(CXX) $(CXXFLAGS) $(BINUTILS_INCDIRS) -o $@ -c $<
 
 obj-res$(exeext): obj-res.o binres.o utils.o $(PFD)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(BINUTILS_LIBDIRS) -lbfd -liberty -L. -lpfd
+	$(CXX) $(LDFLAGS) -o $@ $^ \
+	$(BINUTILS_LIBDIRS) -lbfd -liberty -L. -lpfd $(CXXLIBS)
 
 build-prc$(exeext): build-prc.o binres.o utils.o def.yy.o def.tab.o $(PFD)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(BINUTILS_LIBDIRS) -lbfd -liberty -L. -lpfd
+	$(CXX) $(LDFLAGS) -o $@ $^ \
+	$(BINUTILS_LIBDIRS) -lbfd -liberty -L. -lpfd $(CXXLIBS)
 
 multigen$(exeext): multigen.o utils.o def.yy.o def.tab.o $(PFD)
 	$(CC) $(LDFLAGS) -o $@ $^ $(BINUTILS_LIBDIRS) -liberty -L. -lpfd
