@@ -67,7 +67,7 @@ prc-tools.dvi: prc-tools.texi version.texi
 	texi2dvi -I $(srcdir) $(srcdir)/prc-tools.texi
 
 prc-tools.ps: prc-tools.dvi
-	dvips -o $@ $<
+	dvips -o $@ prc-tools.dvi
 
 prc-tools.html: prc-tools.texi version.texi
 	-@rm -f prc-tools[_.]*html
