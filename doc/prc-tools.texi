@@ -690,10 +690,14 @@ functions into different sections, such as @code{-ffunction-sections}
 and rearrangements at link time, don't work.)
 
 The current implementation puts pointers to the code resources into the
-application's global data.  This means that you must not attempt to call
-a function that is not in the main code section when globals are not
-available, e.g., when processing a launch code that doesn't give you
-globals.
+application's global data, and uses those pointers in the code emitted
+for each call in which the calling function and the called function are in
+different sections.  This means that you must not attempt to call between
+different sections when globals are not available.  In particular, all
+functions in your application called while processing a launch code that
+doesn't give you globals must be in the main code section.  (This always
+includes @code{PilotMain}, which is always called by the startup code for
+all launch codes.)
 
 A project definition file (@pxref{Definition files}) must be used, with
 a multiple code clause to inform @code{build-prc} of the new sections.
