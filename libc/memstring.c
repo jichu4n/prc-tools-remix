@@ -55,11 +55,8 @@ memset (void *vp, int ic, size_t n) {
     unsigned long cl, *pl;
     size_t nl;
 
-#ifdef __m68k__
-    if (((unsigned long) p) & 1)  *p++ = c, n--;
-#else
-    while (((unsigned long) p) & 3)  *p++ = c, n--;
-#endif
+    while_maybe (alignment (p) != 0)
+      *p++ = c, n--;
 
     cs = c;
     cs |= c << 8;
