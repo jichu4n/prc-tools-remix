@@ -622,8 +622,8 @@ main (int argc, char **argv) {
     if (dump_target)
       write_specs (stdout, dump_target, default_sdk);
     else if (generic_root_list || sdk_root_list) {
-      const char *target;
-      int ntargets, done;
+      const char *target, *header_fname;
+      int ntargets;
       DIR *dir = NULL;
       const char *message = "...done";
 
@@ -644,38 +644,40 @@ main (int argc, char **argv) {
 	}
 
       remove_file (0, trapnumbers_fname);
-      for (sdk = default_sdk, done = 0;
-	   sdk && ! done;
-	   sdk = find (sdk_root_list, sdk->base)) {
-	TREE *tree = opentree (FILES, "%s/%s", sdk->prefix, sdk->include);
-	const char *header_fname;
-	while ((header_fname = readtree (tree)) != NULL) {
-	  const char *base = lbasename (header_fname);
-	  if (matches ("coretraps.h", base) || matches ("systraps.h", base)) {
-	    long header_size;
-	    char *header_text = slurp_file (header_fname, "r", &header_size);
-	    if (header_text) {
-	      FILE *f = fopen_for_writing (trapnumbers_fname, &message);
-	      if (f) {
-		fprintf (f, "Palm OS trap vectors from '%s'\n\n", header_fname);
-		write_traps (f, header_text);
-		fclose (f);
 
-		done = 1;
-		if (verbose)
-		  printf ("Parsed trap numbers in '%s'\n"
-			  "  and wrote them to '%s'\n",
-			  header_fname, trapnumbers_fname);
-		}
-
-	      free (header_text);
-	      }
-	    else
-	      warning ("can't open '%s': @P", header_fname);
+      for (header_fname = NULL, sdk = default_sdk;
+	   header_fname == NULL && sdk;
+	   sdk = find (sdk_root_list, sdk->base))
+	if (sdk->include) {
+	  TREE *tree = opentree (FILES, "%s/%s", sdk->prefix, sdk->include);
+	  while ((header_fname = readtree (tree)) != NULL) {
+	    const char *base = lbasename (header_fname);
+	    if (matches ("coretraps.h", base) || matches ("systraps.h", base))
+	      break;
 	    }
+	  closetree (tree);
 	  }
 
-	closetree (tree);
+      if (header_fname) {
+	long header_size;
+	char *header_text = slurp_file (header_fname, "r", &header_size);
+	if (header_text) {
+	  FILE *f = fopen_for_writing (trapnumbers_fname, &message);
+	  if (f) {
+	    fprintf (f, "Palm OS trap vectors from '%s'\n\n", header_fname);
+	    write_traps (f, header_text);
+	    fclose (f);
+
+	    if (verbose)
+	      printf ("Parsed trap numbers in '%s'\n"
+		      "  and wrote them to '%s'\n",
+		      header_fname, trapnumbers_fname);
+	    }
+
+	  free (header_text);
+	  }
+	else
+	  warning ("can't open '%s': @P", header_fname);
 	}
 
       if (report)
