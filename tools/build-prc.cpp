@@ -146,7 +146,7 @@ typedef std::map<ResKey, std::string> ResourceProvenance;
 static ResourceDatabase db;
 static ResourceProvenance prov;
 static struct binary_file_info bininfo;
-static void (*check_resources) (const char *, const ResourceDatabase&,
+static void (*check_resources) (const char*, const ResourceDatabase&,
 				const struct binary_file_info&);
 
 
@@ -164,7 +164,7 @@ add_resource (const char* origin, const ResKey& key, const Datablock& data) {
 
 
 static void
-check_maincode (const char *fname, const ResourceDatabase& db,
+check_maincode (const char* fname, const ResourceDatabase& db,
 		const struct binary_file_info& info) {
   if (db.find (info.maincode) == db.end())
     error ("[%s] resource '%.4s' #%u is missing",
@@ -172,7 +172,7 @@ check_maincode (const char *fname, const ResourceDatabase& db,
   }
 
 static void
-check_hack (const char *fname, const ResourceDatabase& db,
+check_hack (const char* fname, const ResourceDatabase& db,
 	    const struct binary_file_info&) {
   struct { unsigned int lo, hi, n; } traps, forms;
 
@@ -300,7 +300,7 @@ static bool
 set_db_kind (database_kind kind, priority_level pri) {
   ResKey maincode;
   bool emit_appl_extras, emit_data;
-  void (*check) (const char *, const ResourceDatabase&,
+  void (*check) (const char*, const ResourceDatabase&,
 		 const struct binary_file_info&);
 
   switch (kind) {
@@ -693,8 +693,8 @@ main (int argc, char** argv) {
       Datablock block = slurp_file_as_datablock (argv[i]);
       char buffer[FILENAME_MAX];
       strcpy (buffer, argv[i]);
-      char *key = basename_with_changed_extension (buffer, NULL);
-      char *dot = strchr (key, '.');
+      char* key = basename_with_changed_extension (buffer, NULL);
+      char* dot = strchr (key, '.');
       /* A dot in the first four characters might just possibly be a very
 	 strange resource type.  Any beyond there are extensions, which
 	 we'll remove.  */
