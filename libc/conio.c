@@ -59,13 +59,14 @@ static int scroll()
 
 int putchar (unsigned int buf)
 {
-  if (!(yc < YMAX)) yc = scroll();
   if (buf == '\n' || (!(xc < XMAX))) {
     DRAWLN(yc++);
     xc = 0;
 
     if (buf =='\n') return 0;
   }
+
+  if (!(yc < YMAX)) yc = scroll();
 
   fb[yc * XMAX + xc++] = buf;
   return 0;
