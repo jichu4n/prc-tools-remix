@@ -102,11 +102,19 @@ LDFLAGS=-L`pwd`/static-libs ./configure \
   --includedir=%{_includedir} --libdir=%{_libdir} \
   --mandir=%{_mandir} --infodir=%{_infodir}
 
-make
+%ifarch noarch
+# For a noarch package, we want to avoid wasting time building and installing
+# all the other directories.
+%define make_opts  subdirs=doc
+%else
+%define make_opts  %{nil}
+%endif
+
+make %{make_opts}
 
 %install
 [ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
-%makeinstall htmldir=$RPM_BUILD_ROOT%{palmdev_prefix}/doc
+%makeinstall htmldir=$RPM_BUILD_ROOT%{palmdev_prefix}/doc %{make_opts}
 
 %clean
 [ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
@@ -132,10 +140,12 @@ fi
 
 %files
 %defattr(-, root, root)
+%ifnarch noarch
 %{_bindir}/[b-z]*
 %{_exec_prefix}/m68k*
 %{_libdir}/gcc-lib/m68k*
 %{_datadir}/prc-tools
+%endif
 # Native packages provide gcc.info* etc, so we limit ourselves to this one
 %doc %{_infodir}/prc-tools*
 # Similarly, the native packages have already provided equivalent manpages
@@ -145,9 +155,11 @@ fi
 
 %files arm
 %defattr(-, root, root)
+%ifnarch noarch
 %{_bindir}/arm*
 %{_exec_prefix}/arm*
 %{_libdir}/gcc-lib/arm*
+%endif
 
 %files htmldocs
 %defattr(-, root, root)
