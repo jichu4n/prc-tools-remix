@@ -67,6 +67,7 @@ struct directory_node {
 struct directory_tree {
   int flags;
   DIR *curdir;
+  const char *curname;
   struct directory_node *dirstack;
   };
 
@@ -108,19 +109,25 @@ opentree (int flags, const char *path_format, ...) {
 const char *
 readtree (TREE *tree) {
   static char entryname[FILENAME_MAX];
-  struct dirent *entry;
 
   while (1)
-    if (tree->curdir && (entry = readdir (tree->curdir)) != NULL) {
-      sprintf (entryname, "%s/%s", tree->dirstack->path, entry->d_name);
-      if (is_dir_dirent (entry, "%s", entryname)) {
-	if (strcmp (entry->d_name, ".") != 0
-	    && strcmp (entry->d_name, "..") != 0)
-	  push (tree, entryname);
+    if (tree->curdir) {
+      struct dirent *entry = readdir (tree->curdir);
+      if (entry) {
+	sprintf (entryname, "%s/%s", tree->curname, entry->d_name);
+	if (is_dir_dirent (entry, "%s", entryname)) {
+	  if (strcmp (entry->d_name, ".") != 0
+	      && strcmp (entry->d_name, "..") != 0)
+	    push (tree, entryname);
+	  }
+	else {
+	  if (tree->flags & FILES)
+	    return entryname;
+	  }
 	}
       else {
-	if (tree->flags & FILES)
-	  return entryname;
+	closedir (tree->curdir);
+	tree->curdir = NULL;
 	}
       }
     else if (tree->dirstack && tree->dirstack->scanned) {
@@ -130,14 +137,12 @@ readtree (TREE *tree) {
 	return entryname;
       }
     else if (tree->dirstack) {
-      if (tree->curdir)
-	closedir (tree->curdir);
-
-      tree->curdir = opendir (tree->dirstack->path);
+      tree->curname = tree->dirstack->path;
+      tree->curdir = opendir (tree->curname);
       if (tree->curdir) {
 	tree->dirstack->scanned = 1;
 	if (tree->flags & DIRS_PREORDER)
-	  return tree->dirstack->path;
+	  return tree->curname;
 	}
       else
 	pop (tree);
