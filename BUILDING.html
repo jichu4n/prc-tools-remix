@@ -9,12 +9,18 @@
 <h1>Building prc-tools</h1>
 
 Prc-tools is built regularly on Linux and Cygwin, and should build without
-too much trouble on other Unix-like systems.  (Any problems encountered are
-bugs and we would like to hear about them.)  These regular builds are done
+too much trouble on other Unix-like systems.  These regular builds are done
 either with the RPM spec file <code>prc-tools.spec</code> or with the
-<code>cygwin-build</code> script.  While we attempt to keep these instructions
-up to date, those two files should be considered to represent the canonical
-tested build procedures.
+<code>cygwin-build</code> script.  While we make every effort to keep
+these instructions up to date, those two files should be considered to
+represent the canonical tested build procedures.
+
+<p>
+Problems encountered while building prc-tools are likely to be bugs in the
+build scripts, makefiles, or procedures, and we would like to hear about them.
+The <code>prc-tools-devel</code> mailing list is the right place to report
+difficulties in building prc-tools itself.  (But it is <b>not</b> the right
+place for difficulties encountered while <i>using</i> the tools.)
 
 <p>
 In this document, we use <code>prc-tools-srcdir</code> to refer to the top
@@ -158,7 +164,7 @@ prc-tools, binutils, GDB, GCC, and also for
 To generate the make documentation, you'll also need to make
 <a href="ftp://ftp.gnu.org/pub/gnu/make/">GNU Make</a> source code available
 similarly, as <code>prc-tools-srcdir/make</code>.
-(This has been tested with versions 3.77 of 3.79.1 of GNU Make.)
+(This has been tested with versions 3.77 and 3.79.1 of GNU Make.)
 
 <h2>Configuring</h2>
 
