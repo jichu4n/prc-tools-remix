@@ -47,6 +47,8 @@ extern FILE *yyin;
 extern void lexer_init (void (*warning_func) (const char *));
 extern int lexer_lineno ();
 
+#define YYERROR_VERBOSE
+
 void yyerror (char *s);
 
 static const char *standard_db_type (enum database_kind kind);
