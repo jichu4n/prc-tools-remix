@@ -1,6 +1,6 @@
 /* utils.c: various utilities.
 
-   Copyright 1998, 1999, 2001, 2002 John Marshall.
+   Copyright 1998, 1999, 2001, 2002, 2003 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -126,7 +126,7 @@ print_version (const char *canonical_progname, const char *flags) {
     { '\0', NULL }
     };
 
-  static const int year = 2002;
+  static const int year = 2003;
 
   const char *s;
 
