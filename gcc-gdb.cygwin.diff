@@ -1,5 +1,5 @@
-diff -ur orig/prc-tools-2.0/configure prc-tools-2.0/configure
---- orig/prc-tools-2.0/configure	Sun Jan 30 18:10:26 2000
+diff -ur orig-prc-tools-2.0/configure prc-tools-2.0/configure
+--- orig-prc-tools-2.0/configure	Sun Jan 30 18:10:26 2000
 +++ prc-tools-2.0/configure	Sun Jan 30 18:23:53 2000
 @@ -1093,6 +1093,10 @@
  	    grep pwplus $ac_dir/$ac_prog >/dev/null 2>&1; then
@@ -12,8 +12,8 @@ diff -ur orig/prc-tools-2.0/configure prc-tools-2.0/configure
  	  else
  	    ac_cv_path_install="$ac_dir/$ac_prog -c"
  	    break 2
-diff -ur orig/gcc-2.95.2/texinfo/makeinfo/makeinfo.c gcc-2.95.2/texinfo/makeinfo/makeinfo.c
---- orig/gcc-2.95.2/texinfo/makeinfo/makeinfo.c	Fri Jan 21 18:53:09 2000
+diff -ur orig-gcc-2.95.2/texinfo/makeinfo/makeinfo.c gcc-2.95.2/texinfo/makeinfo/makeinfo.c
+--- orig-gcc-2.95.2/texinfo/makeinfo/makeinfo.c	Fri Jan 21 18:53:09 2000
 +++ gcc-2.95.2/texinfo/makeinfo/makeinfo.c	Sat Jan 22 14:23:28 2000
 @@ -933,6 +933,39 @@
       int argc;
@@ -63,7 +63,8 @@ diff -ur orig/gcc-2.95.2/texinfo/makeinfo/makeinfo.c gcc-2.95.2/texinfo/makeinfo
  }
  
  /* Display the version info of this invocation of Makeinfo. */
---- orig/binutils-2.9.1/ld/Makefile.in	Thu Jan 27 16:15:27 2000
+diff -ur orig-binutils-2.9.1/ld/Makefile.in binutils-2.9.1/ld/Makefile.in
+--- orig-binutils-2.9.1/ld/Makefile.in	Thu Jan 27 16:15:27 2000
 +++ binutils-2.9.1/ld/Makefile.in	Thu Jan 27 16:16:08 2000
 @@ -1136,9 +1136,7 @@
  # because almost all configs use "gen" version of manual.
@@ -76,8 +77,8 @@ diff -ur orig/gcc-2.95.2/texinfo/makeinfo/makeinfo.c gcc-2.95.2/texinfo/makeinfo
  
  ld.info: $(srcdir)/ld.texinfo configdoc.texi
  	@rm -f $@ $@-[0-9] $@-[0-9][0-9]
-diff -ur orig/binutils-2.9.1/gas/doc/Makefile.in binutils-2.9.1/gas/doc/Makefile.in
---- orig/binutils-2.9.1/gas/doc/Makefile.in	Thu Jan 27 16:16:19 2000
+diff -ur orig-binutils-2.9.1/gas/doc/Makefile.in binutils-2.9.1/gas/doc/Makefile.in
+--- orig-binutils-2.9.1/gas/doc/Makefile.in	Thu Jan 27 16:16:19 2000
 +++ binutils-2.9.1/gas/doc/Makefile.in	Thu Jan 27 16:16:38 2000
 @@ -346,9 +346,7 @@
  

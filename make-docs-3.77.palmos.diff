@@ -1,5 +1,5 @@
-diff -urN orig/make-3.77/Makefile.in make-3.77/Makefile.in
---- orig/make-3.77/Makefile.in	Wed Jul 29 19:38:45 1998
+diff -urN orig-make-3.77/Makefile.in make-3.77/Makefile.in
+--- orig-make-3.77/Makefile.in	Wed Jul 29 19:38:45 1998
 +++ make-3.77/Makefile.in	Mon Jan 31 03:53:40 2000
 @@ -257,6 +257,13 @@
  make.info: make.texinfo
@@ -15,8 +15,8 @@ diff -urN orig/make-3.77/Makefile.in make-3.77/Makefile.in
  
  DVIPS = dvips
  
-diff -urN orig/make-3.77/make.texinfo make-3.77/make.texinfo
---- orig/make-3.77/make.texinfo	Mon Jul 27 21:15:17 1998
+diff -urN orig-make-3.77/make.texinfo make-3.77/make.texinfo
+--- orig-make-3.77/make.texinfo	Mon Jul 27 21:15:17 1998
 +++ make-3.77/make.texinfo	Mon Jan 31 04:23:55 2000
 @@ -354,6 +354,9 @@
  @ifinfo
