@@ -11,7 +11,9 @@ VPATH = @srcdir@
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
+target_cpu = @target_cpu@
 target_alias = @target_alias@
+tooldir = $(exec_prefix)/$(target_alias)
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -23,8 +25,10 @@ CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
-INSTALL_DIRS  = $(INSTALL_DIRS_@target_cpu@)
-INSTALL_FILES = $(INSTALL_FILES_@target_cpu@)
+INSTALL_DIRS	= $(INSTALL_DIRS_@target_cpu@)
+INSTALL_HEADERS	= $(INSTALL_HEADERS_@target_cpu@)
+INSTALL_LIBS	= $(INSTALL_LIBS_@target_cpu@)
+
 LIBC_OBJS = $(LIBC_OBJS_@target_cpu@)
 LIBG_OBJS = $(LIBG_OBJS_@target_cpu@)
 
@@ -38,8 +42,9 @@ INSTALL_HFILES = $(INCDIR)/ctype.h $(INCDIR)/errno.h $(INCDIR)/malloc.h \
 		 $(INCDIR)/stdlib.h $(INCDIR)/sys/types.h
 
 
-INSTALL_DIRS_m68k  = lib/mown-gp
-INSTALL_FILES_m68k = libc.a mown-gp/libc.a libg.a mown-gp/libg.a libstdc++.a
+INSTALL_DIRS_m68k    = include lib lib/mown-gp
+INSTALL_HEADERS_m68k =
+INSTALL_LIBS_m68k    = libc.a mown-gp/libc.a libg.a mown-gp/libg.a libstdc++.a
 
 LIBC_OBJS_m68k = \
 	conio.o vsprintf.o printf.o ctype.o setjmp.o \
@@ -54,8 +59,9 @@ LIBC_OBJS_m68k = \
 LIBG_OBJS_m68k =
 
 
-INSTALL_DIRS_arm  =
-INSTALL_FILES_arm = libc.a libstdc++.a
+INSTALL_DIRS_arm    = lib
+INSTALL_HEADERS_arm =
+INSTALL_LIBS_arm    = libc.a libstdc++.a
 
 LIBC_OBJS_arm = \
 	memcpy.o memset.o
@@ -63,21 +69,25 @@ LIBC_OBJS_arm = \
 LIBG_OBJS_arm =
 
 
-all: $(INSTALL_FILES)
+all: $(INSTALL_LIBS)
 
-install: $(INSTALL_FILES) $(INSTALL_HFILES)
+install-legacy: $(INSTALL_HFILES)
 	$(INSTALL) -d $(exec_prefix)/$(target_alias)/include
 	$(INSTALL) -d $(exec_prefix)/$(target_alias)/include/sys
 	for f in $(INSTALL_HFILES); do \
 	  echo $${f}; \
 	  $(INSTALL_DATA) $${f} `echo $${f} | sed -e 's:^$(INCDIR):$(exec_prefix)/$(target_alias)/include:'`; \
 	done
-	for d in lib $(INSTALL_DIRS); do \
-	  $(INSTALL) -d $(exec_prefix)/$(target_alias)/$${d}; \
+
+install: all install-legacy
+	list="$(INSTALL_DIRS)"; for d in $$list; do \
+	  $(INSTALL) -d $(tooldir)/$$d; \
 	done
-	for f in $(INSTALL_FILES); do \
-	  echo $${f}; \
-	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib/$${f}; \
+	list="$(INSTALL_HEADERS)"; for f in $$list; do \
+	  $(INSTALL_DATA) $(srcdir)/$(target_cpu)/$$f $(tooldir)/include/$$f; \
+	done
+	list="$(INSTALL_LIBS)"; for f in $$list; do \
+	  $(INSTALL_DATA) $$f $(tooldir)/lib/$$f; \
 	done
 
 
