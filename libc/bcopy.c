@@ -4,7 +4,6 @@
  *  Copyright (C) 1991, 1992  Linus Torvalds
  */
 
-#include <sys/types.h>
 #include <string.h>
 #include <ctype.h>
 
