@@ -209,6 +209,35 @@ copy_file (const char *outfname, const char *infname, const char *mode) {
   return !err;
   }
 
+
+void
+generate_file_from_template (const char *fname, const char *const *tmpl,
+			     int (*filter)(FILE *f, const char *key)) {
+  FILE *f = fopen (fname, "w");
+  const char *const *str;
+
+  if (f == NULL) {
+    einfo (E_NOFILE | E_PERROR, "can't create `%s'", fname);
+    return;
+    }
+
+  for (str = tmpl; *str; str++)
+    if (strcmp (*str, "@progname@") == 0)
+      fprintf (f, "%s v%s", progname, progversion);
+    else if (strcmp (*str, "@fname@") == 0)
+      fprintf (f, "%s", fname);
+    else if (filter (f, *str))
+      ;
+    else
+      fprintf (f, "%s", *str);
+
+  if (fclose (f) != 0) {
+    einfo (E_NOFILE | E_PERROR, "can't close `%s'", fname);
+    remove (fname);
+    }
+  }
+
+
 void
 chomp (char *s) {
   char *eos = strchr (s, '\0');

@@ -32,9 +32,8 @@ BINUTILS_LIBDIRS = -L../binutils/bfd -L../binutils/libiberty
 
 PFD = libpfd.a
 
-INSTALL_FILES = build-prc$(exeext) multigen$(exeext) obj-res$(exeext)
-# INSTALL_FILES = build-prc$(exeext) multigen$(exeext) stubgen$(exeext) \
-#		obj-res$(exeext)
+INSTALL_FILES = build-prc$(exeext) multigen$(exeext) stubgen$(exeext) \
+		obj-res$(exeext)
 
 all: $(INSTALL_FILES)
 
@@ -74,8 +73,8 @@ stubgen$(exeext): stubgen.o utils.o def.yy.o def.tab.o $(PFD)
 build-prc.o: build-prc.cpp utils.h def.h binres.hpp \
 	     pfd.hpp pfdheader.h pfdio.hpp
 obj-res.o: obj-res.cpp binres.hpp pfd.hpp pfdheader.h utils.h
-multigen.o: multigen.c utils.h def.h
-stubgen.o: stubgen.c utils.h def.h
+multigen.o: multigen.c multicode-s.str multicode-ld.str utils.h def.h
+stubgen.o: stubgen.c glib-jumps-s.str glib-stubs-c.str utils.h def.h
 binres.o: binres.cpp binres.hpp pfd.hpp pfdheader.h pfdio.hpp utils.h
 utils.o: utils.c utils.h
 
@@ -93,6 +92,21 @@ def.tab.c: def.y config.h utils.h def.h pfdheader.h
 	  && mv y.output def.output
 
 
+CODIFY = sed -f $(srcdir)/templates/codify.sed
+
+glib-jumps-s.str: templates/glib-jumps.s templates/codify.sed
+	$(CODIFY) $(srcdir)/templates/glib-jumps.s > glib-jumps-s.str
+
+glib-stubs-c.str: templates/glib-stubs.c templates/codify.sed
+	$(CODIFY) $(srcdir)/templates/glib-stubs.c > glib-stubs-c.str
+
+multicode-s.str: templates/multicode.s templates/codify.sed
+	$(CODIFY) $(srcdir)/templates/multicode.s > multicode-s.str
+
+multicode-ld.str: templates/multicode.ld templates/codify.sed
+	$(CODIFY) $(srcdir)/templates/multicode.ld > multicode-ld.str
+
+
 # This PFD library ought eventually to be separated off
 
 PFD_OBJS = pfd.o pfdheader.o pfdtime.o
@@ -105,8 +119,9 @@ libpfd.a: $(PFD_OBJS)
 	ar cr $@ $(PFD_OBJS)
 	$(RANLIB) $@
 
+
 clean:
-	-rm *.o def.*.* def.output
+	-rm -f *.o *.str def.*.* def.output
 
 distclean: clean
-	-rm $(INSTALL_FILES) libpfd.a Makefile
+	-rm -f $(INSTALL_FILES) libpfd.a Makefile
