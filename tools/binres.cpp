@@ -498,6 +498,9 @@ process_binary_file (const char* fname, const binary_file_info& info,
     return db;
     }
 
+  if (! (bfd_get_file_flags (abfd) & EXEC_P))
+    warning ("[%s] object file has not been linked", fname);
+
   asection* data_sec = bfd_get_section_by_name (abfd, ".data");
   asection* bss_sec  = bfd_get_section_by_name (abfd, ".bss");
 
