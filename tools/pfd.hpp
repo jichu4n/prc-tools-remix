@@ -85,7 +85,8 @@ public:
 
 protected:
   PalmOSDatabase (bool res0);
-  PalmOSDatabase (bool res0, const Datablock& block, long info, long infolim);
+  PalmOSDatabase (bool res0, const Datablock& block);
+  void read_header (const Datablock& block, long info, long infolim);
 
 private:
   virtual unsigned long directory_size() const = 0;
@@ -102,12 +103,10 @@ public:
   virtual ~ResourceDatabase();
 
 private:
-  virtual unsigned long directory_size() const;
+  virtual unsigned long directory_size() const {return directory_size (size());}
+  static  unsigned long directory_size (unsigned int n);
   virtual bool write_directory (FILE* f, unsigned long& off) const;
   virtual bool write_data (FILE* f) const;
-
-  static long find_info (const Datablock& block);
-  static long find_infolim (const Datablock& block);
   };
 
 class RecordDatabase: public PalmOSDatabase, public RecordMap {
@@ -117,12 +116,10 @@ public:
   virtual ~RecordDatabase();
 
 private:
-  virtual unsigned long directory_size() const;
+  virtual unsigned long directory_size() const {return directory_size (size());}
+  static  unsigned long directory_size (unsigned int n);
   virtual bool write_directory (FILE* f, unsigned long& off) const;
   virtual bool write_data (FILE* f) const;
-
-  static long find_info (const Datablock& block);
-  static long find_infolim (const Datablock& block);
   };
 
 #endif

@@ -97,19 +97,44 @@ static const unsigned int launchable_data_mask	   = 0x0200;
 
 static const long header_size = 76;
 
+// This constructor is for new databases about to be written out.  We create
+// a short empty gap because all the other PRC/PDB writers seem to do so.
+
 PalmOSDatabase::PalmOSDatabase (bool res0) : gap (2), resource (res0) {
   memset (gap.writable_contents(), 0, gap.size());
   }
 
-PalmOSDatabase::PalmOSDatabase (bool res0, const Datablock& block,
-				long info, long infolim) : resource (res0) {
+// This constructor is for existing databases being read in.  We do a minimal
+// check that it's in a valid format.  (FIXME: What else could we check?)
+
+PalmOSDatabase::PalmOSDatabase (bool res0, const Datablock& block)
+  : resource (res0) {
+  if (block.size() < header_size + 2)
+    throw "database header (or record count) is truncated";
+
+  const unsigned char* s = block.contents();
+
+  s += 32;  // Skip the name
+  unsigned int attributes = get_word (s);
+  bool file_resource = (attributes & resource_mask) != 0;
+
+  if (resource && !file_resource)
+    throw "database is not a resource database";
+  else if (!resource && file_resource)
+    throw "database is not a record database";
+  }
+
+PalmOSDatabase::~PalmOSDatabase() {
+  }
+
+void
+PalmOSDatabase::read_header (const Datablock& block, long info, long infolim) {
   const unsigned char* s = block.contents();
 
   memcpy (name, s, 32), s += 32;
 
   unsigned int attributes = get_word (s);
 
-  bool file_resource	= (attributes & resource_mask) != 0;
   readonly		= (attributes & readonly_mask) != 0;
   appinfo_dirty		= (attributes & appinfo_dirty_mask) != 0;
   backup		= (attributes & backup_mask) != 0;
@@ -119,11 +144,6 @@ PalmOSDatabase::PalmOSDatabase (bool res0, const Datablock& block,
   stream		= (attributes & stream_mask) != 0;
   hidden		= (attributes & hidden_mask) != 0;
   launchable_data	= (attributes & launchable_data_mask) != 0;
-
-  if (resource && !file_resource)
-    throw "database is not a resource database";
-  else if (!resource && file_resource)
-    throw "database is not a record database";
 
   version = get_word (s);
   tm_of_palmostime (&created, get_long (s));
@@ -158,8 +178,6 @@ PalmOSDatabase::PalmOSDatabase (bool res0, const Datablock& block,
     gap = block (info, infolim - info);
   }
 
-PalmOSDatabase::~PalmOSDatabase() {
-  }
 
 static inline bool
 write_datablock (FILE* f, const Datablock& block) {
@@ -215,56 +233,38 @@ PalmOSDatabase::write (FILE* f) const {
 ResourceDatabase::ResourceDatabase() : PalmOSDatabase (true) {
   }
 
-long
-ResourceDatabase::find_info (const Datablock& block) {
-  // The info blocks start after the header and all the directory entries:
-  const unsigned char* s = block.contents() + header_size;
-  unsigned int nrecs = get_word (s);
-  return s - block.contents() + 10 * nrecs;
-  }
-
-long
-ResourceDatabase::find_infolim (const Datablock& block) {
-  const unsigned char* s = block.contents() + header_size;
-  unsigned int nrecs = get_word (s);
-  // ...and end at the offset of the first resource:
-  if (nrecs > 0) {
-    s += 6;  // Skip type & id
-    return get_long (s);
-    }
-  else
-    return block.size();
-  }
-
 ResourceDatabase::ResourceDatabase (const Datablock& block)
-  : PalmOSDatabase (true, block, find_info (block), find_infolim (block)) {
-  long infolim = find_infolim (block);
-  long entrylim = block.size();
-
+  : PalmOSDatabase (true, block) {
   const unsigned char* dir = block.contents() + header_size;
   unsigned int nrecs = get_word (dir);
 
-  for (const unsigned char *d = dir + 10 * (nrecs-1); d >= dir; d -= 10) {
-    const unsigned char *s = d;
+  long entrystart = header_size + directory_size (nrecs);
+  long entrylim = block.size();
+
+  const unsigned char* d = block.contents() + entrystart;
+  while ((d -= 10) >= dir) {
+    const unsigned char* s = d;
     ResKey key;
     memcpy (key.type, s, 4), s += 4;
     key.id = get_word (s);
     long entry = get_long (s);
 
-    if (entry < infolim || entry > entrylim)
+    if (entry < entrystart || entry > entrylim)
       throw "corrupt 4";
 
     insert (ResourceMap::value_type (key, block (entry, entrylim - entry)));
     entrylim = entry;
     }
+
+  read_header (block, entrystart, entrylim);
   }
 
 ResourceDatabase::~ResourceDatabase() {
   }
 
 unsigned long
-ResourceDatabase::directory_size() const {
-  return 2 + 10 * size();
+ResourceDatabase::directory_size (unsigned int n) {
+  return 2 + 10 * n;
   }
 
 bool
@@ -274,7 +274,7 @@ ResourceDatabase::write_directory (FILE* f, unsigned long& offset) const {
     put_word (s, size());
     if (fwrite (buffer, 1, sizeof buffer, f) != sizeof buffer)  return false;
     }
-  
+
   for (ResourceMap::const_iterator it = begin(); it != end(); ++it) {
     unsigned char buffer[10];
     unsigned char* s = buffer;
@@ -309,41 +309,23 @@ static const unsigned char deletable_mask = 0x80;
 RecordDatabase::RecordDatabase() : PalmOSDatabase (false) {
   }
 
-long
-RecordDatabase::find_info (const Datablock& block) {
-  // The info blocks start after the header and all the directory entries:
-  const unsigned char* s = block.contents() + header_size;
-  unsigned int nrecs = get_word (s);
-  return s - block.contents() + 8 * nrecs;
-  }
-
-long
-RecordDatabase::find_infolim (const Datablock& block) {
-  const unsigned char* s = block.contents() + header_size;
-  unsigned int nrecs = get_word (s);
-  // ...and end at the offset of the first resource:
-  if (nrecs > 0)
-    return get_long (s);
-  else
-    return block.size();
-  }
-
-RecordDatabase::RecordDatabase(const Datablock& block)
-  : PalmOSDatabase (false, block, find_info (block), find_infolim (block)) {
-  long infolim = find_infolim (block);
-  long entrylim = block.size();
-
+RecordDatabase::RecordDatabase (const Datablock& block)
+  : PalmOSDatabase (false, block) {
   const unsigned char* dir = block.contents() + header_size;
   unsigned int nrecs = get_word (dir);
 
-  for (const unsigned char *d = dir + 8 * (nrecs-1); d >= dir; d -= 8) {
-    const unsigned char *s = d;
+  long entrystart = header_size + directory_size (nrecs);
+  long entrylim = block.size();
+
+  const unsigned char* d = block.contents() + entrystart;
+  while ((d -= 8) >= dir) {
+    const unsigned char* s = d;
     long entry = get_long (s);
     RecKey key = get_long (s) & 0xfffffful;
     s -= 4;
     unsigned char attributes = get_byte (s);
 
-    if (entry < infolim || entry > entrylim)
+    if (entry < entrystart || entry > entrylim)
       throw "corrupt 5";
 
     Record rec;
@@ -357,14 +339,16 @@ RecordDatabase::RecordDatabase(const Datablock& block)
     insert (RecordMap::value_type (key, rec));
     entrylim = entry;
     }
+
+  read_header (block, entrystart, entrylim);
   }
 
 RecordDatabase::~RecordDatabase() {
   }
 
 unsigned long
-RecordDatabase::directory_size() const {
-  return 2 + 8 * size();
+RecordDatabase::directory_size (unsigned int n) {
+  return 2 + 8 * n;
   }
 
 bool
