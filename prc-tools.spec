@@ -1,7 +1,7 @@
 Name: prc-tools
 # The version line is grepped for by configure.  It must be exactly
 # Version<colon><space><versionnumber><newline>
-Version: 2.1.90
+Version: 2.2
 Release: 1
 Summary: GCC and related tools for Palm OS development
 License: GPL
@@ -34,7 +34,7 @@ PilRC.
 %package arm
 Summary: GCC and related tools for ARM targeted Palm OS development
 Group: Development/Palm OS
-Requires: prc-tools >= 2.1.90
+Requires: prc-tools >= 2.2
 %description arm
 A compiler tool chain for building Palm OS armlets in C or C++.
 Includes (patched versions of) binutils 2.12.1 and GCC 2.95.3, and requires
