@@ -85,7 +85,7 @@ diff -urN orig-binutils-2.14/ChangeLogs.palmos binutils-2.14/ChangeLogs.palmos
 +      * Makefile.in (em68kcoff.c): Likewise.
 diff -urN orig-binutils-2.14/Makefile.in binutils-2.14/Makefile.in
 --- orig-binutils-2.14/Makefile.in	Thu Jun 12 16:31:31 2003
-+++ binutils-2.14/Makefile.in	Wed Sep 10 23:15:12 2003
++++ binutils-2.14/Makefile.in	Wed Jan  7 01:10:21 2004
 @@ -1089,7 +1089,7 @@
  .PHONY: info installcheck dvi install-info
  .PHONY: clean distclean mostlyclean maintainer-clean realclean
@@ -95,6 +95,30 @@ diff -urN orig-binutils-2.14/Makefile.in binutils-2.14/Makefile.in
  installcheck: do-installcheck
  dvi: do-dvi
  
+@@ -1740,6 +1740,7 @@
+ 	s=`cd $(srcdir); ${PWD}`; export s; \
+ 	CC="$(CC)"; export CC; \
+ 	CFLAGS="$(CFLAGS)"; export CFLAGS; \
++	CONFIG_SHELL="$(SHELL)"; export CONFIG_SHELL; \
+ 	CXX="$(CXX)"; export CXX; \
+ 	CXXFLAGS="$(CXXFLAGS)"; export CXXFLAGS; \
+ 	if [ z$(build_canonical) !=  z$(host_canoncial) ] ; then \
+@@ -2619,6 +2620,7 @@
+ 	s=`cd $(srcdir); ${PWD}`; export s; \
+ 	CC="$(CC)"; export CC; \
+ 	CFLAGS="$(CFLAGS)"; export CFLAGS; \
++	CONFIG_SHELL="$(SHELL)"; export CONFIG_SHELL; \
+ 	CXX="$(CXX)"; export CXX; \
+ 	CXXFLAGS="$(CXXFLAGS)"; export CXXFLAGS; \
+ 	if [ z$(build_canonical) !=  z$(host_canoncial) ] ; then \
+@@ -3356,6 +3358,7 @@
+ 	s=`cd $(srcdir); ${PWD}`; export s; \
+ 	CC="$(CC)"; export CC; \
+ 	CFLAGS="$(CFLAGS)"; export CFLAGS; \
++	CONFIG_SHELL="$(SHELL)"; export CONFIG_SHELL; \
+ 	CXX="$(CXX)"; export CXX; \
+ 	CXXFLAGS="$(CXXFLAGS)"; export CXXFLAGS; \
+ 	if [ z$(build_canonical) !=  z$(host_canoncial) ] ; then \
 diff -urN orig-binutils-2.14/bfd/Makefile.am binutils-2.14/bfd/Makefile.am
 --- orig-binutils-2.14/bfd/Makefile.am	Mon Apr 21 15:24:18 2003
 +++ binutils-2.14/bfd/Makefile.am	Fri May 16 01:15:43 2003
