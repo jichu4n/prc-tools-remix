@@ -45,8 +45,6 @@
 
 * Use @command for commands, @option for options throughout prc-tools.texi.
 
-* Find a less hackish way to suppress [un]protoize and gcov.
-
 * Add a post-install script to the Cygwin build to do install-info.
 
 * Issues with the tiny libc implementation:
@@ -65,3 +63,7 @@
   Currently the compiler will generate GOT-relative relocations in some
   circumstances -- which will crash an armlet, because they don't have the
   infrastructure to set up a GOT.
+
+* Have STANDALONE_CODE_RESOURCE_TYPE_ID understand both strings and multichar
+  char literals (perhaps using __builtin_choose_expr and friends -- but need
+  to consider C++), and then eliminate STANDALONE_CODE_RESOURCE_TYPESTR_ID.
