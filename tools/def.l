@@ -18,7 +18,7 @@
  *
  * This is Free Software, under the GNU Public Licence v2 or greater.
  *
- * Relocation added March 1997, Kresten Krab Thorup 
+ * Relocation added March 1997, Kresten Krab Thorup
  * krab@california.daimi.aau.dk
 
  * ptst.c:  build a .prc from a pile of files.
@@ -70,7 +70,7 @@ ALNUM	[^ \t\n\r!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
 
 	/* Unsigned numbers: */
 
-0[0-7]*			| 
+0[0-7]*			|
 [1-9][0-9]*		|
 0[xX]{HD}+		{ yylval.uint = strtoul(yytext, NULL, 0); return UINT; }
 

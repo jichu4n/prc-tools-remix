@@ -298,7 +298,7 @@ compress_runs (unsigned char* out,
 	;
 
       /* Only emit one run at a time, since the residue beyond maxlen may not
-         be long enough to form a worthwhile run on its own.  */
+	 be long enough to form a worthwhile run on its own.  */
       maxlen = (*in == 0)? 64 : (*in == 0xff)? 16 : 33;
       if (len > maxlen)  len = maxlen;
 

@@ -107,7 +107,7 @@ opentree (int flags, const char *path_format, ...) {
 const char *
 readtree (TREE *tree) {
   struct dirent *entry;
-  
+
   while (1)
     if (tree->curdir && (entry = readdir (tree->curdir)) != NULL) {
       static char entryname[FILENAME_MAX];

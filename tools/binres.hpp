@@ -17,7 +17,7 @@
  *
  * This is Free Software, under the GNU Public Licence v2 or greater.
  *
- * Relocation added March 1997, Kresten Krab Thorup 
+ * Relocation added March 1997, Kresten Krab Thorup
  * krab@california.daimi.aau.dk
 
  * ptst.c:  build a .prc from a pile of files.

@@ -17,7 +17,7 @@
  *
  * This is Free Software, under the GNU Public Licence v2 or greater.
  *
- * Relocation added March 1997, Kresten Krab Thorup 
+ * Relocation added March 1997, Kresten Krab Thorup
  * krab@california.daimi.aau.dk
  */
 
@@ -118,7 +118,7 @@ main (int argc, char** argv) {
 	 ++it) {
       // Write out individual resource files.
       char fname[FILENAME_MAX];
-      sprintf (fname, "%.4s%04hx.%s.grc", 
+      sprintf (fname, "%.4s%04hx.%s.grc",
 	       (*it).first.type, (*it).first.id, basename);
 
       FILE *f = fopen (fname, "wb");

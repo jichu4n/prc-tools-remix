@@ -59,7 +59,7 @@ is_leap (unsigned long y) {
 static unsigned long
 cdn_of_tm (const struct tm *tm) {
   unsigned long days, y;
-  
+
   y = 1900 + tm->tm_year;
 
   days = 365 * (y-1) + (y-1) / 4 - (y-1) / 100 + (y-1) / 400;
