@@ -80,8 +80,9 @@ need the following:
 <li>
 If you do much work on the configuration files or are working from CVS, you'll
 need <a href="http://www.gnu.org/software/autoconf/">autoconf</a>.
-At present, prc-tools requires autoconf 2.13 or so rather than one of the
-more recent (and not entirely compatible) 2.5x versions.
+Note that the top-level prc-tools configury uses modern (2.5x) autoconf,
+but many of the GNU packages used in prc-tools still use the older 2.13-era
+autoconf.
 
 <li>
 If you are working on the run-time support code, you may need to update the
@@ -183,8 +184,8 @@ their source trees:
 
 (Source tarballs contain the <code>configure</code> script, but CVS does not.
 If you are building from CVS you'll have to use
-<a href="http://www.gnu.org/software/autoconf/">autoconf</a> -- 2.13,
-not 2.5x -- to regenerate it from <code>configure.in</code> first.)
+<a href="http://www.gnu.org/software/autoconf/">autoconf</a>
+to regenerate it from <code>configure.in</code> first.)
 
 <p>
 The parameters shown above must be given, with whatever values are appropriate,

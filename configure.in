@@ -1,6 +1,6 @@
 dnl Autoconf configure script for prc-tools.
 dnl
-dnl Copyright 2000, 2001, 2002, 2003 John Marshall.
+dnl Copyright 2000, 2001, 2002, 2003, 2004 John Marshall.
 dnl
 dnl This is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -9,15 +9,16 @@ dnl any later version.
 dnl
 dnl Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.13)
-AC_INIT(prc-tools.spec)
+AC_INIT(prc-tools, RPM_SPEC_VERSION(prc-tools.spec))
+AC_CONFIG_SRCDIR(prc-tools.spec)
+AC_PREREQ(2.53)
 
 
 palmdev_prefix=/opt/palmdev
 
 AC_ARG_WITH(palmdev-prefix,
-[  --with-palmdev-prefix=DIR
-                          where to look for SDKs [/opt/palmdev]],
+AC_HELP_STRING([--with-palmdev-prefix=DIR],
+	       [where to look for SDKs (/opt/palmdev)]),
 [case "${withval}" in
 yes|no)	AC_MSG_ERROR(bad value ${withval} given for palmdev prefix) ;;
 *)	palmdev_prefix="${withval}" ;;
@@ -31,8 +32,9 @@ htmldocs_enabled=''
 install_htmldocs_enabled=''
 
 AC_ARG_ENABLE(html-docs,
-[  --enable-html-docs[=DIR]where to install HTML versions of the documentation
-                          [disabled; PALMDEV_PREFIX/doc]],
+AC_HELP_STRING([--enable-html-docs=DIR],
+	       [where to install HTML versions of the documentation (disabled;
+		PALMDEV_PREFIX/doc if DIR is omitted)]),
 [case "${enableval}" in
 yes)	htmldocs_enabled=html install_htmldocs_enabled=install-html ;;
 no)	;;
@@ -46,7 +48,8 @@ AC_SUBST(install_htmldocs_enabled)
 
 
 AC_ARG_ENABLE(languages,
-[  --enable-languages=...  build compilers for the specified languages only],
+AC_HELP_STRING([--enable-languages=...],
+	       [build compilers for the specified languages only]),
 [case ",${enableval}," in
    *,c++,* | *,all,*)	install_cxx_libs='$(INSTALL_CXX_LIBS)' ;;
    *)			install_cxx_libs= ;;
@@ -54,16 +57,18 @@ AC_ARG_ENABLE(languages,
 AC_SUBST(install_cxx_libs)
 
 
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 
 AC_ARG_ENABLE(targets,
-[  --enable-targets=...    build several targets (instead of one --target)],
+AC_HELP_STRING([--enable-targets=...],
+	       [build several targets (instead of one --target)]),
 [case "${enableval}" in
 yes|no)	AC_MSG_ERROR(--enable-targets must explicitly list the targets) ;;
 esac])
 
 AC_ARG_ENABLE(generic,
-[  --disable-generic       omit tools etc that are not target-specific],
+AC_HELP_STRING([--disable-generic],
+	       [omit tools etc that are not target-specific]),
 [], [enable_generic=yes])
 
 
@@ -75,8 +80,6 @@ case $srcdir in
 esac
 AC_SUBST(up_srcdir)
 
-config_subdirs=
-output_files="Makefile"
 all_subdirs=
 extra_subdirs=
 configure_args=
@@ -162,15 +165,16 @@ if test -n "$enable_targets"; then
     target_bfd="multi-bfd"
   fi
 else
+  AC_CONFIG_SUBDIRS(binutils)
+  AC_CONFIG_FILES(libc/Makefile)
   case "$target_cpu" in
-  m68k)	config_subdirs="$config_subdirs binutils gcc295 gdb"
-  	output_files="$output_files crt/Makefile libc/Makefile libm/Makefile"
+  m68k)	AC_CONFIG_SUBDIRS(gcc295 gdb)
+	AC_CONFIG_FILES(crt/Makefile libm/Makefile)
 	all_subdirs="$all_subdirs binutils gcc295 gdb crt libc libm"
 	m68k_target="$target_alias"
 	gccdir="gcc295"
 	;;
-  arm)	config_subdirs="$config_subdirs binutils gcc"
-  	output_files="$output_files libc/Makefile"
+  arm)	AC_CONFIG_SUBDIRS(gcc)
 	all_subdirs="$all_subdirs binutils gcc libc"
 	;;
   *)	AC_MSG_ERROR($target is not supported as a Palm OS target)
@@ -208,9 +212,8 @@ else
 fi
 
 if test $enable_generic = yes; then
-  config_subdirs="$config_subdirs make"
-  output_files="$output_files doc/Makefile doc/version.texi include/Makefile
-		tools/Makefile"
+  AC_CONFIG_SUBDIRS(make)
+  AC_CONFIG_FILES(doc/Makefile doc/version.texi include/Makefile tools/Makefile)
   all_subdirs="$all_subdirs make doc include tools"
 
   if test -d $srcdir/binutils; then
@@ -237,14 +240,14 @@ AC_PROG_LN_S
 AC_PROG_RANLIB
 AC_PROG_LEX
 AC_PROG_YACC
-AC_EXEEXT
 
 AC_ARG_ENABLE(nls,
-[  --disable-nls           do not use Native Language Support],
+AC_HELP_STRING([--disable-nls], [do not use Native Language Support]),
 [], [enable_nls=yes])
 
 AC_ARG_WITH(included-gettext,
-[  --with-included-gettext use the GNU gettext library included in binutils],
+AC_HELP_STRING([--with-included-gettext],
+	       [use the GNU gettext library included in binutils]),
 [], [with_included_gettext=no])
 
 if test $enable_nls = yes; then
@@ -297,12 +300,26 @@ if test $enable_generic = yes; then
       doc_prereqs="$first_enabled_target/config.status"
     fi
   fi
-
-  AC_MSG_CHECKING([prc-tools package version])
-  prc_tools_version=`grep '^Version:' $srcdir/prc-tools.spec | sed 's/.*: //'`
-  AC_MSG_RESULT($prc_tools_version)
-  AC_SUBST(prc_tools_version)
 fi
 
-AC_CONFIG_SUBDIRS($config_subdirs)
-AC_OUTPUT($output_files)
+AC_CONFIG_COMMANDS_POST([
+# Autoconf 2.5x passes precious variables like $target_alias down to other
+# configure scripts in subdirectories via a variable setting on the command
+# line:
+#	.../configure --target=foo target_alias=foo
+#
+# This confuses configure scripts generated by autoconf 2.13, so we strip
+# them out: --target ought to be sufficient.  This is a NASTY HACK that will
+# be removed when all our subdirectories have moved to modern autoconf, which
+# should be any decade now.
+orig_configure_args=$ac_configure_args
+ac_configure_args=
+for arg in $orig_configure_args; do
+  case $arg in
+  *_alias=*) ;; # Be conservative: strip only $host_alias, $target_alias etc
+  *)         ac_configure_args="$ac_configure_args $arg" ;;
+  esac
+done])
+
+AC_CONFIG_FILES(Makefile)
+AC_OUTPUT
