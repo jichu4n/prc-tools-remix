@@ -1,260 +1,212 @@
-/* pfd.cpp: read and write PalmOS .pdb / .prc files.
+/* pfd.cpp: read/write PRC and PDB files.
 
-   Copyright (c) 1998 by John Marshall.
-   <jmarshall@acm.org>
+   Copyright (c) 1999 Palm Computing, Inc. or its subsidiaries.
+   All rights reserved.
 
-   This is free software, under the GNU General Public Licence v2 or greater.
- */
-
-#include <stdlib.h>
-#include <string.h>
+   This is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.  */
 
 #include "pfd.hpp"
+#include "pfdio.hpp"
 
-static pfd_datablock*
-alloc_block (size_t length) {
-  pfd_datablock* p = (pfd_datablock*) malloc (sizeof (unsigned int) + length);
-  if (!p)  abort();
-  p->refcount = 1;
-  return p;
-  }
+#include <algorithm>
+#include <string.h>
 
-static void
-release_block (pfd_datablock* p) {
-  if (--p->refcount == 0)
-    free (p);
-  }
+Datablock::Datablock (long len0)
+  : b_ (new block (len0)), off_ (0), len_ (len0) { b_->count_++; }
 
-pfd_data::pfd_data (size_t len0)
-  : block (alloc_block (len0)), offset (0), len (len0) {
-  }
+Datablock::Datablock (const Datablock& rhs)
+  : b_ (rhs.b_), off_ (rhs.off_), len_ (rhs.len_) { b_->count_++; }
 
-pfd_data::pfd_data (const pfd_data& rhs)
-  : block (rhs.block), offset (rhs.offset), len (rhs.len) {
-  block->refcount++;
-  }
+Datablock::Datablock (const Datablock& rhs, long off0, long len0)
+  : b_ (rhs.b_), off_ (off0), len_ (len0) { b_->count_++; }
 
-pfd_data::pfd_data (pfd_datablock* block0, size_t offset0, size_t len0)
-  : block (block0), offset (offset0), len (len0) {
-  block->refcount++;
-  }
-
-pfd_data& pfd_data::operator= (const pfd_data& rhs) {
-  if (this != &rhs) {
-    release_block (block);
-    block = rhs.block, offset = rhs.offset, len = rhs.len;
-    block->refcount++;
-    }
-
+Datablock&
+Datablock::operator= (const Datablock& rhs) {
+  rhs.b_->count_++;
+  if (--b_->count_ == 0)  delete b_;
+  b_ = rhs.b_, off_ = rhs.off_, len_ = rhs.len_;
   return *this;
   }
 
-pfd_data::~pfd_data() {
-  release_block (block);
+Datablock::~Datablock () {
+  if (--b_->count_ == 0)  delete b_;
   }
 
 unsigned char*
-pfd_data::writable_contents() {
-  if (block->refcount > 1) {
-    pfd_datablock* newb = alloc_block (len);
-    memcpy (newb->data, contents(), len);
-    release_block (block);
-    block = newb;
-    offset = 0;
+Datablock::writable_contents () {
+  if (b_->count_ > 1)
+    *this = dup (0, len_);
+
+  return b_->data_ + off_;
+  }
+
+Datablock
+Datablock::operator() (long off, long len) const {
+  if (off >= 0 && off + len <= len_)
+    return Datablock (*this, off_ + off, len);
+  else
+    return dup (off, len);
+  }
+
+Datablock
+Datablock::dup (long off, long len) const {
+  long off__ = off_, len__ = len_;
+
+  // Clip the existing interval against the desired boundaries:
+
+  if (off > 0) {
+    off__ += off;
+    len__ -= off;
+    off = 0;
     }
 
-  return block->data + offset;
-  }
+  if (off + len < len__)
+    len__ = off + len;
 
-void
-pfd_data::set_length (size_t newlen) {
-  if (newlen > len) {
-    pfd_datablock* newb = alloc_block (newlen);
-    memcpy (newb->data, contents(), len);
-    release_block (block);
-    block = newb;
-    offset = 0;
-    }
+  // And build a new interval:
 
-  len = newlen;
-  }
+  Datablock lhs (len);
 
+  memset (lhs.b_->data_, '\0', -off);
+  memcpy (lhs.b_->data_ + -off, b_->data_ + off__, len__);
+  memset (lhs.b_->data_ + -off + len__, '\0', len - -off - len__);
 
-pfd_entry::pfd_entry (const pfd_data& data, const char* type, unsigned long id,
-		      unsigned short attr, void* userdata)
-  : pfd_data (data), id_ (id), attr_ (attr), userdata_ (userdata) {
-  strncpy (type_, type, 4);
-  }
-
-pfd_entry::~pfd_entry() {
+  return lhs;
   }
 
 
-pfd::pfd() {
-  init (37);
+
+PalmOSDatabase::PalmOSDatabase (bool res0) : gap (2), resource (res0) {
+  memset (gap.writable_contents(), 0, gap.size());
   }
 
-void
-pfd::init (int size) {
-  nentries = 0;
-  first = last = NULL;
-
-  special[0] = special[1] = NULL;
-
-  // Such a kerfuffle to make another sentinel value different from NULL.
-  TOMBSTONE = new pfd_entry (pfd_data (0), "", ~0ul, 0, NULL);
-
-  tab = NULL;
-  rehash (size);
+PalmOSDatabase::~PalmOSDatabase() {
   }
 
-pfd::~pfd() {
-  pfd_entry* e = first;
-  while (e) {
-    pfd_entry* tmp = e;
-    e = e->next;
-    delete tmp;
-    }
-
-  delete special[0];
-  delete special[1];
-
-  delete [] tab;
-  delete TOMBSTONE;
-  }
-
-
-static unsigned int
-hash1 (const char* k1, unsigned long k2) {
-  return 0;
-  }
-
-static unsigned int
-hash2 (const char* k1, unsigned long k2) {
-  return 1;
-  }
-
-// Look up the key (TYPE, ID) in the hash table, and return a reference
-// to the slot for that key.  The slot will contain a pointer to the entry,
-// or will contain NULL if the key is not present in the table.
-
-#include <stdio.h>
-
-pfd_entry*&
-pfd::lookup (const char* type, unsigned long id) const {
-  unsigned int h, dh;
-
-  for (h = hash1 (type, id) % tab_capacity, dh = hash2 (type, id);
-       tab[h] && (tab[h]->id() != id || strncmp (tab[h]->type(), type, 4) != 0);
-       h = (h + dh) % tab_capacity)
-    ;
-
-  return tab[h];
-  }
-
-
-// Create a new hash table with capacity for the given SIZE.  Populate
-// it from the linked list of pfd_entries.  (Assumes that the table is
-// definitely large enough for the SIZE, including slack space.)
-
-void
-pfd::rehash (unsigned int size) {
-  delete [] tab;
-
-  tab_capacity = ((7 * size) / 5 + 37) | 1;
-
-  tab = new pfd_entry*[tab_capacity];
-
-  tab_free = tab_capacity;
-  for (pfd_entry* e = first; e; e = e->next) {
-    lookup (e->type(), e->id()) = e;
-    tab_free--;
-    }
-  }
-
-
-pfd_entry*
-pfd::find (const char* type, unsigned long id) const {
-  return lookup (type, id);
+static inline bool
+write_datablock (FILE* f, const Datablock& block) {
+  return fwrite (block.contents(), 1, block.size(), f) == size_t (block.size());
   }
 
 bool
-pfd::attach_internal (pfd_entry* succe, const pfd_data& data,
-		      const char* type, unsigned long id, unsigned short attr,
-		      void* userdata) {
-  pfd_entry*& newe = lookup (type, id);
+PalmOSDatabase::write (FILE* f) const {
+  unsigned short attributes = 0;
+  if (resource)		attributes |= 0x0001;
+  if (readonly)		attributes |= 0x0002;
+  if (appinfo_dirty)	attributes |= 0x0004;
+  if (backup)		attributes |= 0x0008;
+  if (ok_to_install_newer)  attributes |= 0x0010;
+  if (reset_after_install)  attributes |= 0x0020;
+  if (copy_prevention)	attributes |= 0x0040;
+  if (stream)		attributes |= 0x0080;
+  if (hidden)		attributes |= 0x0100;
+  if (launchable_data)	attributes |= 0x0200;
 
-  if (newe) {
-    //if (dup_fn)  (*dup_fn)(type, id, (*newe)->userdata, userdata);
-    return false;
+  unsigned char header[78];
+  unsigned char* s = header;
+
+  unsigned long offset = sizeof header + ((resource)? 10 : 8) * dbsize();
+
+  memcpy (s, name, 32), s += 32;
+  put_word (s, attributes);
+  put_word (s, version);
+  put_long (s, palmostime_of_tm (&created));
+  put_long (s, palmostime_of_tm (&modified));
+  put_long (s, palmostime_of_tm (&backedup));
+  put_long (s, modnum);
+  offset += gap.size();
+  put_long (s, appinfo.size()? offset : 0);
+  offset += appinfo.size();
+  put_long (s, sortinfo.size()? offset : 0);
+  offset += sortinfo.size();
+  memcpy (s, type, 4), s += 4;
+  memcpy (s, creator, 4), s += 4;
+  put_long (s, uidseed);
+  put_long (s, 0);
+  put_word (s, dbsize());
+
+  return fwrite (header, 1, sizeof header, f) == sizeof header
+      && write_directory (f, offset)
+      && write_datablock (f, gap)
+      && write_datablock (f, appinfo)
+      && write_datablock (f, sortinfo)
+      && write_data (f, offset);
+  }
+
+
+
+ResourceDatabase::ResourceDatabase() : PalmOSDatabase (true) {
+  }
+
+ResourceDatabase::~ResourceDatabase() {
+  }
+
+bool
+ResourceDatabase::write_directory (FILE* f, unsigned long& offset) const {
+
+  for (ResourceMap::const_iterator it = begin(); it != end(); ++it) {
+    unsigned char buffer[10];
+    unsigned char* s = buffer;
+    memcpy (s, (*it).first.type, 4), s += 4;
+    put_word (s, (*it).first.id);
+    put_long (s, offset);
+    if (fwrite (buffer, 1, sizeof buffer, f) != sizeof buffer)  return false;
+    offset += (*it).second.size();
     }
-
-  newe = new pfd_entry (data, type, id, attr, userdata);
-  tab_free--;
-
-  pfd_entry* preve = (succe)? succe->prev : last;
-  newe->next = succe;
-  newe->prev = preve;
-  if (preve)  preve->next = newe;
-  else  first = newe;
-  if (succe)  succe->prev = newe;
-  else  last = newe;
-  nentries++;
-
-  if (tab_free < tab_capacity / 5)
-    rehash ((3 * nentries) / 2);
 
   return true;
   }
 
-void
-pfd::remove (pfd_entry* entry) {
-  pfd_entry*& e = lookup (entry->type(), entry->id());
-  if (e) {
-    if (e->prev)  e->prev->next = e->next;
-    else  first = e->next;
-    if (e->next)  e->next->prev = e->prev;
-    else  last = e->prev;
-    nentries--;
-
-    delete e;
-
-    e = TOMBSTONE;
+bool
+ResourceDatabase::write_data (FILE* f, unsigned long& offset) const {
+  for (ResourceMap::const_iterator it = begin(); it != end(); ++it) {
+    if (!write_datablock (f, (*it).second))  return false;
+    offset += (*it).second.size();
     }
+
+  return true;
   }
 
 
-pfd_entry*
-pfd::operator[] (int index) const {
-  pfd_entry* e;
 
-  if (index >= nentries || index < -nentries)
-    e = NULL;
-  else if (index >= 0)
-    for (e = first; index--; e = e->next)
-      ;
-  else
-    for (e = last; ++index; e = e->prev)
-      ;
-
-  return e;
+RecordDatabase::RecordDatabase() : PalmOSDatabase (false) {
   }
 
+RecordDatabase::~RecordDatabase() {
+  }
 
 bool
-pfd::attach_special (int which, const pfd_data& data) {
-  if (special[which])
-    return false;
-  else {
-    special[which] = new pfd_data (data);
-    return true;
+RecordDatabase::write_directory (FILE* f, unsigned long& offset) const {
+  for (RecordMap::const_iterator it = begin(); it != end(); ++it) {
+    unsigned char buffer[8];
+    unsigned char* s = buffer;
+
+    unsigned char attributes = (*it).second.category;
+    if ((*it).second.deletable)	attributes |= 0x80;
+    if ((*it).second.dirty)	attributes |= 0x40;
+    if ((*it).second.busy)	attributes |= 0x20;
+    if ((*it).second.secret)	attributes |= 0x10;
+
+    put_long (s, offset);
+    put_long (s, (*it).first);
+    s -= 4;
+    put_byte (s, attributes);
+    if (fwrite (buffer, 1, sizeof buffer, f) != sizeof buffer)  return false;
+    offset += (*it).second.size();
     }
+
+  return true;
   }
- 
-void
-pfd::remove_special (int which) {
-  if (special[which]) {
-    delete special[which];
-    special[which] = NULL;
+
+bool
+RecordDatabase::write_data (FILE* f, unsigned long& offset) const {
+  for (RecordMap::const_iterator it = begin(); it != end(); ++it) {
+    if (!write_datablock (f, (*it).second))  return false;
+    offset += (*it).second.size();
     }
+
+  return true;
   }

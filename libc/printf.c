@@ -1,6 +1,4 @@
-#include <Common.h>
-#include <System/SysAll.h>
-#include <UI/UIAll.h>
+#include <StringMgr.h>
 
 #include <stdio.h>
 #include <sys/types.h>

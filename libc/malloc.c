@@ -4,9 +4,10 @@
 
    This code is in the public domain.  */
 
-#include <System/MemoryMgr.h>
-
 #include "stdlib.h"
+
+#include <MemoryMgr.h>
+#include "sdktypes.h"
 
 #ifdef Lmalloc
 
@@ -28,7 +29,7 @@ free (void *ptr) {
 
 void *
 calloc (size_t nmemb, size_t memb_size) {
-  ULong size = nmemb * memb_size;
+  UInt32 size = nmemb * memb_size;
   void *ptr = MemPtrNew (size);
   if (ptr)
     MemSet (ptr, size, 0);

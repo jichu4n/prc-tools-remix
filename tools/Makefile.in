@@ -1,0 +1,112 @@
+# Makefile for prc-tools.
+#
+# Copyright (c) 1998, 1999 by John Marshall.
+# <jmarshall@acm.org>
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+CC = @CC@
+CFLAGS = @CFLAGS@
+CXX = @CXX@
+CXXFLAGS = @CXXFLAGS@
+LDFLAGS = @LDFLAGS@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+target_alias = @target_alias@
+exeext = @EXEEXT@
+
+INSTALL = @INSTALL@
+RANLIB = @RANLIB@
+LEX = @LEX@
+YACC = @YACC@
+
+BINUTILS_INCDIRS = -I$(srcdir)/../binutils/include -I../binutils/bfd
+BINUTILS_LIBDIRS = -L../binutils/bfd -L../binutils/libiberty
+
+PFD = libpfd.a
+
+INSTALL_FILES = build-prc$(exeext) multigen$(exeext) obj-res$(exeext)
+# INSTALL_FILES = build-prc$(exeext) multigen$(exeext) stubgen$(exeext) \
+#		obj-res$(exeext)
+
+all: $(INSTALL_FILES)
+
+install: $(INSTALL_FILES)
+	$(INSTALL) -d $(exec_prefix)/bin
+	for f in $(INSTALL_FILES); do \
+	  echo $${f}; \
+	  $(INSTALL) $${f} $(exec_prefix)/bin; \
+	done
+	$(INSTALL) obj-res$(exeext) $(exec_prefix)/bin/$(target_alias)-obj-res$(exeext)
+
+info:
+
+install-info:
+
+.SUFFIXES: .cpp
+
+.c.o:
+	$(CC) $(CFLAGS) $(BINUTILS_INCDIRS) -I. -o $@ -c $<
+# -I. is for def.tab.h when compiling def.yy.c below
+
+.cpp.o:
+	$(CXX) $(CXXFLAGS) $(BINUTILS_INCDIRS) -o $@ -c $<
+
+obj-res$(exeext): obj-res.o binres.o utils.o $(PFD)
+	$(CXX) $(LDFLAGS) -o $@ $^ $(BINUTILS_LIBDIRS) -lbfd -liberty -L. -lpfd
+
+build-prc$(exeext): build-prc.o binres.o utils.o def.yy.o def.tab.o $(PFD)
+	$(CXX) $(LDFLAGS) -o $@ $^ $(BINUTILS_LIBDIRS) -lbfd -liberty -L. -lpfd
+
+multigen$(exeext): multigen.o utils.o def.yy.o def.tab.o $(PFD)
+	$(CC) $(LDFLAGS) -o $@ $^ $(BINUTILS_LIBDIRS) -liberty -L. -lpfd
+
+stubgen$(exeext): stubgen.o utils.o def.yy.o def.tab.o $(PFD)
+	$(CC) $(LDFLAGS) -o $@ $^ $(BINUTILS_LIBDIRS) -liberty -L. -lpfd
+
+build-prc.o: build-prc.cpp utils.h def.h binres.hpp \
+	     pfd.hpp pfdheader.h pfdio.hpp
+obj-res.o: obj-res.cpp binres.hpp pfd.hpp pfdheader.h utils.h
+multigen.o: multigen.c utils.h def.h
+stubgen.o: stubgen.c utils.h def.h
+binres.o: binres.cpp binres.hpp pfd.hpp pfdheader.h pfdio.hpp utils.h
+utils.o: utils.c utils.h
+
+def.yy.o: def.yy.c def.tab.h utils.h pfdheader.h
+def.tab.o: def.tab.c config.h utils.h def.h pfdheader.h
+def.tab.h: def.tab.c
+
+def.yy.c: def.l def.tab.h utils.h pfdheader.h
+	$(LEX) -is $(srcdir)/def.l \
+	  && mv lex.yy.c def.yy.c
+
+def.tab.c: def.y config.h utils.h def.h pfdheader.h
+	$(YACC) -dv $(srcdir)/def.y \
+	  && mv y.tab.c def.tab.c && mv y.tab.h def.tab.h \
+	  && mv y.output def.output
+
+
+# This PFD library ought eventually to be separated off
+
+PFD_OBJS = pfd.o pfdheader.o pfdtime.o
+
+pfd.o: pfd.cpp pfd.hpp pfdio.hpp pfdheader.h
+pfdheader.o: pfdheader.c pfdheader.h
+pfdtime.o: pfdtime.c pfdheader.h
+
+libpfd.a: $(PFD_OBJS)
+	ar cr $@ $(PFD_OBJS)
+	$(RANLIB) $@
+
+clean:
+	-rm *.o def.*.* def.output
+
+distclean: clean
+	-rm $(INSTALL_FILES) libpfd.a Makefile

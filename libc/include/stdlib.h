@@ -1,6 +1,10 @@
 #ifndef _STDLIB_H_
 #define _STDLIB_H_
 
+/* Note: this header is the beginnings of an ISO C stdlib.h.  Probably some
+   of the functions declared below are not actually included in our little
+   libc, or are not correct.  This area needs work!  */
+
 #define __need_size_t
 #define __need_NULL
 #include "stddef.h"
@@ -20,10 +24,10 @@ extern void *calloc (size_t __nmemb, size_t __memb_size);
 extern void *realloc (void *__ptr, size_t __size);
 
 extern void *__MemPtrNew (unsigned long __size)
-  __attribute__ ((__systrap__ (0xa013)));
+  __attribute__ ((__callseq__ ("trap #15; dc.w 0xa013")));
 
 extern short __MemPtrFree (void *__ptr)
-  __attribute__ ((__systrap__ (0xa012)));
+  __attribute__ ((__callseq__ ("trap #15; dc.w 0xa012")));
 
 extern __inline__ void *
 malloc (size_t __size) {
@@ -67,6 +71,8 @@ extern int rand (void);
 extern void srand (unsigned int __seed);
 
 /* System functions */
+
+extern int atexit (void (*__func)(void));
 
 /* Multi-byte characters */
 

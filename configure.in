@@ -1,0 +1,39 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(install-sh)
+
+AC_CONFIG_SUBDIRS(binutils gdb gcc make)
+
+build_sdk=
+AC_ARG_WITH(build-sdk,
+[  -sharedstatedir=DIR     Palm OS headers & SDK in DIR [PREFIX/com]
+  -with-build-sdk=VERSION which Palm OS SDK to use to build runtime code [2]],
+[case "${withval}" in
+yes)	AC_MSG_ERROR(bad value ${withval} given for build SDK version) ;;
+no)	;;
+*)	build_sdk=$with_build_sdk ;;
+esac])
+
+if test x$build_sdk = x; then
+	build_sdk=2
+fi
+
+case $build_sdk in
+  *.*)	build_sdk_number=`echo $build_sdk | sed -e 's/\\.//'` ;;
+  *)	build_sdk_number="${build_sdk}0" ;;
+esac
+
+AC_SUBST(build_sdk)
+AC_SUBST(build_sdk_number)
+
+AC_CANONICAL_SYSTEM
+
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_RANLIB
+AC_PROG_LEX
+AC_PROG_YACC
+AC_EXEEXT
+
+AC_OUTPUT(Makefile crt/Makefile doc/Makefile libc/Makefile libm/Makefile tools/Makefile)

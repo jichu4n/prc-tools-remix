@@ -1,9 +1,12 @@
 /* binres.hpp: header file for binres.cpp.
 
-   Copyright (c) 1998 by John Marshall.
+   Copyright (c) 1998, 1999 by John Marshall.
    <jmarshall@acm.org>
 
-   This is free software, under the GNU General Public Licence v2 or greater.
+   This is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
    This program follows in the footsteps of obj-res and build-prc, the
    source code of which contains the following notices:
@@ -25,32 +28,33 @@
  * This is Free Software, under the GNU Public Licence v2 or greater.
  */
 
-#ifndef _BINRES_HPP_
-#define _BINRES_HPP_
+#ifndef BINRES_HPP
+#define BINRES_HPP
 
-void init_binary();
+#include <map>
+#include "pfd.hpp"
+
+struct binary_file_info {
+  // Generic information for all kinds of projects:
+  ResKey maincode;
+  map<const char*, ResKey> extracode;  // section_name -> ResKey
+
+  // Information specific to applications:
+  bool emit_appl_extras;  // code#0, pref#0, and the ori.b #1,%d0 trash
+  unsigned long stack_size;
+
+  // What to do with the data sections:
+  bool emit_data, force_rloc;
+  int data_compression;
+  };
 
 struct binary_file_stats {
+  // Statistics from data resource compression:
   size_t data_size, omitted_zeros;
   };
 
-// For database_kind:
-#include "utils.h"
-
-struct binary_file_info {
-  database_kind kind;
-  unsigned long maincode_id;
-  bool emit_data, force_rloc;
-  int data_compression;
-  bool (*next_coderes)(char **namep, unsigned long *idp);
-  binary_file_stats* stats;
-  };
-
-const unsigned long UNSPECIFIED_RESID = ~0ul;
-
-class pfd;
-
-void process_binary_file (pfd& outpfd, char *fname,
-			  const binary_file_info& info);
+ResourceDatabase process_binary_file (const char* fname,
+				      const binary_file_info& info,
+				      binary_file_stats* stats = NULL);
 
 #endif

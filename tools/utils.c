@@ -1,22 +1,23 @@
 /* utils.c: various utilities.
 
-   Copyright (c) 1998 by John Marshall.
+   Copyright (c) 1998, 1999 by John Marshall.
    <jmarshall@acm.org>
 
-   This is free software, under the GNU General Public Licence v2 or greater.
- */
+   This is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "libiberty.h"
 
 #include "utils.h"
-
-#include "pi-source.h"
 
 const char *progname, *filename;
 int lineno;
@@ -37,6 +38,7 @@ ewhere (const char *format, ...) {
 void
 einfo (int type, const char *format, ...) {
   va_list args;
+  int save_errno = errno;
 
   switch (type & 0x0f) {
   case E_NOFILE:
@@ -64,8 +66,11 @@ einfo (int type, const char *format, ...) {
   vfprintf (stderr, format, args);
   va_end (args);
 
-  if (type & E_PERROR)
+  if (type & E_PERROR) {
+    errno = save_errno;
+    fprintf (stderr, ": ");
     perror ("");
+    }
   else
     fprintf (stderr, "\n");
   }
@@ -118,6 +123,28 @@ file_type (const char *fname) {
 	 : FT_BFD;
   }
 
+
+/* If NEWEXT is non-NULL, strips off any extension (a final `.' and all
+   following characters) from FNAME and appends NEWEXT.  Returns a pointer to
+   the start of the filename part (i.e., without any directories) of FNAME.  */
+char *
+basename_with_changed_extension (char *fname, const char *newext) {
+  char *s, *dot, *dirsep;
+
+  dot = dirsep = NULL;
+  for (s = fname; *s; s++)
+    if (*s == '.')  dot = s;
+    else if (*s == '/' || *s == '\\')  dot = NULL, dirsep = s;
+
+  if (newext) {
+    if (dot)  strcpy (dot, newext);
+    else  strcat (fname, newext);
+    }
+
+  return (dirsep)? dirsep+1 : fname;
+  }
+
+
 void *
 slurp_file (const char *fname, const char *mode, long *sizep) {
   FILE *f;
@@ -146,8 +173,50 @@ slurp_file (const char *fname, const char *mode, long *sizep) {
   return buffer;
   }
 
+int
+copy_file (const char *outfname, const char *infname, const char *mode) {
+  char buffer[8192];
+  char readmode[20], writemode[20];
+  FILE *inf, *outf;
+  size_t n;
+  int err = 0;
 
-const char *
+  sprintf (readmode, "r%.16s", mode);
+  sprintf (writemode, "w%.16s", mode);
+
+  if ((inf = fopen (infname, readmode)) == NULL) {
+    einfo (E_NOFILE | E_PERROR, "can't open `%s'", infname);
+    return 0;
+    }
+
+  if ((outf = fopen (outfname, writemode)) == NULL) {
+    fclose (inf);
+    einfo (E_NOFILE | E_PERROR, "can't create `%s'", outfname);
+    return 0;
+    }
+
+  while (!err && (n = fread (buffer, 1, sizeof buffer, inf)) > 0)
+    err = (fwrite (buffer, 1, n, outf) != n);
+
+  if (err)  einfo (E_NOFILE | E_PERROR, "error writing to `%s'", outfname);
+
+  err = ferror (inf);
+  if (err)  einfo (E_NOFILE | E_PERROR, "error reading file");
+
+  fclose (outf);
+  fclose (inf);
+
+  return !err;
+  }
+
+void
+chomp (char *s) {
+  char *eos = strchr (s, '\0');
+  if (eos > s && eos[-1] == '\n')  eos[-1] = '\0';
+  }
+
+
+char *
 standard_db_type (enum database_kind kind) {
   switch (kind) {
   case DK_APPLICATION:  return "appl";

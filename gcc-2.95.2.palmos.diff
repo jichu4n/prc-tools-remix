@@ -1,7 +1,308 @@
-diff -urN orig/egcs-1.1b/gcc/ChangeLog.palmos egcs-1.1b/gcc/ChangeLog.palmos
---- orig/egcs-1.1b/gcc/ChangeLog.palmos	Thu Jan  1 01:00:00 1970
-+++ egcs-1.1b/gcc/ChangeLog.palmos	Thu Nov 12 06:34:32 1998
-@@ -0,0 +1,316 @@
+diff -urN orig/gcc-2.95.2/Makefile.in gcc-2.95.2/Makefile.in
+--- orig/gcc-2.95.2/Makefile.in	Mon Nov  1 10:30:31 1999
++++ gcc-2.95.2/Makefile.in	Sat Jan  8 22:54:23 2000
+@@ -961,6 +961,7 @@
+ 	do-clean \
+ 	do-distclean \
+ 	do-dvi \
++	do-html \
+ 	do-info \
+ 	do-install-info \
+ 	do-installcheck \
+@@ -1019,12 +1020,13 @@
+ 
+ # Here are the targets which correspond to the do-X targets.
+ 
+-.PHONY: info installcheck dvi install-info
++.PHONY: info installcheck dvi html install-info
+ .PHONY: clean distclean mostlyclean maintainer-clean realclean
+ .PHONY: local-clean local-distclean local-maintainer-clean
+ info: do-info
+ installcheck: do-installcheck
+ dvi: do-dvi
++html: do-html
+ 
+ # Make sure makeinfo is built before we do a `make info'.
+ do-info: all-texinfo
+diff -urN orig/gcc-2.95.2/configure.in gcc-2.95.2/configure.in
+--- orig/gcc-2.95.2/configure.in	Mon Nov  1 10:30:31 1999
++++ gcc-2.95.2/configure.in	Sun Dec 19 02:57:58 1999
+@@ -729,6 +729,10 @@
+   m68k-apollo-*)
+     noconfigdirs="$noconfigdirs ld binutils gprof target-libgloss"
+     ;;
++  m68k-palmos-*)
++    noconfigdirs="$noconfigdirs target-libiberty target-libgloss target-newlib target-libio target-librx target-libstdc++ target-libg++ target-examples"
++    #noconfigdirs="$noconfigdirs target-libio"
++    ;;
+   mips*-*-irix5*)
+     # The GNU linker does not support shared libraries.
+     # emacs is emacs 18, which does not work on Irix 5 (emacs19 does work)
+diff -urN orig/gcc-2.95.2/gcc/Makefile.in gcc-2.95.2/gcc/Makefile.in
+--- orig/gcc-2.95.2/gcc/Makefile.in	Mon Nov  1 10:30:32 1999
++++ gcc-2.95.2/gcc/Makefile.in	Tue Jan 25 20:58:35 2000
+@@ -109,6 +109,8 @@
+ 	then echo $(objdir)/../texinfo/makeinfo/makeinfo ; \
+ 	else echo makeinfo ; fi`
+ MAKEINFOFLAGS =
++MAKEHTML = texi2html
++MAKEHTMLFLAGS = -glossary -menu -split_node
+ TEXI2DVI = texi2dvi
+ # For GNUmake: let us decide what gets passed to recursive makes.
+ MAKEOVERRIDES =
+@@ -197,7 +199,7 @@
+     if [ "$(host_canonical)" = "$(target)" ] ; then \
+       echo ar; \
+     else \
+-       t='$(program_transform_name)'; echo ar | sed -e $$t ; \
++       t='$(program_transform_cross_name)'; echo ar | sed -e $$t ; \
+     fi; \
+   fi`
+ AR_FLAGS_FOR_TARGET = rc
+@@ -208,7 +210,7 @@
+     if [ "$(host_canonical)" = "$(target)" ] ; then \
+       echo ranlib; \
+     else \
+-       t='$(program_transform_name)'; echo ranlib | sed -e $$t ; \
++       t='$(program_transform_cross_name)'; echo ranlib | sed -e $$t ; \
+     fi; \
+   fi`
+ RANLIB_TEST_FOR_TARGET = \
+@@ -286,8 +288,12 @@
+ # assertdir is overridden in cross-make.
+ # (But this currently agrees with what is in cross-make.)
+ assertdir = $(gcc_tooldir)/include
++# where the modifiable architecture-independent files go
++sharedstatedir = @sharedstatedir@
+ # where the info files go
+ infodir = @infodir@
++# where the html doc files go
++htmldir = $(prefix)/html
+ # Where cpp should go besides $prefix/bin if necessary
+ cpp_install_dir = @cpp_install_dir@
+ # where the locale files go
+@@ -484,6 +490,7 @@
+ 
+ # Actual name to use when installing a cross-compiler.
+ GCC_CROSS_NAME = `t='$(program_transform_cross_name)'; echo gcc | sed -e $$t`
++CPP_CROSS_NAME = `t='$(program_transform_cross_name)'; echo cpp | sed -e $$t`
+ PROTOIZE_CROSS_NAME = `t='$(program_transform_cross_name)'; echo protoize | sed -e $$t`
+ UNPROTOIZE_CROSS_NAME = `t='$(program_transform_cross_name)'; echo unprotoize | sed -e $$t`
+ 
+@@ -769,7 +776,7 @@
+ # The following targets define the interface between us and the languages.
+ #
+ # all.build, all.cross, start.encap, rest.encap,
+-# info, dvi,
++# info, dvi, html,
+ # install-normal, install-common, install-info, install-man,
+ # uninstall, distdir,
+ # mostlyclean, clean, distclean, extraclean, maintainer-clean,
+@@ -1407,6 +1414,8 @@
+ # Language-independent files.
+ 
+ DRIVER_DEFINES = \
++  -DPALMDEV_PREFIX=\"$(sharedstatedir)/\" \
++  -DFULL_TARGET_MACHINE=\"$(target)\" \
+   -DSTANDARD_STARTFILE_PREFIX=\"$(libdir)/\" \
+   -DSTANDARD_EXEC_PREFIX=\"$(libdir)/gcc-lib/\" \
+   -DDEFAULT_TARGET_VERSION=\"$(version)\" \
+@@ -2290,6 +2299,17 @@
+ 	texindex cpp.??
+ 	TEXINPUTS=${texidir}:$(srcdir):$$TEXINPUTS tex cpp.texi
+ 
++html: gcc_toc.html cpp_toc.html lang.html
++
++gcc_toc.html: $(srcdir)/gcc.texi $(srcdir)/extend.texi $(srcdir)/install.texi \
++	      $(srcdir)/invoke.texi $(srcdir)/md.texi $(srcdir)/rtl.texi \
++	      $(srcdir)/tm.texi $(srcdir)/gcov.texi
++	-@rm -f gcc[_.]*html
++	$(MAKEHTML) $(MAKEHTMLFLAGS) -I $(srcdir) $(srcdir)/gcc.texi
++
++cpp_toc.html: $(srcdir)/cpp.texi
++	-@rm -f cpp[_.]*html
++	$(MAKEHTML) $(MAKEHTMLFLAGS) -I $(srcdir) $(srcdir)/cpp.texi
+ 
+ INSTALL: $(srcdir)/install1.texi $(srcdir)/install.texi
+ 	cd $(srcdir); $(MAKEINFO) -D INSTALLONLY \
+@@ -2356,6 +2376,8 @@
+ 	-rm -f libgcc1.null
+ 	-rm -f *.dvi
+ 	-rm -f */*.dvi
++	-rm -f *.html
++	-rm -f */*.html
+ 	-if [ -f md.pre-cpp ]; then \
+ 	  rm -f md ; \
+ 	fi
+@@ -2449,17 +2471,28 @@
+ 
+ # Handle cpp installation.
+ install-cpp: xcpp$(exeext)
+-	-rm -f $(bindir)/$(CPP_INSTALL_NAME)$(exeext)
+-	$(INSTALL_PROGRAM) -m 755 xcpp$(exeext) $(bindir)/$(CPP_INSTALL_NAME)$(exeext)
+-	if [ x$(cpp_install_dir) != x ]; then \
+-	  rm -f $(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \
+-	  $(INSTALL_PROGRAM) -m 755 xcpp$(exeext) $(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \
+-	else true; fi
++	-if [ -f gcc-cross$(exeext) ] ; then \
++	  rm -f $(bindir)/$(CPP_CROSS_NAME)$(exeext); \
++	  $(INSTALL_PROGRAM) -m 755 xcpp$(exeext) $(bindir)/$(CPP_CROSS_NAME)$(exeext); \
++	  if [ x$(cpp_install_dir) != x ]; then \
++	    rm -f $(prefix)/$(cpp_install_dir)/$(CPP_CROSS_NAME)$(exeext); \
++	    $(INSTALL_PROGRAM) -m 755 xcpp$(exeext) $(prefix)/$(cpp_install_dir)/$(CPP_CROSS_NAME)$(exeext); \
++	  else true; fi; \
++	else \
++	  rm -f $(bindir)/$(CPP_INSTALL_NAME)$(exeext); \
++	  $(INSTALL_PROGRAM) -m 755 xcpp$(exeext) $(bindir)/$(CPP_INSTALL_NAME)$(exeext); \
++	  if [ x$(cpp_install_dir) != x ]; then \
++	    rm -f $(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \
++	    $(INSTALL_PROGRAM) -m 755 xcpp$(exeext) $(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \
++	  else true; fi; \
++	fi
+ 
+ uninstall-cpp:
+-	-rm -f $(bindir)/cpp
++	-rm -f $(bindir)/$(CPP_INSTALL_NAME)$(exeext)
++	-rm -f $(bindir)/$(CPP_CROSS_NAME)$(exeext)
+ 	-if [ x$(cpp_install_dir) != x ]; then \
+-	  rm -f $(prefix)/$(cpp_install_dir)/cpp; \
++	  rm -f $(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \
++	  rm -f $(prefix)/$(cpp_install_dir)/$(CPP_CROSS_NAME)$(exeext); \
+ 	else true; fi
+ 
+ # Install float.h for cross compiler.
+@@ -2491,6 +2524,7 @@
+ 	-if [ -d $(gcc_tooldir) ] ; then true ; else mkdir $(gcc_tooldir) ; chmod a+rx $(gcc_tooldir) ; fi
+ 	-if [ -d $(assertdir) ] ; then true ; else mkdir $(assertdir) ; chmod a+rx $(assertdir) ; fi
+ 	-if [ -d $(infodir) ] ; then true ; else mkdir $(infodir) ; chmod a+rx $(infodir) ; fi
++	-if [ -d $(htmldir) ] ; then true ; else mkdir $(htmldir) ; chmod a+rx $(htmldir) ; fi
+ # We don't use mkdir -p to create the parents of man1dir,
+ # because some systems don't support it.
+ # Instead, we use this technique to create the immediate parent of man1dir.
+@@ -2588,6 +2622,14 @@
+ 	else true; fi;
+ 	-chmod a-x $(infodir)/cpp.info* $(infodir)/gcc.info*
+ 
++# Install the html doc files.
++install-html: html installdirs lang.install-html
++	-rm -f $(htmldir)/cpp*.html $(htmldir)/gcc*.html
++	for f in cpp*.html gcc*.html; do \
++	    $(INSTALL_DATA) $$f $(htmldir)/$$f; \
++	done
++	-chmod a-x $(htmldir)/cpp*.html $(htmldir)/gcc*.html
++
+ # Install the man pages.
+ install-man: installdirs $(srcdir)/gcc.1 $(srcdir)/cccp.1 lang.install-man
+ 	-if [ -f gcc-cross$(exeext) ] ; then \
+@@ -2714,6 +2756,7 @@
+ 	-rm -rf $(man1dir)/protoize$(manext)
+ 	-rm -rf $(man1dir)/unprotoize$(manext)
+ 	-rm -f $(infodir)/cpp.info* $(infodir)/gcc.info*
++	-rm -f $(htmldir)/cpp*.html $(htmldir)/gcc*.html
+ #
+ # These targets are for the dejagnu testsuites. The file site.exp 
+ # contains global variables that all the testsuites will use.
+@@ -2928,8 +2971,8 @@
+ 	diff -rc2P -x c-parse.y -x c-parse.c -x c-parse.h -x c-gperf.h \
+ 	  -x cexp.c -x -x TAGS -x INSTALL \
+ 	  -x configure -x config.in \
+-	  -x "gcc.??" -x "gcc.??s" -x gcc.aux -x "gcc.info*" \
+-	  -x "cpp.??" -x "cpp.??s" -x cpp.aux -x "cpp.info*" \
++	  -x "gcc.??" -x "gcc.??s" -x gcc.aux -x "gcc.info*" -x "gcc*.html" \
++	  -x "cpp.??" -x "cpp.??s" -x cpp.aux -x "cpp.info*" -x "cpp*.html" \
+ 	  $(LANG_DIFF_EXCLUDES) \
+ 	  gcc-$(oldversion) gcc-$(version) > gcc-$(oldversion)-$(version).diff
+ 
+diff -urN orig/gcc-2.95.2/gcc/configure.in gcc-2.95.2/gcc/configure.in
+--- orig/gcc-2.95.2/gcc/configure.in	Mon Nov  1 10:34:46 1999
++++ gcc-2.95.2/gcc/configure.in	Fri Jan 21 23:40:09 2000
+@@ -2007,6 +2007,13 @@
+ 		extra_headers=math-68881.h
+ 		float_format=m68k
+ 		;;
++	m68k-palmos-coff*)
++		tmake_file=m68k/t-m68kpalmos
++		tm_file=m68k/m68kpalmos.h
++		extra_headers=math-68881.h
++		target_cpu_default=M68K_CPU_m68000
++		float_format=m68k
++		;;
+ 	m68k-*-coff*)
+ 		tmake_file=m68k/t-m68kbare
+ 		tm_file="m68k/m68k-coff.h dbx.h libgloss.h"
+@@ -4226,8 +4233,8 @@
+ rm -f Make-hooks
+ touch Make-hooks
+ target_list="all.build all.cross start.encap rest.encap \
+-	info dvi \
+-	install-normal install-common install-info install-man \
++	info dvi html \
++	install-normal install-common install-info install-html install-man \
+ 	uninstall distdir \
+ 	mostlyclean clean distclean extraclean maintainer-clean \
+ 	stage1 stage2 stage3 stage4"
+diff -urN orig/gcc-2.95.2/gcc/cp/Make-lang.in gcc-2.95.2/gcc/cp/Make-lang.in
+--- orig/gcc-2.95.2/gcc/cp/Make-lang.in	Mon Nov  1 10:30:32 1999
++++ gcc-2.95.2/gcc/cp/Make-lang.in	Sat Jan  8 22:51:54 2000
+@@ -22,7 +22,7 @@
+ # Each language makefile fragment must provide the following targets:
+ #
+ # foo.all.build, foo.all.cross, foo.start.encap, foo.rest.encap,
+-# foo.info, foo.dvi,
++# foo.info, foo.dvi, foo.html,
+ # foo.install-normal, foo.install-common, foo.install-info, foo.install-man,
+ # foo.uninstall, foo.distdir,
+ # foo.mostlyclean, foo.clean, foo.distclean, foo.extraclean,
+@@ -132,6 +132,7 @@
+ 
+ c++.info:
+ c++.dvi:
++c++.html:
+ 
+ # C++ language-support library pieces for libgcc.
+ tinfo.o: cc1plus$(exeext) $(srcdir)/cp/tinfo.cc
+@@ -218,7 +219,9 @@
+ 	    $(INSTALL_PROGRAM) g++-cross$(exeext) $(bindir)/$(GXX_CROSS_NAME)$(exeext); \
+ 	    chmod a+x $(bindir)/$(GXX_CROSS_NAME)$(exeext); \
+ 	    rm -f $(bindir)/$(CXX_CROSS_NAME)$(exeext); \
+-	    $(LN) $(bindir)/$(GXX_CROSS_NAME)$(exeext) $(bindir)/$(CXX_CROSS_NAME)$(exeext); \
++	    $(LN) $(bindir)/$(GXX_CROSS_NAME)$(exeext) $(bindir)/$(CXX_CROSS_NAME)$(exeext) >/dev/null 2>&1 \
++	     || ( $(INSTALL_PROGRAM) g++-cross$(exeext) $(bindir)/$(CXX_CROSS_NAME)$(exeext); \
++		  chmod a+x $(bindir)/$(CXX_CROSS_NAME)$(exeext) ); \
+ 	  else \
+ 	    rm -f $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
+ 	    $(INSTALL_PROGRAM) g++$(exeext) $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
+diff -urN orig/gcc-2.95.2/config.sub gcc-2.95.2/config.sub
+--- orig/gcc-2.95.2/config.sub	Mon Nov  1 10:30:31 1999
++++ gcc-2.95.2/config.sub	Mon Nov  1 11:07:23 1999
+@@ -94,7 +94,7 @@
+ 	-convergent* | -ncr* | -news | -32* | -3600* | -3100* | -hitachi* |\
+ 	-c[123]* | -convex* | -sun | -crds | -omron* | -dg | -ultra | -tti* | \
+ 	-harris | -dolphin | -highlevel | -gould | -cbm | -ns | -masscomp | \
+-	-apple)
++	-apple | -palmos)
+ 		os=
+ 		basic_machine=$1
+ 		;;
+@@ -1166,6 +1166,9 @@
+ 		;;
+ 	*-apple)					# EGCS LOCAL
+ 		os=-macos
++		;;
++	m68k-palmos)
++		os=-coff
+ 		;;
+ 	*)
+ 		os=-none
+diff -urN orig/gcc-2.95.2/gcc/ChangeLog.palmos gcc-2.95.2/gcc/ChangeLog.palmos
+--- orig/gcc-2.95.2/gcc/ChangeLog.palmos	Wed Dec 31 16:00:00 1969
++++ gcc-2.95.2/gcc/ChangeLog.palmos	Mon Nov  1 11:07:23 1999
+@@ -0,0 +1,321 @@
++Tue Nov 17 14:59:49 1998  John Marshall  <jmarshall@acm.org>
++
++	* cp/decl2.c (lang_decode_option) [PALMOS]: Stop `-Wall' from
++	implying `-Wmultichar'.  (It's already that way in C.)
++
 +Thu Nov 12 05:46:53 1998  John Marshall  <jmarshall@acm.org>
 +
 +	* config/m68k/m68kpalmos.h (LINK_SPEC): Use `--embedded-relocs'
@@ -318,40 +619,39 @@ diff -urN orig/egcs-1.1b/gcc/ChangeLog.palmos egcs-1.1b/gcc/ChangeLog.palmos
 +
 +	* config/m68k/m68kpalmos.h, config/m68k/t-m68kpalmos,
 +	config/m68k/palmos_crt0.S: new files. 
-diff -urN orig/egcs-1.1b/gcc/c-lang.c egcs-1.1b/gcc/c-lang.c
---- orig/egcs-1.1b/gcc/c-lang.c	Fri Jun 19 22:58:00 1998
-+++ egcs-1.1b/gcc/c-lang.c	Sun Oct 11 22:48:14 1998
-@@ -28,6 +28,17 @@
- #include "toplev.h"
- #include "output.h"
+diff -urN orig/gcc-2.95.2/gcc/c-lang.c gcc-2.95.2/gcc/c-lang.c
+--- orig/gcc-2.95.2/gcc/c-lang.c	Mon Nov  1 10:34:46 1999
++++ gcc-2.95.2/gcc/c-lang.c	Mon Nov  1 11:07:23 1999
+@@ -35,6 +35,16 @@
+ extern cpp_options parse_options;
+ #endif
  
 +/* Language-independent access to the value of an identifier.
 +   ??? But which value?  Hopefully continuing to use the global value will
 +   be good enough.  */
-+
-+tree
++tree       
 +lang_identifier_value (node)
 +     tree node;
 +{
 +  return IDENTIFIER_GLOBAL_VALUE (node);
 +}
-+
++
  /* Each of the functions defined here
     is an alternative to a function in objc-actions.c.  */
     
-diff -urN orig/egcs-1.1b/gcc/c-lex.c egcs-1.1b/gcc/c-lex.c
---- orig/egcs-1.1b/gcc/c-lex.c	Mon Jul  6 22:53:20 1998
-+++ egcs-1.1b/gcc/c-lex.c	Sat Oct 10 18:50:41 1998
-@@ -1808,7 +1808,7 @@
- #endif
- 	  }
- 	else
--	  max_chars = TYPE_PRECISION (integer_type_node) / width;
-+	  max_chars = TYPE_PRECISION (long_integer_type_node) / width;
- 
- 	while (1)
- 	  {
+diff -urN orig/gcc-2.95.2/gcc/c-lex.c gcc-2.95.2/gcc/c-lex.c
+--- orig/gcc-2.95.2/gcc/c-lex.c	Mon Nov  1 10:30:32 1999
++++ gcc-2.95.2/gcc/c-lex.c	Mon Nov  1 11:07:23 1999
 @@ -1893,7 +1893,7 @@
+ 	(void) local_mbtowc (NULL_PTR, NULL_PTR, 0);
+ #endif
+ 
+-	max_chars = TYPE_PRECISION (integer_type_node) / width;
++	max_chars = TYPE_PRECISION (long_integer_type_node) / width;
+ 	if (wide_flag)
+ 	  width = WCHAR_TYPE_SIZE;
+ 
+@@ -2035,7 +2035,7 @@
  		= build_int_2 (result | ~(~(unsigned HOST_WIDE_INT) 0
  					  >> (HOST_BITS_PER_WIDE_INT - num_bits)),
  			       -1);
@@ -360,10 +660,10 @@ diff -urN orig/egcs-1.1b/gcc/c-lex.c egcs-1.1b/gcc/c-lex.c
  	  }
  	else
  	  {
-diff -urN orig/egcs-1.1b/gcc/calls.c egcs-1.1b/gcc/calls.c
---- orig/egcs-1.1b/gcc/calls.c	Wed Jul  1 06:10:45 1998
-+++ egcs-1.1b/gcc/calls.c	Fri Oct 23 22:04:19 1998
-@@ -283,7 +283,12 @@
+diff -urN orig/gcc-2.95.2/gcc/calls.c gcc-2.95.2/gcc/calls.c
+--- orig/gcc-2.95.2/gcc/calls.c	Mon Nov  1 10:30:32 1999
++++ gcc-2.95.2/gcc/calls.c	Mon Nov  1 11:07:23 1999
+@@ -313,7 +313,12 @@
    else
      {
  #ifndef NO_FUNCTION_CSE
@@ -376,7 +676,7 @@ diff -urN orig/egcs-1.1b/gcc/calls.c egcs-1.1b/gcc/calls.c
  #ifdef NO_RECURSIVE_FUNCTION_CSE
  	if (fndecl != current_function_decl)
  #endif
-@@ -2365,6 +2370,10 @@
+@@ -2602,6 +2607,10 @@
    nargs = va_arg (p, int);
  #endif
  
@@ -387,7 +687,7 @@ diff -urN orig/egcs-1.1b/gcc/calls.c egcs-1.1b/gcc/calls.c
    fun = orgfun;
  
    /* Copy all the libcall-arguments out of the varargs data
-@@ -2863,6 +2872,10 @@
+@@ -3099,6 +3108,10 @@
    no_queue = va_arg (p, int);
    outmode = va_arg (p, enum machine_mode);
    nargs = va_arg (p, int);
@@ -398,9 +698,24 @@ diff -urN orig/egcs-1.1b/gcc/calls.c egcs-1.1b/gcc/calls.c
  #endif
  
    is_const = no_queue;
-diff -urN orig/egcs-1.1b/gcc/config/m68k/fpexcept.c egcs-1.1b/gcc/config/m68k/fpexcept.c
---- orig/egcs-1.1b/gcc/config/m68k/fpexcept.c	Thu Jan  1 01:00:00 1970
-+++ egcs-1.1b/gcc/config/m68k/fpexcept.c	Wed Oct  7 14:20:36 1998
+diff -urN orig/gcc-2.95.2/gcc/cccp.c gcc-2.95.2/gcc/cccp.c
+--- orig/gcc-2.95.2/gcc/cccp.c	Mon Nov  1 10:30:32 1999
++++ gcc-2.95.2/gcc/cccp.c	Fri Nov  5 23:05:28 1999
+@@ -82,8 +82,9 @@
+ #define INCLUDE_LEN_FUDGE 12	/* leave room for VMS syntax conversion */
+ #endif /* VMS */
+ 
+-/* Windows does not natively support inodes, and neither does MSDOS.  */
+-#if (defined (_WIN32) && ! defined (__CYGWIN__) && ! defined (_UWIN)) \
++/* Windows does not natively support inodes, and neither does MSDOS. 
++   Cygwin's emulation can generate non-unique inodes, so don't use it. */
++#if (defined (_WIN32) && ! defined (_UWIN)) \
+   || defined (__MSDOS__)
+ #define INO_T_EQ(a, b) 0
+ #endif
+diff -urN orig/gcc-2.95.2/gcc/config/m68k/fpexcept.c gcc-2.95.2/gcc/config/m68k/fpexcept.c
+--- orig/gcc-2.95.2/gcc/config/m68k/fpexcept.c	Wed Dec 31 16:00:00 1969
++++ gcc-2.95.2/gcc/config/m68k/fpexcept.c	Mon Nov  1 11:07:23 1999
 @@ -0,0 +1,44 @@
 +/* Definitions of software floating point exeptions
 +   Copyright (C) 1997 Free Software Foundation, Inc.
@@ -446,74 +761,9 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/fpexcept.c egcs-1.1b/gcc/config/m68k/fp
 +}
 +
 +
-diff -urN orig/egcs-1.1b/gcc/config/m68k/fpgnulib.c egcs-1.1b/gcc/config/m68k/fpgnulib.c
---- orig/egcs-1.1b/gcc/config/m68k/fpgnulib.c	Mon Aug 11 16:57:31 1997
-+++ egcs-1.1b/gcc/config/m68k/fpgnulib.c	Wed Oct  7 14:20:36 1998
-@@ -107,7 +107,7 @@
- 
- /* convert int to double */
- double
--__floatsidf (int a1)
-+__floatsidf (long a1)
- {
-   long sign = 0, exp = 31 + EXCESSD;
-   union double_long dl;
-@@ -124,7 +124,7 @@
-       a1 = -a1;
-       if (a1 < 0)
- 	{
--	  dl.l.upper = SIGNBIT | ((32 + EXCESSD) << 20L);
-+	  dl.l.upper = SIGNBIT | ((32L + EXCESSD) << 20L);
- 	  dl.l.lower = 0;
- 	  return dl.d;
-         }
-@@ -153,7 +153,7 @@
- 
- /* convert int to float */
- float
--__floatsisf (int l)
-+__floatsisf (long l)
- {
-   double foo = __floatsidf (l);
-   return foo;
-@@ -222,7 +222,7 @@
- }
- 
- /* convert double to int */
--int
-+long
- __fixdfsi (double a1)
- {
-   register union double_long dl1;
-@@ -254,7 +254,7 @@
- }
- 
- /* convert float to int */
--int
-+long
- __fixsfsi (float a1)
- {
-   double foo = a1;
-@@ -268,12 +268,12 @@
-    We assume all numbers are normalized, don't do any rounding, etc.  */
- 
- /* Prototypes for the above in case we use them.  */
--double __floatsidf (int);
--float __floatsisf (int);
-+double __floatsidf (long);
-+float __floatsisf (long);
- double __extendsfdf2 (float);
- float __truncdfsf2 (double);
--int __fixdfsi (double);
--int __fixsfsi (float);
-+long __fixdfsi (double);
-+long __fixsfsi (float);
- 
- /* convert double to long double */
- long double
-diff -urN orig/egcs-1.1b/gcc/config/m68k/lb1sf68palmos.asm egcs-1.1b/gcc/config/m68k/lb1sf68palmos.asm
---- orig/egcs-1.1b/gcc/config/m68k/lb1sf68palmos.asm	Thu Jan  1 01:00:00 1970
-+++ egcs-1.1b/gcc/config/m68k/lb1sf68palmos.asm	Wed Oct  7 14:20:36 1998
+diff -urN orig/gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm
+--- orig/gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm	Wed Dec 31 16:00:00 1969
++++ gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm	Mon Nov  1 11:07:23 1999
 @@ -0,0 +1,3069 @@
 +/* libgcc1 routines for 68000 w/o floating-point hardware. */
 +/* Copyright (C) 1994 Free Software Foundation, Inc.
@@ -3584,18 +3834,10 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/lb1sf68palmos.asm egcs-1.1b/gcc/config/
 +	rts
 +#endif /* L_lesf2 */
 +
-diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
---- orig/egcs-1.1b/gcc/config/m68k/m68k.c	Mon Jul 13 23:33:07 1998
-+++ egcs-1.1b/gcc/config/m68k/m68k.c	Thu Nov 12 04:57:55 1998
-@@ -22,6 +22,7 @@
- /* Some output-actions in m68k.md need these.  */
- #include "config.h"
- #include <stdio.h>
-+#include <string.h>
- #include "tree.h"
- #include "rtl.h"
- #include "regs.h"
-@@ -129,6 +130,244 @@
+diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k.c
+--- orig/gcc-2.95.2/gcc/config/m68k/m68k.c	Mon Nov  1 10:30:38 1999
++++ gcc-2.95.2/gcc/config/m68k/m68k.c	Thu Dec 23 20:08:00 1999
+@@ -126,6 +126,350 @@
      m68k_align_funcs = def_align;
  }
  
@@ -3610,6 +3852,31 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
 +#define SET_IF_PRESENT(VAR, NODE) \
 +  (VAR = ((NODE) != NULL_TREE && TREE_STRING_LENGTH (TREE_VALUE (NODE)) > 1)? \
 +	 TREE_STRING_POINTER (TREE_VALUE (NODE)) : VAR)
++
++#if 0
++tree
++palmos_wibble (num, attrs)
++     int num;
++     tree attrs;
++{
++  tree a;
++
++  switch (num) {
++    case 0:  printf ("--  - - to get\n");  break;
++    case 1:  printf ("-- merge machine attrs\n");  break;
++    case 2:  printf ("--  - - with\n");  break;
++    }
++
++  /* debug_tree (attrs); */
++  for (a = attrs; a; a = TREE_CHAIN (a))
++    printf ("   %s",  IDENTIFIER_POINTER (TREE_PURPOSE (a)));
++
++  printf ("\n");
++
++  if (num == 0) printf ("-- end\n");
++  return attrs;
++}
++#endif
 +
 +/* Return nonzero if ATTR is a valid attribute for DECL.
 +   ATTRIBUTES are any existing attributes and ARGS are the arguments
@@ -3657,9 +3924,16 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
 +
 +	  if (TREE_CODE (trap_expr) == INTEGER_CST)
 +	    {
-+	      char buffer[16];
-+	      sprintf (buffer, "#0x%04x", TREE_INT_CST_LOW (trap_expr));
-+	      DECL_ASSEMBLER_NAME (decl) = get_identifier (buffer);
++	      char *name = IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (decl));
++	      char *coding = alloca (32 + strlen (name));
++	      sprintf (coding, "=trap #15; dc.w 0x%04x\036%s",
++		       TREE_INT_CST_LOW (trap_expr), name);
++	      DECL_ASSEMBLER_NAME (decl) = get_identifier (coding);
++#if 0
++	      warning
++		("the `systrap' attribute will go away in the next release");
++	      warning ("please use `callseq' instead");
++#endif
 +	      return 1;
 +	    }
 +	  else
@@ -3667,6 +3941,47 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
 +	      error ("trap number is not a constant");
 +	      return 0;
 +	    }
++	}
++      else if (is_attribute_p ("callseq", attr))
++	{
++	  tree prev;
++
++	  if (list_length (args) != 1
++	      || TREE_CODE (TREE_VALUE (args)) != STRING_CST)
++	    {
++	      error ("calling sequence attribute requires one string argument");
++	      return 0;
++	    }
++
++	  /* JWM @@@ This is brutal test code */
++	  {
++	    char *fmt = TREE_STRING_POINTER (TREE_VALUE (args));
++	    int warn = 0;
++	    char *s;
++
++	    for (s = fmt; (s = index (s, '#')) != NULL; s++) {
++	      while (s[1] == '(')  s++;
++	      if (s[1] && !isdigit (s[1]))  warn = 1;
++	      }
++
++	    for (s = fmt; (s = strstr (s, "dc.w ")) != NULL; s++) {
++	      while (s[5] == '(')  s++;
++	      if (s[5] && !isdigit (s[5]))  warn = 1;
++	      }
++
++	    if (warn)  warning ("possibly bad __callseq__ `%s'", fmt);
++	  }
++
++	  prev = lookup_attribute ("callseq", attributes);
++	  if (prev != NULL_TREE
++	      && strcmp (TREE_STRING_POINTER (TREE_VALUE (TREE_VALUE (prev))),
++			 TREE_STRING_POINTER (TREE_VALUE (args))) != 0)
++	    {
++	      error ("calling sequence conflicts with previous declaration");
++	      return 0;
++	    }
++
++	  return 1;
 +	}
 +      else if (is_attribute_p ("extralogue", attr))
 +	{
@@ -3696,75 +4011,61 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
 +    default:
 +      break;
 +    }
-+
++    
 +  return 0;
 +}
 +
-+/* After attribute processing and ENCODE_SECTION_INFO, a Palm OS symbol_ref
-+   can be
-+    #0xabcd	a system trap
-+    func	a function in the .text section
-+    *.LC0	perhaps a string constant in the .text section
-+    @sec@func	a function in the named section
-+    @sec@*.LC0	some kind of constant in the named section
-+   Note that "*@sec@.LC0" is not a valid equivalent for the last case, because
-+   assemble_name() understands too much about names starting with `*'.  */
 +
-+/* Encode DECL's section name into SYM's name as `@section@symname'.  */
++/* Encode DECL's section name into SYM's name as `@section|symname'.  */
++/* @@@ JWM fix the comment */
 +void
-+palmos_encode_section_info (sym, decl)
++palmos_encode_section_info (sym, funcdecl, section_only)
 +     rtx sym;
-+     tree decl;
++     tree funcdecl;
++     int section_only;
 +{
-+  char *symstr = XSTR (XEXP (sym, 0), 0);
++  char *name, *section, *callseq;
++  int offset, section_offset, callseq_offset;
++  tree a;
 +
-+  /* Ignore symbols that have already been encoded, or that are references
-+     to systrap functions, which really don't have a section.  */
-+  if (symstr[0] != '@' && symstr[0] != '#')
++  name = XSTR (XEXP (sym, 0), 0);
++  offset = 0;
++
++  if (DECL_SECTION_NAME (funcdecl) != NULL_TREE && ! index (name, '@'))
 +    {
-+      char *secstr = TREE_STRING_POINTER (DECL_SECTION_NAME (decl));
-+      char *newstr = permalloc (1 + strlen (secstr) + 1 + strlen (symstr) + 1);
-+      sprintf (newstr, "@%s@%s", secstr, symstr);
-+      XSTR (XEXP (sym, 0), 0) = newstr;
++      section_offset = offset;
++      section = TREE_STRING_POINTER (DECL_SECTION_NAME (funcdecl));
++      offset += 1 + strlen (section) + 1;
 +    }
 +  else
-+    printf ("* [Danger, WR!] symbol already encoded as `%s'\n", symstr);
-+}
++    section = NULL;
 +
-+static char *
-+pull_encoded_section (char **sec, int *sec_len, char *name)
-+{
-+  if (name[0] == '@')
++  a = lookup_attribute ("callseq", DECL_MACHINE_ATTRIBUTES (funcdecl));
++  if (!section_only && a != NULL_TREE && ! index (name, '='))
 +    {
-+      char *delim = strchr (name+1, '@');
-+      *sec = name+1;
-+      *sec_len = delim - *sec;
-+      name = delim+1;
++      callseq_offset = offset;
++      callseq = TREE_STRING_POINTER (TREE_VALUE (TREE_VALUE (a)));
++      offset += 1 + strlen (callseq) + 1;
 +    }
 +  else
++    callseq = NULL;
++
++  if (offset != 0)
 +    {
-+      *sec = "";
-+      *sec_len = 0;
++      char *newname = permalloc (offset + strlen (name) + 1);
++
++      if (section)
++        sprintf (newname + section_offset, "@%s\036", section);
++
++      if (callseq)
++        sprintf (newname + callseq_offset, "=%s\036", callseq);
++
++      sprintf (newname + offset, "%s", name);
++
++      XSTR (XEXP (sym, 0), 0) = newname;
 +    }
-+
-+  return name;
 +}
 +
-+/* The STRIP_NAME_ENCODING macro has already taken care of most of the
-+   possibilities.  */
-+char *
-+palmos_strip_name_encoding (name)
-+     char *name;
-+{
-+  char *section;
-+  int section_len;
-+
-+  name = pull_encoded_section (&section, &section_len, name);
-+  if (name[0] == '*')
-+    name++;
-+
-+  return name;
-+}
 +
 +static int
 +section_differs_from_current_p (callee_name)
@@ -3778,19 +4079,47 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
 +  else
 +    caller = "";
 +
-+  pull_encoded_section (&callee, &callee_len, callee_name);
++  if (index (callee_name, '@'))
++    {
++      callee = index (callee_name, '@') + 1;
++      callee_len = index (callee, '\036') - callee;
++    }
++  else
++    {
++      callee = "";
++      callee_len = 0;
++    }
 +
 +  return ! (strlen (caller) == callee_len
 +	    && strncmp (caller, callee, callee_len) == 0);
 +}
 +
 +/* Build a symbol_ref of the form `__text__SEC' from an encoded name like
-+   `@SEC@func'.  Note that the symbol we generate is in the data section,
++   `@SEC|func'.  Note that the symbol we generate is in the data section,
 +   so we do *not* set the symbol_ref's SYMBOL_REF_FLAG.  */
 +static rtx
 +gen_section_symbol_ref (name)
 +     char *name;
 +{
++  char *section_name;
++  tree node;
++
++  section_name = alloca (8 + strlen (name) + 1);
++  strcpy (section_name, "__text__");
++  if (name[0] == '@')
++    {
++      char *s = name+1;
++      char *t = section_name+8;
++      while (*s != '\036')
++	*t++ = *s++;
++      *t = '\0';
++    }
++
++  /* Ensure the pointer is unique so that CSE will notice the similarity.  */
++  node = get_identifier (section_name);
++
++  return gen_rtx_SYMBOL_REF (SImode, IDENTIFIER_POINTER (node));
++#if 0
 +  char *section, *section_name;
 +  int section_len;
 +  tree node;
@@ -3804,6 +4133,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
 +  node = get_identifier (section_name);
 +
 +  return gen_rtx_SYMBOL_REF (SImode, IDENTIFIER_POINTER (node));
++#endif
 +}
 +
 +static void
@@ -3835,31 +4165,46 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
 +    }
 +}
 +
++void
++output_callseq (operand1)
++     rtx operand1;
++{
++  rtx operands[2];
++  char *encoded_name = XSTR (operand1, 0);
++  char *action = alloca (strlen (encoded_name+1) + 1);
++
++  strcpy (action, encoded_name+1);
++  *index (action, '\036') = '\0';
++
++  operands[0] = operand1;
++  operands[1] = pic_offset_table_rtx;
++  app_enable ();
++  output_asm_insn (action, operands);
++  app_disable ();
++}
++
 +#endif /* PALMOS */
 +
- /* Emit a (use pic_offset_table_rtx) if we used PIC relocation in the 
-    function at any time during the compilation process.  In the future 
-    we should try and eliminate the USE if we can easily determine that 
-@@ -138,6 +377,18 @@
- void
- finalize_pic ()
- {
+ /* This function generates the assembly code for function entry.
+    STREAM is a stdio stream to output the code to.
+    SIZE is an int: how many units of temporary storage to allocate.
+@@ -150,6 +494,15 @@
+   extern char call_used_regs[];
+   int fsize = (size + 3) & -4;
+   int cfa_offset = INCOMING_FRAME_SP_OFFSET, cfa_store_offset = cfa_offset;
++
 +#if 0
-+  if (flag_pic
-+      && (
-+#ifdef PALMOS
-+	  (TARGET_PCREL)
-+	  ? (TARGET_OWN_GP
-+	     && lookup_attribute ("owngp",
-+			      DECL_MACHINE_ATTRIBUTES (current_function_decl)))
-+	  :
++  printf ("@@@ dump(%s) (in section `%s'):\n",
++	  current_function_name, (DECL_SECTION_NAME(current_function_decl))? 
++	  TREE_STRING_POINTER (DECL_SECTION_NAME(current_function_decl)) : "<<NONE>>");
++  debug_tree (current_function_decl);
++  printf ("@     and mach attrs:\n");
++  debug_tree (DECL_MACHINE_ATTRIBUTES (current_function_decl));
 +#endif
-+	  current_function_uses_pic_offset_table))
-+#endif
-   if (flag_pic && current_function_uses_pic_offset_table)
-     {
-       rtx insn = gen_rtx_USE (VOIDmode, pic_offset_table_rtx);
-@@ -367,7 +618,8 @@
+   
+ 
+   if (frame_pointer_needed)
+@@ -346,7 +699,8 @@
        num_saved_regs = 0;
      }
    for (regno = 0; regno < 16; regno++)
@@ -3869,7 +4214,23 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
        {
          mask |= 1 << (15 - regno);
          num_saved_regs++;
-@@ -478,6 +730,38 @@
+@@ -356,11 +710,15 @@
+       mask &= ~ (1 << (15 - FRAME_POINTER_REGNUM));
+       num_saved_regs--;
+     }
++#if 0
++/* @@@ This got added by law in July in cvs chg # 1.29 or so.
++   Need to figure out why or just add && !fixed_reg[PIC_OFFSET_TABLE_REGNUM] */
+   if (flag_pic && regs_ever_live[PIC_OFFSET_TABLE_REGNUM])
+     {
+       mask |= 1 << (15 - PIC_OFFSET_TABLE_REGNUM);
+       num_saved_regs++;
+     }
++#endif
+ 
+ #if NEED_PROBE
+ #ifdef MOTOROLA
+@@ -462,6 +820,38 @@
  				  -cfa_store_offset + n_regs++ * 4);
  	}
      }
@@ -3908,7 +4269,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
    if (flag_pic && current_function_uses_pic_offset_table)
      {
  #ifdef MOTOROLA
-@@ -507,8 +791,22 @@
+@@ -491,8 +881,22 @@
       separate layout routine to perform the common work.  */
    
    for (regno = 0 ; regno < FIRST_PSEUDO_REGISTER ; regno++)
@@ -3932,7 +4293,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
    
    return 1;
  }
-@@ -554,6 +852,64 @@
+@@ -538,6 +942,64 @@
      }
  #endif
  
@@ -3997,7 +4358,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
  #ifdef FUNCTION_EXTRA_EPILOGUE
    FUNCTION_EXTRA_EPILOGUE (stream, size);
  #endif
-@@ -579,7 +935,8 @@
+@@ -563,16 +1025,21 @@
    if (frame_pointer_needed)
      regs_ever_live[FRAME_POINTER_REGNUM] = 0;
    for (regno = 0; regno < 16; regno++)
@@ -4007,7 +4368,20 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
        {
          nregs++;
  	mask |= 1 << regno;
-@@ -843,6 +1200,16 @@
+       }
++#if 0
++/* @@@ This got added by law in July in cvs chg # 1.29 or so.
++   Need to figure out why or just add && !fixed_reg[PIC_OFFSET_TABLE_REGNUM] */
+   if (flag_pic && regs_ever_live[PIC_OFFSET_TABLE_REGNUM])
+     {
+       nregs++;
+       mask |= 1 << PIC_OFFSET_TABLE_REGNUM;
+     }
++#endif
+   offset = foffset + nregs * 4;
+   /* FIXME : leaf_function_p below is too strong.
+      What we really need to know there is if there could be pending
+@@ -832,6 +1299,16 @@
      asm_fprintf (stream, "\trtd %0I%d\n", current_function_pops_args);
    else
      fprintf (stream, "\trts\n");
@@ -4024,7 +4398,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
  }
  
  /* Similar to general_operand, but exclude stack_pointer_rtx.  */
-@@ -1328,6 +1695,61 @@
+@@ -1317,6 +1794,61 @@
     That (in a nutshell) is how *all* symbol and label references are 
     handled.  */
  
@@ -4046,7 +4420,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
 +    {
 +      char *name = XSTR (orig, 0);
 +
-+      if (name[0] == '#')
++      if (name[0] == '=')
 +	{
 +	  if (calling)
 +	    pic_ref = gen_rtx_UNSPEC (GET_MODE (orig), gen_rtvec (1, orig), 28);
@@ -4086,7 +4460,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
  rtx
  legitimize_pic_address (orig, mode, reg)
       rtx orig, reg;
-@@ -1341,6 +1763,17 @@
+@@ -1330,6 +1862,17 @@
        if (reg == 0)
  	abort ();
  
@@ -4104,7 +4478,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
        pic_ref = gen_rtx_MEM (Pmode,
  			     gen_rtx_PLUS (Pmode,
  					   pic_offset_table_rtx, orig));
-@@ -1348,6 +1781,7 @@
+@@ -1337,6 +1880,7 @@
        if (reload_in_progress)
  	regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
        RTX_UNCHANGING_P (pic_ref) = 1;
@@ -4112,7 +4486,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
        emit_move_insn (reg, pic_ref);
        return reg;
      }
-@@ -1531,12 +1965,28 @@
+@@ -1523,12 +2067,28 @@
    else if ((GET_CODE (operands[1]) == SYMBOL_REF
  	    || GET_CODE (operands[1]) == CONST)
  	   && push_operand (operands[0], SImode))
@@ -4144,7 +4518,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
  }
  
  char *
-@@ -1611,6 +2061,7 @@
+@@ -1606,6 +2166,7 @@
  {
    rtx xoperands[4];
  
@@ -4152,7 +4526,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
    /* This is probably useless, since it loses for pushing a struct
       of several bytes a byte at a time.	 */
    /* 68k family always modifies the stack pointer by at least 2, even for
-@@ -1640,6 +2091,7 @@
+@@ -1635,6 +2196,7 @@
  	output_asm_insn ("move%.b %1,%-\n\tmove%.b %@,%2", xoperands);
        return "";
      }
@@ -4160,7 +4534,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
  
    /* clr and st insns on 68000 read before writing.
       This isn't so on the 68010, but we have no TARGET_68010.  */
-@@ -2120,7 +2572,7 @@
+@@ -2116,7 +2678,7 @@
  	 stack slots over 64k from the frame pointer.  */
        if (GET_CODE (operands[2]) == CONST_INT
  	  && INTVAL (operands[2]) + 0x8000 >= (unsigned) 0x10000)
@@ -4169,7 +4543,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
  #ifdef SGS
        if (GET_CODE (operands[2]) == REG)
  	return "lea 0(%1,%2.l),%0";
-@@ -2185,7 +2637,7 @@
+@@ -2181,7 +2743,7 @@
  #endif
  	}
      }
@@ -4178,7 +4552,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
  }
  
  /* Store in cc_status the expressions that the condition codes will
-@@ -3087,6 +3539,17 @@
+@@ -3085,6 +3647,17 @@
  		output_addr_const (file, addr);
  	        if (flag_pic && (breg == pic_offset_table_rtx))
  		  {
@@ -4196,10 +4570,10 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.c egcs-1.1b/gcc/config/m68k/m68k.c
  		    fprintf (file, "@GOT");
  		    if (flag_pic == 1)
  		      fprintf (file, ".w");
-diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.h egcs-1.1b/gcc/config/m68k/m68k.h
---- orig/egcs-1.1b/gcc/config/m68k/m68k.h	Tue Jul 14 00:02:08 1998
-+++ egcs-1.1b/gcc/config/m68k/m68k.h	Fri Nov  6 16:14:41 1998
-@@ -1177,6 +1177,8 @@
+diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.h gcc-2.95.2/gcc/config/m68k/m68k.h
+--- orig/gcc-2.95.2/gcc/config/m68k/m68k.h	Mon Nov  1 10:30:38 1999
++++ gcc-2.95.2/gcc/config/m68k/m68k.h	Mon Nov  1 11:07:24 1999
+@@ -1189,6 +1189,8 @@
     of a local variable as a function of frame_pointer_needed, which
     is hard.  */
  
@@ -4208,7 +4582,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.h egcs-1.1b/gcc/config/m68k/m68k.h
  #define INITIAL_FRAME_POINTER_OFFSET(DEPTH)			\
  { int regno;							\
    int offset = -4;						\
-@@ -1184,7 +1186,8 @@
+@@ -1196,7 +1198,8 @@
      if (regs_ever_live[regno] && ! call_used_regs[regno])	\
        offset += 12;						\
    for (regno = 0; regno < 16; regno++)				\
@@ -4218,18 +4592,18 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.h egcs-1.1b/gcc/config/m68k/m68k.h
        offset += 4;						\
    (DEPTH) = (offset + ((get_frame_size () + 3) & -4)		\
  	     + (get_frame_size () == 0 ? 0 : 4));		\
-@@ -1418,7 +1421,7 @@
+@@ -1431,7 +1434,7 @@
     || (GET_CODE (X) == PLUS && XEXP (X, 0) == pic_offset_table_rtx 	\
         && flag_pic && GET_CODE (XEXP (X, 1)) == SYMBOL_REF)		\
     || (GET_CODE (X) == PLUS && XEXP (X, 0) == pic_offset_table_rtx 	\
 -       && flag_pic && GET_CODE (XEXP (X, 1)) == LABEL_REF))		\
 +       && flag_pic && GET_CODE (XEXP (X, 1)) == LABEL_REF))
  
- #if 0
- /* This should replace the last two (non-pic) lines
-diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.md egcs-1.1b/gcc/config/m68k/m68k.md
---- orig/egcs-1.1b/gcc/config/m68k/m68k.md	Sat Aug 29 14:53:27 1998
-+++ egcs-1.1b/gcc/config/m68k/m68k.md	Thu Oct 29 12:05:19 1998
+ #define GO_IF_NONINDEXED_ADDRESS(X, ADDR)  \
+ { if (INDIRECTABLE_1_ADDRESS_P (X)) goto ADDR; }
+diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.md gcc-2.95.2/gcc/config/m68k/m68k.md
+--- orig/gcc-2.95.2/gcc/config/m68k/m68k.md	Mon Nov  1 10:30:38 1999
++++ gcc-2.95.2/gcc/config/m68k/m68k.md	Mon Nov  1 11:07:24 1999
 @@ -272,6 +272,8 @@
  
  ;;- END FPA Explanation Section.
@@ -4239,7 +4613,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.md egcs-1.1b/gcc/config/m68k/m68k.
  
  ;;- Some of these insn's are composites of several m68000 op codes.
  ;;- The assembler (or final @@??) insures that the appropriate one is
-@@ -944,11 +946,48 @@
+@@ -955,11 +957,48 @@
           register (a new pseudo, or the final destination if reload_in_progress
           is set).   Then fall through normally */
        extern rtx legitimize_pic_address();
@@ -4288,7 +4662,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.md egcs-1.1b/gcc/config/m68k/m68k.
  ;; General case of fullword move.  The register constraints
  ;; force integer constants in range for a moveq to be reloaded
  ;; if they are headed for memory.
-@@ -2339,9 +2378,9 @@
+@@ -2356,9 +2395,9 @@
  #endif
        if (ADDRESS_REG_P (operands[0]) && !TARGET_68040)
  #ifdef MOTOROLA  
@@ -4300,7 +4674,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.md egcs-1.1b/gcc/config/m68k/m68k.
  #endif
      }
    return \"add%.w %2,%0\";
-@@ -2401,9 +2440,9 @@
+@@ -2418,9 +2457,9 @@
  #endif
        if (ADDRESS_REG_P (operands[0]) && !TARGET_68040)
  #ifdef MOTOROLA  
@@ -4312,7 +4686,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.md egcs-1.1b/gcc/config/m68k/m68k.
  #endif
      }
    return \"add%.w %1,%0\";
-@@ -6502,9 +6541,11 @@
+@@ -6458,9 +6497,11 @@
    ""
    "*
  #ifdef MOTOROLA
@@ -4326,7 +4700,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.md egcs-1.1b/gcc/config/m68k/m68k.
  #endif
  ")
  
-@@ -6834,9 +6875,38 @@
+@@ -6790,9 +6831,41 @@
    "
  {
    if (flag_pic && GET_CODE (XEXP (operands[0], 0)) == SYMBOL_REF)
@@ -4361,12 +4735,15 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.md egcs-1.1b/gcc/config/m68k/m68k.
 +  [(call (mem:QI (unspec [(match_operand 0 "symbolic_operand" "X")] 28))
 +	 (match_operand:SI 1 "general_operand" "g"))]
 +  ""
-+  "trap #15\;dc.w %a0")
++  "*
++  output_callseq (operands[0]);
++  return \"\";
++")
 +
  ;; This is a normal call sequence.
  (define_insn ""
    [(call (match_operand:QI 0 "memory_operand" "o")
-@@ -6897,9 +6967,41 @@
+@@ -6853,9 +6926,44 @@
    "
  {
    if (flag_pic && GET_CODE (XEXP (operands[1], 0)) == SYMBOL_REF)
@@ -4404,12 +4781,15 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.md egcs-1.1b/gcc/config/m68k/m68k.
 +	(call (mem:QI (unspec [(match_operand 1 "symbolic_operand" "X")] 28))
 +	      (match_operand:SI 2 "general_operand" "g")))]
 +  ""
-+  "trap #15\;dc.w %a1")
++  "*
++  output_callseq (operands[1]);
++  return \"\";
++")
 +
  ;; This is a normal call_value
  (define_insn ""
    [(set (match_operand 0 "" "=rf")
-@@ -7058,7 +7160,58 @@
+@@ -7014,7 +7122,58 @@
      }
  #endif /* SGS_NO_LI */
  
@@ -4469,10 +4849,10 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68k.md egcs-1.1b/gcc/config/m68k/m68k.
  }")
  
  ;; This is the first machine-dependent peephole optimization.
-diff -urN orig/egcs-1.1b/gcc/config/m68k/m68kpalmos.h egcs-1.1b/gcc/config/m68k/m68kpalmos.h
---- orig/egcs-1.1b/gcc/config/m68k/m68kpalmos.h	Thu Jan  1 01:00:00 1970
-+++ egcs-1.1b/gcc/config/m68k/m68kpalmos.h	Thu Nov 12 06:33:18 1998
-@@ -0,0 +1,285 @@
+diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68k/m68kpalmos.h
+--- orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Wed Dec 31 16:00:00 1969
++++ gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Fri Jan 21 23:27:58 2000
+@@ -0,0 +1,326 @@
 +/* Definitions of target machine for GNU compiler.  "naked" 68020,
 +   COFF object files and debugging, version.
 +   Copyright (C) 1994 Free Software Foundation, Inc.
@@ -4600,12 +4980,12 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68kpalmos.h egcs-1.1b/gcc/config/m68k/
 +      flag_pic = 1;							\
 +    if (TARGET_OWN_GP)							\
 +      target_flags |= MASK_EXTRALOGUES;					\
-+    palmos_pic_reg = (TARGET_OWN_GP)? 12 : 13;  			\
++    palmos_pic_reg = (TARGET_OWN_GP)? 12 : 13;			\
 +  }
 +
-+/* Always disallow function-cse for systrap calls.  */
++/* Always disallow function-cse for calls to callseq functions.  */
 +#define FORBID_FUNCTION_CSE_P(EXP)					\
-+  ((GET_CODE (EXP) == SYMBOL_REF && (XSTR ((EXP), 0))[0] == '#')	\
++  ((GET_CODE (EXP) == SYMBOL_REF && (XSTR ((EXP), 0))[0] == '=')	\
 +   || GET_CODE (EXP) == UNSPEC)
 +
 +
@@ -4644,7 +5024,10 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68kpalmos.h egcs-1.1b/gcc/config/m68k/
 +#define CC1PLUS_SPEC ""
 +
 +#undef LINK_SPEC
-+#define LINK_SPEC "--embedded-relocs -N %{!static:-dy} %{!T:-T pilot.ld%s}"
++#define LINK_SPEC "\
++-L%(palmdev_prefix)lib/%(full_target_machine) \
++-L%(palmdev_prefix)%(palm_sdk)/lib/%(full_target_machine) \
++--embedded-relocs -N %{!static:-dy} %{!T:-T pilot.ld%s}"
 +
 +#undef STARTFILE_SPEC
 +#define STARTFILE_SPEC \
@@ -4658,21 +5041,37 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68kpalmos.h egcs-1.1b/gcc/config/m68k/
 +
 +#undef CPP_SUBTARGET_SPEC
 +#define CPP_SUBTARGET_SPEC "\
-+-iprefix %(tooldir_base_prefix)%(target_machine)/include/%(palmos_version)/ \
-+-iwithprefix . -iwithprefix System -iwithprefix UI \
-+-iwithprefix Hardware -iwithprefix System/Unix"
++%(palmdev_includes) \
++-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/System \
++-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/UI \
++-isystem %(palmdev_prefix)%(palm_sdk)/include \
++-isystem %(palmdev_prefix)%(palm_sdk)/include/Core \
++-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/Hardware \
++-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/System/Unix \
++-remap"
++
++/* Alas, "sdk%{palmos*:-%*}" doesn't work, because you end up with a space:
++   ".../sdk%{palmos*:-%*}/include" -palmos3.5 -> ".../sdk-3.5 /include".  */
 +
 +#undef SUBTARGET_EXTRA_SPECS
 +#define SUBTARGET_EXTRA_SPECS						\
-+  { "palmos_version", "PalmOS%{palmos1:1}%{palmos2:2}%{palmos3:3}" },	\
-+  { "tooldir_base_prefix", TOOLDIR_BASE_PREFIX },			\
-+  { "target_machine", DEFAULT_TARGET_MACHINE },
-+
++  { "palmdev_prefix", PALMDEV_PREFIX },					\
++  { "full_target_machine", FULL_TARGET_MACHINE },			\
++  { "palmdev_includes",							\
++    "-isystem %(palmdev_prefix)include" },				\
++  { "palm_sdk", "\
++sdk%{palmos1*:-1}%{palmos2*:-2}\
++%{palmos3|palmos3.0:-3}%{palmos3.1:-3.1}%{palmos3.5:-3.5}" },
 +
 +extern int palmos_valid_machine_decl_attribute ();
 +#define VALID_MACHINE_DECL_ATTRIBUTE(DECL, ATTRIBUTES, ID, ARGS)	\
 +  palmos_valid_machine_decl_attribute (DECL, ATTRIBUTES, ID, ARGS)
 +
++#if 0
++extern union tree_node *palmos_wibble();
++#define MERGE_MACHINE_DECL_ATTRIBUTES(OLDDECL, NEWDECL)			\
++  palmos_wibble (0, merge_attributes (palmos_wibble (2, DECL_MACHINE_ATTRIBUTES (OLDDECL)), palmos_wibble (1, DECL_MACHINE_ATTRIBUTES (NEWDECL))))
++#endif
 +
 +#define READONLY_DATA_SECTION  curfunc_section
 +#define JUMP_TABLES_IN_TEXT_SECTION  1
@@ -4695,43 +5094,67 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68kpalmos.h egcs-1.1b/gcc/config/m68k/
 +
 +extern void palmos_encode_section_info ();
 +#define ENCODE_SECTION_INFO(decl)					\
-+ { rtx sym; int decl_code = TREE_CODE (decl);				\
-+   if ((decl_code == VAR_DECL || decl_code == FUNCTION_DECL)		\
-+       && (sym = DECL_RTL (decl))					\
-+       && GET_CODE (sym) == MEM						\
-+       && GET_CODE (XEXP (sym, 0)) == SYMBOL_REF)			\
-+   {									\
-+     if (decl_code == VAR_DECL && TREE_ASM_WRITTEN (decl))		\
-+       SYMBOL_REF_FLAG (XEXP (sym, 0)) = DECL_IN_TEXT_SECTION (decl);	\
-+     else if (decl_code == FUNCTION_DECL)				\
-+       {								\
-+	 SYMBOL_REF_FLAG (XEXP (sym, 0)) = 1;				\
-+	 if (DECL_SECTION_NAME (decl) != NULL_TREE)			\
-+	   palmos_encode_section_info (sym, decl);			\
-+       }								\
-+     else								\
-+       SYMBOL_REF_FLAG(XEXP (DECL_RTL (decl), 0)) = 0;			\
-+   } else if ((decl_code == REAL_CST					\
-+	       || decl_code == STRING_CST				\
-+	       || decl_code == COMPLEX_CST				\
-+	       || decl_code == CONSTRUCTOR)				\
-+	      && (sym = TREE_CST_RTL (decl))				\
-+	      && GET_CODE (sym) == MEM					\
-+	      && GET_CODE (XEXP (sym, 0)) == SYMBOL_REF)		\
-+   {									\
-+     SYMBOL_REF_FLAG (XEXP (sym, 0)) = 1;				\
-+     if (first_encoding							\
-+	 && current_function_decl != NULL_TREE				\
-+	 && DECL_SECTION_NAME (current_function_decl) != NULL_TREE)	\
-+       palmos_encode_section_info (sym, current_function_decl);		\
-+   }									\
-+ }
++do									\
++  {									\
++    rtx sym;								\
++    int decl_code = TREE_CODE (decl);					\
++    if ((decl_code == VAR_DECL || decl_code == FUNCTION_DECL)		\
++	&& (sym = DECL_RTL (decl))					\
++	&& GET_CODE (sym) == MEM					\
++	&& GET_CODE (XEXP (sym, 0)) == SYMBOL_REF)			\
++      {									\
++	if (decl_code == VAR_DECL && TREE_ASM_WRITTEN (decl))		\
++	  SYMBOL_REF_FLAG (XEXP (sym, 0)) = DECL_IN_TEXT_SECTION (decl);\
++	else if (decl_code == FUNCTION_DECL)				\
++	  {								\
++	    SYMBOL_REF_FLAG (XEXP (sym, 0)) = 1;			\
++	    palmos_encode_section_info (sym, decl, 0);			\
++	  }								\
++	else								\
++	  SYMBOL_REF_FLAG (XEXP (sym, 0)) = 0;				\
++      }									\
++    else if ((decl_code == REAL_CST || decl_code == STRING_CST		\
++	      || decl_code == COMPLEX_CST || decl_code == CONSTRUCTOR)	\
++	     && (sym = TREE_CST_RTL (decl))				\
++	     && GET_CODE (sym) == MEM					\
++	     && GET_CODE (XEXP (sym, 0)) == SYMBOL_REF)			\
++      {									\
++	SYMBOL_REF_FLAG (XEXP (sym, 0)) = 1;				\
++	if (first_encoding						\
++	    && current_function_decl != NULL_TREE			\
++	    && DECL_SECTION_NAME (current_function_decl) != NULL_TREE)	\
++	  palmos_encode_section_info (sym, current_function_decl, 1);	\
++      }									\
++  }									\
++while (0)
 +
-+extern char *palmos_strip_name_encoding ();
-+#define STRIP_NAME_ENCODING(var, name)					\
-+  (var) =   ((name)[0] == '*' || (name)[0] == '#')? (name)+1		\
-+	  : ((name)[0] == '@')? palmos_strip_name_encoding (name)	\
-+	  : (name)
++/* Redo section encoding for functions, in case a function has interesting
++   attributes (section or callseq) spread across several declarations.  */
++#define REDO_SECTION_INFO_P(decl)  (TREE_CODE (decl) == FUNCTION_DECL)
++
++/* Strip encodings in symbol assembler names with the following meanings:
++    func	a function in the .text section (nothing to strip)
++    *.LC0	perhaps a string constant in the .text section
++    =code|func	a function with a __callseq__ attribute
++    @sec|func	a function in the named section
++    @sec|*.LC0	some kind of constant in the named section
++   Note that "*@sec|.LC0" is not a valid equivalent for the last case,
++   because assemble_name() understands too much about names starting
++   with `*'.  But we process it anyway, because it's not obvious when
++   the compiler will add `*'s.  (`|' represents the ASCII record separator
++   character, 036.)  */
++#define STRIP_NAME_ENCODING(VAR, NAME)					\
++do									\
++  {									\
++    char *_name = (NAME);						\
++    while (*_name == '*' || *_name == '=' || *_name == '@') {		\
++      if (*_name != '*')  while (*_name != '\036')  _name++;		\
++      _name++;								\
++      }									\
++    (VAR) = _name;							\
++  }									\
++while (0)
++
 +
 +#undef ASM_OUTPUT_LABELREF
 +#define ASM_OUTPUT_LABELREF(file, name)					\
@@ -4756,12 +5179,10 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/m68kpalmos.h egcs-1.1b/gcc/config/m68k/
 +   || (GET_CODE (X) == SYMBOL_REF && SYMBOL_REF_FLAG (X))		\
 +   || (GET_CODE (X) == MEM && GET_CODE (XEXP (X, 0)) == SYMBOL_REF	\
 +       && SYMBOL_REF_FLAG (XEXP (X, 0))))
-+
-+/* end of palmos.h */
-diff -urN orig/egcs-1.1b/gcc/config/m68k/palmos_link.ld egcs-1.1b/gcc/config/m68k/palmos_link.ld
---- orig/egcs-1.1b/gcc/config/m68k/palmos_link.ld	Thu Jan  1 01:00:00 1970
-+++ egcs-1.1b/gcc/config/m68k/palmos_link.ld	Thu Nov 12 04:34:45 1998
-@@ -0,0 +1,42 @@
+diff -urN orig/gcc-2.95.2/gcc/config/m68k/palmos_link.ld gcc-2.95.2/gcc/config/m68k/palmos_link.ld
+--- orig/gcc-2.95.2/gcc/config/m68k/palmos_link.ld	Wed Dec 31 16:00:00 1969
++++ gcc-2.95.2/gcc/config/m68k/palmos_link.ld	Mon Nov  1 11:07:24 1999
+@@ -0,0 +1,43 @@
 +MEMORY 
 +        {
 +        coderes   : ORIGIN = 0x0, LENGTH = 65000
@@ -4794,6 +5215,7 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/palmos_link.ld egcs-1.1b/gcc/config/m68
 +        {
 +  	  data_start = .;
 +          *(.data)
++	  *(.gcc_exc)
 +        } > datares
 +        .bss :
 +        {
@@ -4804,10 +5226,10 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/palmos_link.ld egcs-1.1b/gcc/config/m68
 +        end = ALIGN( 4 );
 +        edata = ALIGN( 4 );
 +}
-diff -urN orig/egcs-1.1b/gcc/config/m68k/t-m68kpalmos egcs-1.1b/gcc/config/m68k/t-m68kpalmos
---- orig/egcs-1.1b/gcc/config/m68k/t-m68kpalmos	Thu Jan  1 01:00:00 1970
-+++ egcs-1.1b/gcc/config/m68k/t-m68kpalmos	Wed Oct  7 14:20:37 1998
-@@ -0,0 +1,22 @@
+diff -urN orig/gcc-2.95.2/gcc/config/m68k/t-m68kpalmos gcc-2.95.2/gcc/config/m68k/t-m68kpalmos
+--- orig/gcc-2.95.2/gcc/config/m68k/t-m68kpalmos	Wed Dec 31 16:00:00 1969
++++ gcc-2.95.2/gcc/config/m68k/t-m68kpalmos	Wed Dec 22 04:01:25 1999
+@@ -0,0 +1,25 @@
 +TARGET_LIBGCC2_CFLAGS = -Dinhibit_libc
 +CROSS_LIBGCC1 = libgcc1-asm.a
 +LIB1ASMSRC = m68k/lb1sf68palmos.asm
@@ -4830,9 +5252,12 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/t-m68kpalmos egcs-1.1b/gcc/config/m68k/
 +
 +pilot.ld: $(srcdir)/config/m68k/palmos_link.ld
 +	cp $(srcdir)/config/m68k/palmos_link.ld pilot.ld
-diff -urN orig/egcs-1.1b/gcc/config/m68k/xm-m68kpalmos.h egcs-1.1b/gcc/config/m68k/xm-m68kpalmos.h
---- orig/egcs-1.1b/gcc/config/m68k/xm-m68kpalmos.h	Thu Jan  1 01:00:00 1970
-+++ egcs-1.1b/gcc/config/m68k/xm-m68kpalmos.h	Wed Oct  7 14:20:37 1998
++
++# Don't include assert.h -- we don't have enough stdio to use its functions
++INSTALL_ASSERT_H =
+diff -urN orig/gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h
+--- orig/gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h	Wed Dec 31 16:00:00 1969
++++ gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h	Mon Nov  1 11:07:24 1999
 @@ -0,0 +1,41 @@
 +/* Configuration for GNU C-compiler for Motorola 68000 family.
 +   Copyright (C) 1987, 1993 Free Software Foundation, Inc.
@@ -4875,10 +5300,10 @@ diff -urN orig/egcs-1.1b/gcc/config/m68k/xm-m68kpalmos.h egcs-1.1b/gcc/config/m6
 +/* Arguments to use with `exit'.  */
 +#define SUCCESS_EXIT_CODE 0
 +#define FATAL_EXIT_CODE 33
-diff -urN orig/egcs-1.1b/gcc/configure egcs-1.1b/gcc/configure
---- orig/egcs-1.1b/gcc/configure	Fri Sep  4 03:46:49 1998
-+++ egcs-1.1b/gcc/configure	Wed Oct  7 15:05:02 1998
-@@ -3511,6 +3511,14 @@
+diff -urN orig/gcc-2.95.2/gcc/configure gcc-2.95.2/gcc/configure
+--- orig/gcc-2.95.2/gcc/configure	Mon Nov  1 10:34:46 1999
++++ gcc-2.95.2/gcc/configure	Fri Jan 21 23:44:26 2000
+@@ -4334,6 +4334,13 @@
  		extra_headers=math-68881.h
  		float_format=m68k
  		;;
@@ -4888,43 +5313,88 @@ diff -urN orig/egcs-1.1b/gcc/configure egcs-1.1b/gcc/configure
 +		extra_headers=math-68881.h
 +		target_cpu_default=M68K_CPU_m68000
 +		float_format=m68k
-+		use_collect2=yes
 +		;;
  	m68k-*-coff*)
  		tmake_file=m68k/t-m68kbare
  		tm_file="m68k/m68k-coff.h dbx.h libgloss.h"
-diff -urN orig/egcs-1.1b/gcc/configure.in egcs-1.1b/gcc/configure.in
---- orig/egcs-1.1b/gcc/configure.in	Fri Aug 28 01:19:04 1998
-+++ egcs-1.1b/gcc/configure.in	Wed Oct  7 15:02:08 1998
-@@ -1609,6 +1609,14 @@
- 		extra_headers=math-68881.h
- 		float_format=m68k
- 		;;
-+	m68k-palmos-coff*)
-+		tmake_file=m68k/t-m68kpalmos
-+		tm_file=m68k/m68kpalmos.h
-+		extra_headers=math-68881.h
-+		target_cpu_default=M68K_CPU_m68000
-+		float_format=m68k
-+		use_collect2=yes
-+		;;
- 	m68k-*-coff*)
- 		tmake_file=m68k/t-m68kbare
- 		tm_file="m68k/m68k-coff.h dbx.h libgloss.h"
-diff -urN orig/egcs-1.1b/gcc/cp/lex.c egcs-1.1b/gcc/cp/lex.c
---- orig/egcs-1.1b/gcc/cp/lex.c	Mon Jul 20 01:19:18 1998
-+++ egcs-1.1b/gcc/cp/lex.c	Sat Oct 10 18:51:40 1998
-@@ -3935,7 +3935,7 @@
- #endif
- 	  }
- 	else
--	  max_chars = TYPE_PRECISION (integer_type_node) / width;
-+	  max_chars = TYPE_PRECISION (long_integer_type_node) / width;
+@@ -8391,8 +8398,8 @@
+ rm -f Make-hooks
+ touch Make-hooks
+ target_list="all.build all.cross start.encap rest.encap \
+-	info dvi \
+-	install-normal install-common install-info install-man \
++	info dvi html \
++	install-normal install-common install-info install-html install-man \
+ 	uninstall distdir \
+ 	mostlyclean clean distclean extraclean maintainer-clean \
+ 	stage1 stage2 stage3 stage4"
+diff -urN orig/gcc-2.95.2/gcc/cp/decl2.c gcc-2.95.2/gcc/cp/decl2.c
+--- orig/gcc-2.95.2/gcc/cp/decl2.c	Mon Nov  1 10:34:47 1999
++++ gcc-2.95.2/gcc/cp/decl2.c	Mon Nov  1 11:07:24 1999
+@@ -768,7 +768,10 @@
+ 	  warn_parentheses = setting;
+ 	  warn_missing_braces = setting;
+ 	  warn_sign_compare = setting;
++#ifndef PALMOS
++	  /* @@@ JWM -Wall doesn't set this under C! */
+ 	  warn_multichar = setting;
++#endif
+ 	  /* We save the value of warn_uninitialized, since if they put
+ 	     -Wuninitialized on the command line, we need to generate a
+ 	     warning about not using it without also specifying -O.  */
+@@ -2418,6 +2421,9 @@
+       fnaddr = (flag_vtable_thunks ? TREE_VALUE (entries) 
+ 		: FNADDR_FROM_VTABLE_ENTRY (TREE_VALUE (entries)));
  
- 	while (1)
- 	  {
-@@ -4023,7 +4023,7 @@
- 	    if (num_chars<=1)
++      /* JWM  fprintf (stderr, "* write vtbl entry: "); */
++      /* JWM  debug_tree (fnaddr); */
++
+       if (TREE_CODE (fnaddr) == NOP_EXPR)
+ 	/* RTTI offset.  */
+ 	continue;
+@@ -2674,9 +2680,13 @@
+       && ! TREE_ASM_WRITTEN (vars))
+     {
+       /* Write it out.  */
++      /* JWM  printf ("; banana 1\n"); */
++      /* JWM  output_asm_insn ("; banana 1", NULL); */
+       mark_vtable_entries (vars);
++      /* JWM  output_asm_insn ("; banana 2", NULL); */
+       if (TREE_TYPE (DECL_INITIAL (vars)) == 0)
+ 	store_init_value (vars, DECL_INITIAL (vars));
++      /* JWM  output_asm_insn ("; banana 3", NULL); */
+ 
+       if (write_symbols == DWARF_DEBUG || write_symbols == DWARF2_DEBUG)
+ 	{
+@@ -2708,10 +2718,14 @@
+       if (flag_weak)
+ 	comdat_linkage (vars);
+ 
++      /* JWM  output_asm_insn ("; banana 4", NULL); */
+       rest_of_decl_compilation (vars, NULL_PTR, 1, 1);
++      /* JWM  output_asm_insn ("; banana 5", NULL); */
+ 
+       if (flag_vtable_gc)
+ 	output_vtable_inherit (vars);
++      /* JWM  printf ("; banana 6\n"); */
++      /* JWM  output_asm_insn ("; banana 6", NULL); */
+ 
+       return 1;
+     }
+diff -urN orig/gcc-2.95.2/gcc/cp/lex.c gcc-2.95.2/gcc/cp/lex.c
+--- orig/gcc-2.95.2/gcc/cp/lex.c	Mon Nov  1 10:30:32 1999
++++ gcc-2.95.2/gcc/cp/lex.c	Mon Nov  1 11:07:24 1999
+@@ -3997,7 +3997,7 @@
+ 	(void) local_mbtowc (NULL_PTR, NULL_PTR, 0);
+ #endif
+ 
+-	max_chars = TYPE_PRECISION (integer_type_node) / width;
++	max_chars = TYPE_PRECISION (long_integer_type_node) / width;
+ 	if (wide_flag)
+ 	  width = WCHAR_TYPE_SIZE;
+ 
+@@ -4142,7 +4142,7 @@
+ 	    if (chars_seen <= 1)
  	      TREE_TYPE (yylval.ttype) = char_type_node;
  	    else
 -	      TREE_TYPE (yylval.ttype) = integer_type_node;
@@ -4932,10 +5402,10 @@ diff -urN orig/egcs-1.1b/gcc/cp/lex.c egcs-1.1b/gcc/cp/lex.c
  	  }
  	else
  	  {
-diff -urN orig/egcs-1.1b/gcc/cp/tree.c egcs-1.1b/gcc/cp/tree.c
---- orig/egcs-1.1b/gcc/cp/tree.c	Tue Jul 28 15:00:23 1998
-+++ egcs-1.1b/gcc/cp/tree.c	Sun Oct 11 22:51:30 1998
-@@ -231,7 +231,18 @@
+diff -urN orig/gcc-2.95.2/gcc/cp/tree.c gcc-2.95.2/gcc/cp/tree.c
+--- orig/gcc-2.95.2/gcc/cp/tree.c	Mon Nov  1 10:30:32 1999
++++ gcc-2.95.2/gcc/cp/tree.c	Mon Nov  1 11:07:24 1999
+@@ -177,7 +177,18 @@
      error ("non-lvalue in %s", string);
    return win;
  }
@@ -4954,35 +5424,115 @@ diff -urN orig/egcs-1.1b/gcc/cp/tree.c egcs-1.1b/gcc/cp/tree.c
  /* INIT is a CALL_EXPR which needs info about its target.
     TYPE is the type that this initialization should appear to have.
  
-diff -urN orig/egcs-1.1b/gcc/extend.texi egcs-1.1b/gcc/extend.texi
---- orig/egcs-1.1b/gcc/extend.texi	Mon Jul  6 23:30:12 1998
-+++ egcs-1.1b/gcc/extend.texi	Wed Oct 14 01:19:51 1998
-@@ -2488,7 +2488,7 @@
- (@{ int __old; \
-    asm volatile ("get_and_set_priority %0, %1": "=g" (__old) : "g" (new)); \
-    __old; @})
--b@end example
-+@end example
+diff -urN orig/gcc-2.95.2/gcc/cppfiles.c gcc-2.95.2/gcc/cppfiles.c
+--- orig/gcc-2.95.2/gcc/cppfiles.c	Mon Nov  1 10:30:32 1999
++++ gcc-2.95.2/gcc/cppfiles.c	Mon Nov  1 11:07:24 1999
+@@ -53,10 +53,11 @@
+ #endif
  
- @noindent
- If you write an @code{asm} instruction with no outputs, GNU CC will know
-diff -urN orig/egcs-1.1b/gcc/integrate.c egcs-1.1b/gcc/integrate.c
---- orig/egcs-1.1b/gcc/integrate.c	Thu Jun 25 16:14:38 1998
-+++ egcs-1.1b/gcc/integrate.c	Fri Oct 23 22:04:37 1998
-@@ -1622,7 +1622,11 @@
- 	      temp = copy_to_mode_reg (GET_MODE (loc), copy);
- 	      REG_USERVAR_P (temp) = REG_USERVAR_P (loc);
- 	      if ((CONSTANT_P (copy) || FIXED_BASE_PLUS_P (copy))
--		  && REGNO (temp) < map->const_equiv_map_size)
-+		  && REGNO (temp) < map->const_equiv_map_size
+ /* Windows does not natively support inodes, and neither does MSDOS.
++   Cygwin's emulation can generate non-unique inodes, so don't use it.
+    VMS has non-numeric inodes. */
+ #ifdef VMS
+ #define INO_T_EQ(a, b) (!bcmp((char *) &(a), (char *) &(b), sizeof (a)))
+-#elif (defined _WIN32 && !defined CYGWIN && ! defined (_UWIN)) \
++#elif (defined _WIN32 && ! defined (_UWIN)) \
+        || defined __MSDOS__
+ #define INO_T_EQ(a, b) 0
+ #else
+diff -urN orig/gcc-2.95.2/gcc/extend.texi gcc-2.95.2/gcc/extend.texi
+--- orig/gcc-2.95.2/gcc/extend.texi	Mon Nov  1 10:30:33 1999
++++ gcc-2.95.2/gcc/extend.texi	Tue Jan 11 08:02:22 2000
+@@ -113,6 +113,7 @@
+ * Function Names::	Printable strings which are the name of the current
+ 			 function.
+ * Return Address::      Getting the return or frame address of a function.
++* Other Builtins::      Other built-in functions.
+ * Deprecated Features:: Things might disappear from g++.
+ @end menu
+ @end ifclear
+diff -urN orig/gcc-2.95.2/gcc/gcc.c gcc-2.95.2/gcc/gcc.c
+--- orig/gcc-2.95.2/gcc/gcc.c	Mon Nov  1 10:30:33 1999
++++ gcc-2.95.2/gcc/gcc.c	Thu Jan 20 19:11:03 2000
+@@ -1366,6 +1366,8 @@
+ #undef MD_EXEC_PREFIX
+ #undef MD_STARTFILE_PREFIX
+ #undef MD_STARTFILE_PREFIX_1
++/* @@@ JWM: Hack on!  It's a cross compiler.  I reckon we don't want .exe */
++#undef HAVE_EXECUTABLE_SUFFIX
+ #endif
+ 
+ #ifndef STANDARD_EXEC_PREFIX
+diff -urN orig/gcc-2.95.2/gcc/gcc.texi gcc-2.95.2/gcc/gcc.texi
+--- orig/gcc-2.95.2/gcc/gcc.texi	Mon Nov  1 10:30:33 1999
++++ gcc-2.95.2/gcc/gcc.texi	Tue Jan 11 10:34:11 2000
+@@ -4,15 +4,21 @@
+ @c @setfilename usegcc.info
+ @c @setfilename portgcc.info
+ @c To produce the full manual, use the "gcc.info" setfilename, and
+-@c make sure the following do NOT begin with '@c' (and the @clear lines DO)
++@c make sure that the following DO begin with '@c'.
++@c @set USERMANUALONLY
++@c @set PORTERMANUALONLY
++@c To produce a user-only or a porter-only manual, use the appropriate
++@c setfilename, and uncomment one of the above lines, or use a `-D' or
++@c similar command line option.
++
+ @set INTERNALS
+ @set USING
+-@c To produce a user-only manual, use the "usegcc.info" setfilename, and
+-@c make sure the following does NOT begin with '@c':
+-@c @clear INTERNALS
+-@c To produce a porter-only manual, use the "portgcc.info" setfilename,
+-@c and make sure the following does NOT begin with '@c':
+-@c @clear USING
++@ifset USERMANUALONLY
++@clear INTERNALS
++@end ifset
++@ifset PORTERMANUALONLY
++@clear USING
++@end ifset
+ 
+ @c (For FSF printing, turn on smallbook, comment out finalout below;
+ @c that is all that is needed.)
+@@ -4031,6 +4037,7 @@
+ @item INSTALL
+ The install program to use.
+ @end table
++@end ifset
+ 
+ @node Funding
+ @unnumbered Funding Free Software
+@@ -4762,12 +4769,6 @@
+ 
+ @node Index
+ @unnumbered Index
+-@end ifset
+-
+-@ifclear INTERNALS
+-@node Index
+-@unnumbered Index
+-@end ifclear
+ 
+ @printindex cp
+ 
+diff -urN orig/gcc-2.95.2/gcc/integrate.c gcc-2.95.2/gcc/integrate.c
+--- orig/gcc-2.95.2/gcc/integrate.c	Mon Nov  1 10:30:34 1999
++++ gcc-2.95.2/gcc/integrate.c	Mon Nov  1 11:07:24 1999
+@@ -1345,7 +1345,11 @@
+     {
+       rtx temp = copy_to_mode_reg (GET_MODE (loc), copy);
+       REG_USERVAR_P (temp) = REG_USERVAR_P (loc);
+-      if (CONSTANT_P (copy) || FIXED_BASE_PLUS_P (copy))
++      if (CONSTANT_P (copy) || FIXED_BASE_PLUS_P (copy)
 +#ifdef PALMOS
-+		  && !(flag_pic && GET_CODE (copy) == SYMBOL_REF)
++	  && !(flag_pic && GET_CODE (copy) == SYMBOL_REF)
 +#endif
-+		  )
- 		{
- 		  map->const_equiv_map[REGNO (temp)] = copy;
- 		  map->const_age_map[REGNO (temp)] = CONST_AGE_PARM;
-@@ -2641,7 +2645,12 @@
++	  )
+ 	SET_CONST_EQUIV_DATA (map, temp, copy, CONST_AGE_PARM);
+       copy = temp;
+     }
+@@ -2673,7 +2677,12 @@
  	 forced into a register for cse.  This is undesirable
  	 if function-address cse isn't wanted or if we won't do cse.  */
  #ifndef NO_FUNCTION_CSE
@@ -4995,10 +5545,10 @@ diff -urN orig/egcs-1.1b/gcc/integrate.c egcs-1.1b/gcc/integrate.c
  #endif
  	return gen_rtx_CALL (GET_MODE (orig),
  			     gen_rtx_MEM (GET_MODE (XEXP (orig, 0)),
-diff -urN orig/egcs-1.1b/gcc/libgcc2.c egcs-1.1b/gcc/libgcc2.c
---- orig/egcs-1.1b/gcc/libgcc2.c	Tue Jul  7 00:52:21 1998
-+++ egcs-1.1b/gcc/libgcc2.c	Wed Oct  7 14:20:39 1998
-@@ -1693,6 +1693,19 @@
+diff -urN orig/gcc-2.95.2/gcc/libgcc2.c gcc-2.95.2/gcc/libgcc2.c
+--- orig/gcc-2.95.2/gcc/libgcc2.c	Mon Nov  1 10:30:34 1999
++++ gcc-2.95.2/gcc/libgcc2.c	Mon Nov  1 11:07:24 1999
+@@ -1700,6 +1700,19 @@
      }
  }
  
@@ -5018,7 +5568,7 @@ diff -urN orig/egcs-1.1b/gcc/libgcc2.c egcs-1.1b/gcc/libgcc2.c
  void
  __bb_init_func (struct bb *blocks)
  {
-@@ -2439,7 +2452,7 @@
+@@ -2446,7 +2459,7 @@
  #endif /* L_bb */
  
  #ifdef L_shtab
@@ -5027,63 +5577,22 @@ diff -urN orig/egcs-1.1b/gcc/libgcc2.c egcs-1.1b/gcc/libgcc2.c
      0x00000001, 0x00000002, 0x00000004, 0x00000008,
      0x00000010, 0x00000020, 0x00000040, 0x00000080,
      0x00000100, 0x00000200, 0x00000400, 0x00000800,
-diff -urN orig/egcs-1.1b/gcc/reload1.c egcs-1.1b/gcc/reload1.c
---- orig/egcs-1.1b/gcc/reload1.c	Thu Aug 27 23:48:14 1998
-+++ egcs-1.1b/gcc/reload1.c	Fri Nov  6 16:34:08 1998
+diff -urN orig/gcc-2.95.2/gcc/reload1.c gcc-2.95.2/gcc/reload1.c
+--- orig/gcc-2.95.2/gcc/reload1.c	Mon Nov  1 10:30:35 1999
++++ gcc-2.95.2/gcc/reload1.c	Mon Nov  1 11:07:24 1999
 @@ -39,6 +39,8 @@
  #include "real.h"
  #include "toplev.h"
  
 +#include "tree.h"
 +
- /* This file contains the reload pass of the compiler, which is
-    run after register allocation has been done.  It checks that
-    each insn is valid (operands required to be in registers really
-diff -urN orig/egcs-1.1b/gcc/tm.texi egcs-1.1b/gcc/tm.texi
---- orig/egcs-1.1b/gcc/tm.texi	Mon Jul 13 18:20:29 1998
-+++ egcs-1.1b/gcc/tm.texi	Thu Nov 12 04:51:15 1998
-@@ -4744,6 +4744,14 @@
- itself with an explicit address than to call an address kept in a
- register.
- 
-+@findex FORBID_FUNCTION_CSE_P
-+@item FORBID_FUNCTION_CSE_P (@var{funexp})
-+A C expression whose value is non-zero if the function @var{funexp} must
-+never be called via a register, perhaps because it is called via an
-+interrupt or similar, and doesn't really have an address.
-+
-+Leaving this macro undefined is equivalent to a definition of @samp{0}.
-+
- @findex ADJUST_COST
- @item ADJUST_COST (@var{insn}, @var{link}, @var{dep_insn}, @var{cost})
- A C statement (sans semicolon) to update the integer variable @var{cost}
-@@ -4897,6 +4905,22 @@
- @code{symbol_ref} (such as @code{SYMBOL_REF_FLAG}) or to store a
- modified name string in the @code{symbol_ref} (if one bit is not enough
- information).
-+
-+@findex RECALL_CONSTANT_NAME_SECTION_INFO
-+@item RECALL_CONSTANT_NAME_SECTION_INFO
-+Because duplicate constants are only emitted once, the first time they are
-+seen, the information encoded by @code{ENCODE_SECTION_INFO} on subsequent
-+uses may bear no relationship to the information used when the constant is
-+actually emitted.
-+
-+If this macro is defined, for the first call to @code{ENCODE_SECTION_INFO}
-+for a duplicated constant, the global variable @code{first_encoding} will
-+be non-zero; for subsequent calls, @code{first_encoding} will be zero and
-+the @code{symbol_ref}'s name will be as it was encoded by the previous
-+call.  (However, it may still be necessary to set the
-+@code{SYMBOL_REF_FLAG} and so on.)
-+
-+This macro has no effect if @code{ENCODE_SECTION_INFO} is not defined.
- 
- @findex STRIP_NAME_ENCODING
- @item STRIP_NAME_ENCODING (@var{var}, @var{sym_name})
-diff -urN orig/egcs-1.1b/gcc/tree.h egcs-1.1b/gcc/tree.h
---- orig/egcs-1.1b/gcc/tree.h	Mon Jul 13 23:29:02 1998
-+++ egcs-1.1b/gcc/tree.h	Sun Oct 11 22:51:58 1998
-@@ -2170,6 +2170,7 @@
+ #if !defined PREFERRED_STACK_BOUNDARY && defined STACK_BOUNDARY
+ #define PREFERRED_STACK_BOUNDARY STACK_BOUNDARY
+ #endif
+diff -urN orig/gcc-2.95.2/gcc/tree.h gcc-2.95.2/gcc/tree.h
+--- orig/gcc-2.95.2/gcc/tree.h	Mon Nov  1 10:30:36 1999
++++ gcc-2.95.2/gcc/tree.h	Mon Nov  1 11:07:24 1999
+@@ -2250,6 +2250,7 @@
  
  /* In c-lang.c */
  extern void print_lang_statistics	PROTO ((void));
@@ -5091,10 +5600,10 @@ diff -urN orig/egcs-1.1b/gcc/tree.h egcs-1.1b/gcc/tree.h
  
  /* In c-common.c */
  extern tree truthvalue_conversion	PROTO ((tree));
-diff -urN orig/egcs-1.1b/gcc/varasm.c egcs-1.1b/gcc/varasm.c
---- orig/egcs-1.1b/gcc/varasm.c	Mon Jul  6 23:40:02 1998
-+++ egcs-1.1b/gcc/varasm.c	Thu Oct 22 18:03:10 1998
-@@ -482,6 +482,10 @@
+diff -urN orig/gcc-2.95.2/gcc/varasm.c gcc-2.95.2/gcc/varasm.c
+--- orig/gcc-2.95.2/gcc/varasm.c	Mon Nov  1 10:30:36 1999
++++ gcc-2.95.2/gcc/varasm.c	Mon Nov  1 11:07:24 1999
+@@ -470,6 +470,10 @@
  #endif
  }
  
@@ -5105,18 +5614,55 @@ diff -urN orig/egcs-1.1b/gcc/varasm.c egcs-1.1b/gcc/varasm.c
  /* Create the rtl to represent a function, for a function definition.
     DECL is a FUNCTION_DECL node which describes which function.
     The rtl is stored into DECL.  */
-@@ -1475,6 +1479,10 @@
+@@ -518,6 +522,7 @@
+ 	 such as that it is a function name.  If the name is changed, the macro
+ 	 ASM_OUTPUT_LABELREF will have to know how to strip this information.  */
+ #ifdef ENCODE_SECTION_INFO
++      /*printf ("JWM esi#1\n");*/
+       ENCODE_SECTION_INFO (decl);
+ #endif
+     }
+@@ -532,7 +537,8 @@
+ 	 decl attribute overrides another.  */
+ #ifdef REDO_SECTION_INFO_P
+       if (REDO_SECTION_INFO_P (decl))
+-	ENCODE_SECTION_INFO (decl);
++        {/*printf ("JWM esi#2\n");*/
++	ENCODE_SECTION_INFO (decl);}
+ #endif
+     }
+ 
+@@ -779,6 +785,7 @@
+ 	     If the name is changed, the macro ASM_OUTPUT_LABELREF
+ 	     will have to know how to strip this information.  */
+ #ifdef ENCODE_SECTION_INFO
++          /*printf ("JWM esi#3\n");*/
+ 	  ENCODE_SECTION_INFO (decl);
+ #endif
+ 	}
+@@ -801,7 +808,8 @@
+ 	 decl attribute overrides another.  */
+ #ifdef REDO_SECTION_INFO_P
+       if (REDO_SECTION_INFO_P (decl))
+-	ENCODE_SECTION_INFO (decl);
++	{/*printf ("JWM esi#4\n");*/
++	ENCODE_SECTION_INFO (decl);}
+ #endif
+     }
+ }
+@@ -1494,6 +1502,11 @@
    if (in_text_section ())
      DECL_IN_TEXT_SECTION (decl) = 1;
  
 +#ifdef ENCODE_SECTION_INFO
++  /*printf ("JWM esi#5\n");*/
 +  ENCODE_SECTION_INFO(decl);
 +#endif
 +
    /* Record current section so we can restore it if dbxout.c clobbers it.  */
    saved_in_section = in_section;
  
-@@ -2905,8 +2913,7 @@
+@@ -2928,8 +2941,7 @@
  {
    register int hash;
    register struct constant_descriptor *desc;
@@ -5126,7 +5672,7 @@ diff -urN orig/egcs-1.1b/gcc/varasm.c egcs-1.1b/gcc/varasm.c
    int reloc;
    register rtx def;
  
-@@ -2927,7 +2934,7 @@
+@@ -2950,7 +2962,7 @@
    for (desc = const_hash_table[hash]; desc; desc = desc->next)
      if (compare_constant (exp, desc))
        {
@@ -5135,7 +5681,7 @@ diff -urN orig/egcs-1.1b/gcc/varasm.c egcs-1.1b/gcc/varasm.c
  	break;
        }
        
-@@ -2937,6 +2944,8 @@
+@@ -2960,6 +2972,8 @@
  	 Make a constant descriptor to enter EXP in the hash table.
  	 Assign the label number and record it in the descriptor for
  	 future calls to this function to find.  */
@@ -5144,7 +5690,7 @@ diff -urN orig/egcs-1.1b/gcc/varasm.c egcs-1.1b/gcc/varasm.c
  	  
        /* Create a string containing the label name, in LABEL.  */
        ASM_GENERATE_INTERNAL_LABEL (label, "LC", const_labelno);
-@@ -2947,11 +2956,6 @@
+@@ -2970,11 +2984,6 @@
  	= (char *) obstack_copy0 (&permanent_obstack, label, strlen (label));
        const_hash_table[hash] = desc;
      }
@@ -5156,13 +5702,14 @@ diff -urN orig/egcs-1.1b/gcc/varasm.c egcs-1.1b/gcc/varasm.c
    
    /* We have a symbol name; construct the SYMBOL_REF and the MEM.  */
  
-@@ -2973,7 +2977,14 @@
+@@ -2996,7 +3005,15 @@
       such as that it is a function name.  If the name is changed, the macro
       ASM_OUTPUT_LABELREF will have to know how to strip this information.  */
  #ifdef ENCODE_SECTION_INFO
 +#ifdef RECALL_CONSTANT_NAME_SECTION_INFO
 +  first_encoding = !found;
 +#endif
++  /*printf ("JWM esi#6\n");*/
    ENCODE_SECTION_INFO (exp);
 +#ifdef RECALL_CONSTANT_NAME_SECTION_INFO
 +  desc->label = XSTR (def, 0);
@@ -5171,9 +5718,23 @@ diff -urN orig/egcs-1.1b/gcc/varasm.c egcs-1.1b/gcc/varasm.c
  #endif
  
    /* If this is the first time we've seen this particular constant,
-diff -urN orig/egcs-1.1b/gcc/version.c egcs-1.1b/gcc/version.c
---- orig/egcs-1.1b/gcc/version.c	Tue Sep  1 02:00:30 1998
-+++ egcs-1.1b/gcc/version.c	Wed Oct  7 14:20:39 1998
+@@ -3920,6 +3937,13 @@
+ 	      || AGGREGATE_TYPE_P (TREE_TYPE (exp))))
+ 	 || TREE_CODE (exp) == NON_LVALUE_EXPR)
+     exp = TREE_OPERAND (exp, 0);
++
++#if 0
++  /* JWM */
++  fprintf (stderr, "* output_constant (xx, %d)\n", size);
++  debug_tree (exp);
++  fprintf (stderr, "**\n");
++#endif
+ 
+   /* Allow a constructor with no elements for any data type.
+      This means to fill the space with zeros.  */
+diff -urN orig/gcc-2.95.2/gcc/version.c gcc-2.95.2/gcc/version.c
+--- orig/gcc-2.95.2/gcc/version.c	Mon Nov  1 10:34:47 1999
++++ gcc-2.95.2/gcc/version.c	Mon Nov  1 11:08:03 1999
 @@ -1 +1 @@
--char *version_string = "egcs-2.91.57 19980901 (egcs-1.1 release)";
-+char *version_string = "egcs-2.91.57-kgpd 19980901 (egcs-1.1 release)";
+-char *version_string = "2.95.2 19991024 (release)";
++char *version_string = "2.95.2-kgpd 19991024 (release)";

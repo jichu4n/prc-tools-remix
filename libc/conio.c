@@ -5,10 +5,16 @@
  * This code is free software, under the LGPL v2
  */
 
-#include <stdio.h>
-#include <Common.h>
-#include <System/SysAll.h>
-#include <UI/UIAll.h>
+#include "stdio.h"
+
+#include <StringMgr.h>
+#include <Font.h>
+#include <Rect.h>
+#include <Window.h>
+
+#if SDK_VERSION < 35
+#define winUp  up
+#endif
 
 #define XB 5
 #define YB 12
@@ -32,10 +38,10 @@ static inline int DRAWLN(int LN)
 static int scroll()
 {
   int i;
-  RectangleType r = { XB, YB, XB + XMAX * 4, YB + (YMAX -1) * YINC };
-  RectangleType v = { XB, YB + (YMAX-2)*YINC, XB + XMAX * 4, YB + (YMAX -1) * YINC };
+  RectangleType r = { { XB, YB }, { XB + XMAX * 4, YB + (YMAX -1) * YINC } };
+  RectangleType v = { { XB, YB + (YMAX-2)*YINC }, { XB + XMAX * 4, YB + (YMAX -1) * YINC } };
 
-  WinScrollRectangle(&r, up, YINC, &v);
+  WinScrollRectangle(&r, winUp, YINC, &v);
   for (i=0;i<XMAX;) fb[(YMAX-1) * XMAX + i++]=0;
   WinEraseRectangle(&v,1);
 

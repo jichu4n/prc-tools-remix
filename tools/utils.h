@@ -1,13 +1,17 @@
 /* utils.h: various utilities.
 
-   Copyright (c) 1998 by John Marshall.
+   Copyright (c) 1998, 1999 by John Marshall.
    <jmarshall@acm.org>
 
-   This is free software, under the GNU General Public Licence v2 or greater.
- */
+   This is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.  */
 
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#ifndef UTILS_H
+#define UTILS_H
+
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,9 +34,16 @@ enum {
   E_PERROR = 0x20
   };
 
-void ewhere (const char *format, ...);
-void einfo (int type, const char *format, ...);
+#ifdef __GNUC__
+#define PRINTF_FUNC(fmt, first)  __attribute__ ((format (printf, fmt, first)))
+#else
+#define PRINTF_FUNC(fmt, first)
+#endif
 
+void ewhere (const char *format, ...) PRINTF_FUNC (1, 2);
+void einfo (int type, const char *format, ...) PRINTF_FUNC (2, 3);
+
+#undef PRINTF_FUNC
 
 extern int propt_tab;
 void propt (const char *optname, const char *meaning);
@@ -47,7 +58,16 @@ enum file_type {
 
 enum file_type file_type (const char *fname);
 
+/* If NEWEXT is non-NULL, strips off any extension (a final `.' and all
+   following characters) from FNAME and appends NEWEXT.  Returns a pointer to
+   the start of the filename part (i.e., without any directories) of FNAME.  */
+char *basename_with_changed_extension (char *fname, const char *newext);
+
 void *slurp_file (const char *fname, const char *mode, long *sizep);
+
+int copy_file (const char *outfname, const char *infname, const char *mode);
+
+void chomp (char *s);
 
 
 #ifndef _GNU_SOURCE
@@ -63,7 +83,7 @@ enum database_kind {
   DK_GENERIC
   };
 
-const char * standard_db_type (enum database_kind kind);
+char *standard_db_type (enum database_kind kind);
 
 
 struct string_store;

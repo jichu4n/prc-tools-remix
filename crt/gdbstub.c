@@ -8,13 +8,16 @@
  *  Modified 19981104 by John Marshall  <jmarshall@acm.org>
  */
 
-#include <System/SysTraps.h>
-#include <System/FeatureMgr.h>
-#include <System/SystemMgr.h>
+#include <SystemMgr.h>
+#include <FeatureMgr.h>
 
-int GdbStartDebug (Word flags)
+#include "sdktypes.h"
+#include "crt.h"
+
+int
+_GdbStartDebug (UInt16 flags)
 {
-  DWord feature = 0;
+  UInt32 feature = 0;
 
   if (! (flags & (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagSubCall)))
     return 0;

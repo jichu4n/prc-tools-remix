@@ -1,0 +1,106 @@
+# Makefile for gcc/PalmOS single precision library.
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+target_alias = @target_alias@
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+LN_S = @LN_S@
+
+CC = $(target_alias)-gcc
+AR = $(target_alias)-ar
+RANLIB = $(target_alias)-ranlib
+
+SDK = @build_sdk@
+SDK_NUMBER = @build_sdk_number@
+CFLAGS = -O2 -Wall -msoft-float -fno-builtin \
+	 -DSDK_VERSION=$(SDK_NUMBER) -palmos$(SDK)
+
+INCS= mconf.h
+OBJS= acoshf.o airyf.o asinf.o asinhf.o atanf.o \
+atanhf.o bdtrf.o betaf.o cbrtf.o chbevlf.o chdtrf.o \
+clogf.o cmplxf.o constf.o coshf.o dawsnf.o ellief.o \
+ellikf.o ellpef.o ellpkf.o ellpjf.o expf.o exp2f.o \
+exp10f.o expnf.o facf.o fdtrf.o floorf.o fresnlf.o \
+gammaf.o gdtrf.o hypergf.o hyp2f1f.o igamf.o igamif.o \
+incbetf.o incbif.o i0f.o i1f.o ivf.o j0f.o j1f.o \
+jnf.o jvf.o k0f.o k1f.o knf.o logf.o log2f.o \
+log10f.o nbdtrf.o ndtrf.o ndtrif.o pdtrf.o polynf.o \
+powif.o powf.o psif.o rgammaf.o shichif.o sicif.o \
+sindgf.o sinf.o sinhf.o spencef.o sqrtf.o stdtrf.o \
+struvef.o tandgf.o tanf.o tanhf.o ynf.o zetaf.o \
+zetacf.o polevlf.o setprec.o
+# mtherr.o
+
+INSTALL_HFILES = mathf.h
+
+# INSTALL_FILES = libmf.a libmf.sa
+INSTALL_FILES = libmf.a
+
+all: $(INSTALL_FILES)
+
+install: $(INSTALL_FILES) $(INSTALL_HFILES)
+	$(INSTALL) -d $(exec_prefix)/$(target_alias)/lib
+	for f in $(INSTALL_FILES); do \
+	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib; \
+	done
+	rm -f $(exec_prefix)/$(target_alias)/lib/libm.a
+	(cd $(exec_prefix)/$(target_alias)/lib && $(LN_S) libmf.a libm.a)
+	$(INSTALL) -d $(exec_prefix)/$(target_alias)/include
+	for f in $(INSTALL_HFILES); do \
+	  $(INSTALL_DATA) $(srcdir)/$${f} $(exec_prefix)/$(target_alias)/include; \
+	done
+	rm -f $(exec_prefix)/$(target_alias)/include/math.h
+	(cd $(exec_prefix)/$(target_alias)/include && $(LN_S) mathf.h math.h)
+
+#	cp -f libmf.a $(PREFIX)/m68k-palmos-coff/lib
+#	chmod 644 $(PREFIX)/m68k-palmos-coff/lib/libmf.a
+#	ln -sf $(PREFIX)/m68k-palmos-coff/lib/libmf.a $(PREFIX)/m68k-palmos-coff/lib/libm.a
+#	cp -f libmf.sa $(PREFIX)/m68k-palmos-coff/lib
+#	chmod 644 $(PREFIX)/m68k-palmos-coff/lib/libmf.sa
+#	ln -sf $(PREFIX)/m68k-palmos-coff/lib/libmf.sa $(PREFIX)/m68k-palmos-coff/lib/libm.sa
+#	cp -f mathf.h $(PREFIX)/m68k-palmos-coff/include
+#	chmod 644 $(PREFIX)/m68k-palmos-coff/include/mathf.h
+#	ln -sf $(PREFIX)/m68k-palmos-coff/include/mathf.h $(PREFIX)/m68k-palmos-coff/include/math.h
+
+mtst: mtst.o drand.o libmf.a
+	$(CC) -o mtst mtst.o drand.o libmf.a -lmd
+
+mtst.o: mtst.c
+	$(CC) $(CFLAGS) -O0 -g -c mtst.c
+
+drand.o: drand.c
+	$(CC) $(CFLAGS) -g -c drand.c
+
+libmf.a: $(OBJS) $(INCS)
+	$(AR) cur libmf.a $(OBJS)
+	$(RANLIB) libmf.a
+
+libmf.sa: libmf.a
+	rm -f libmf.sa
+	$(EXPORTLIST) libmf.a > libm.exp
+	$(STUBGEN) "Math Library" Libm libmstub.c Libm.S < libm.exp
+	ln -sf ../$(LIBGLIBDIR)/scrt0.o scrt0.o
+	$(CC) -shared -static -o Libm Libm.S ./libmf.a
+	$(OBJRES) -l Libm
+	$(BUILDPRC) -l Libm.prc "Math Library" Libm *.grc
+	$(CC) $(CFLAGS) -c libmstub.c
+	$(AR) libmf.sa libmstub.o
+	$(RANLIB) libmf.sa
+
+clean:
+	rm -f *.o
+	rm -f libmf.a libmf.sa
+	rm -f mtst *.prc core
+
+distclean: clean
+	-rm Makefile

@@ -1,0 +1,125 @@
+# Makefile for prc-tools documentation.
+#
+# Copyright (c) 2000 Palm Computing, Inc. or its subsidiaries.
+# All rights reserved.
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+SHELL = /bin/sh
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+palmdev_prefix = @sharedstatedir@
+infodir = @infodir@
+htmldir = $(palmdev_prefix)/doc/texi
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+
+MAKEINFO = makeinfo
+MAKEINFOFLAGS =
+
+MAKEHTML = texi2html
+MAKEHTMLFLAGS = -DUSERMANUALONLY -glossary -menu -split_node
+
+all:
+
+install:
+
+info: prc-tools.info
+
+install-info: info
+	$(INSTALL) -d $(infodir)
+	rm -f $(infodir)/prc-tools.info*
+	for f in prc-tools.info*; do \
+	  $(INSTALL_DATA) $${f} $(infodir)/$${f}; \
+	done
+	-if $(SHELL) -c 'install-info --version' >/dev/null 2>&1; then \
+	  dirfile=;\
+	  if [ -f $(infodir)/dir ]; then dirfile=$(infodir)/dir; fi; \
+	  if [ -f /usr/info/dir ]; then dirfile=/usr/info/dir; fi; \
+	  if [ x$${dirfile} != x ]; then \
+	    install-info --dir-file=$${dirfile} $(infodir)/prc-tools.info; \
+	  else true; fi; \
+	else true; fi
+
+html: index.html texidocs-list
+
+install-html: html
+	$(INSTALL) -d $(htmldir)
+	$(INSTALL_DATA) index.html $(palmdev_prefix)/doc
+	for file in `cat texidocs-list`; do \
+	  d=`echo $${file} | sed -e 's:/[^/]*$$::'`; \
+	  pkg=`echo $${file} | sed -e 's:^.*/::' -e 's:_.*$$::'`; \
+	  echo $${pkg}; \
+	  rm -f $(htmldir)/$${pkg}[_.]*html; \
+	  for f in `cd $${d} && echo $${pkg}[_.]*html`; do \
+	    $(INSTALL_DATA) $${d}/$${f} $(htmldir); \
+	  done; \
+	done
+
+
+index.html: index.html.in texidocs-list
+	(sed -n -e '1,/@texidocs@/p' $(srcdir)/index.html.in; \
+	 for file in `cat texidocs-list`; do \
+	   pkg=`echo $${file} | sed -e 's:^.*/::' -e 's:_.*$$::'`; \
+	   title=`grep '<[hH]1>' $${file} | sed -e 's/<[/hH1]*>//g'`; \
+	   echo "<tr>"; \
+	   echo "<td><b><a href=\"texi/$${pkg}_toc.html\">$${pkg}</a></b></td>"; \
+	   echo "<td>$${title}</td>"; \
+	   echo "</tr>"; \
+	 done; \
+	 sed -n -e '/@texidocs@/,$$p' $(srcdir)/index.html.in) | \
+	sed -e '/@texidocs@/d' > index.html
+
+
+prc-tools.info: prc-tools.texi
+	-@rm -f prc-tools.info*
+	$(MAKEINFO) $(MAKEINFOFLAGS) -I $(srcdir) $(srcdir)/prc-tools.texi
+
+prc-tools.dvi: prc-tools.texi
+	texi2dvi -I $(srcdir) $(srcdir)/prc-tools.texi
+
+prc-tools.ps: prc-tools.dvi
+	dvips -o $@ $<
+
+prc-tools_toc.html: prc-tools.texi
+	-@rm -f prc-tools[_.]*html
+	$(MAKEHTML) $(MAKEHTMLFLAGS) -I $(srcdir) $(srcdir)/prc-tools.texi
+
+
+clean:
+	-rm -f *.aux *.log *.toc *.fn *.vr *.cp *.pg *.ky *.tp *.fns
+	-rm -f *-list
+	-rm -f *.html
+
+
+### Slightly hackish fingers reaching into the tool build directories:
+
+TEXIDOCS = ./prc-tools_toc.html \
+	   ../gcc/gcc/gcc_toc.html \
+	   ../gcc/gcc/cpp_toc.html \
+	   ../gdb/gdb/doc/gdb_toc.html \
+	   ../binutils/ld/ld_toc.html \
+	   ../binutils/gas/doc/as_toc.html \
+	   ../binutils/binutils/binutils_toc.html \
+	   ../make/make_toc.html
+
+texidocs-list:
+	rm -f texidocs-list
+	for file in $(TEXIDOCS); do \
+	  d=`echo $${file} | sed -e 's:/[^/]*$$::'`; \
+	  f=`echo $${file} | sed -e 's:^.*/::'`; \
+	  if [ -f ./$${d}/Makefile ]; then \
+	    if (cd $${d} && make MAKEHTMLFLAGS="$(MAKEHTMLFLAGS)" $${f}); \
+	    then true; else exit 1; fi; \
+	    echo $${file} >> texidocs-list; \
+	  else true; fi; \
+	done
+	touch texidocs-list

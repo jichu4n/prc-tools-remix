@@ -1,9 +1,12 @@
 /* def.h: header file for .def file parsing.
 
-   Copyright (c) 1998 by John Marshall.
-   <jmarshall@acm.org>
+   Copyright (c) 1998, 1999 Palm Computing, Inc. or its subsidiaries.
+   All rights reserved.
 
-   This is free software, under the GNU General Public Licence v2 or greater.
+   This is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
    This program follows in the footsteps of obj-res and build-prc, the
    source code of which contains the following notices:
@@ -25,24 +28,27 @@
  * This is Free Software, under the GNU Public Licence v2 or greater.
  */
 
-#ifndef _DEF_H_
-#define _DEF_H_
+#ifndef DEF_H
+#define DEF_H
+
+struct database_header;
+
+struct def_callbacks {
+  void (*db_header)(enum database_kind kind, const struct database_header *h);
+  void (*multicode_section)(const char *secname);
+  void (*export_function)(const char *funcname);
+  void (*trap)(unsigned int resid, unsigned int vector, const char *fname);
+  void (*stack)(unsigned long);
+  void (*version_resource)(unsigned long resno, const char *text);
+  };
+
+extern struct def_callbacks default_def_callbacks;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct def_database_info {
-  struct DBInfo db;
-  enum database_kind kind;
-  int type_specified;  /* 0 if it's DK_GENERIC and type=xxxx wasn't used */
-  };
-
-struct def_callbacks {
-  };
-
-int read_def_file(const char *fname, struct def_database_info *info,
-		  const struct def_callbacks *callbacks);
+void read_def_file (const char *fname, const struct def_callbacks *callbacks);
 
 #ifdef __cplusplus
 }

@@ -8,23 +8,27 @@
  *  Modified 19981104 by John Marshall  <jmarshall@acm.org>
  */
 
-#include <Common.h>
-#include <System/SysAll.h>
+#include <SystemMgr.h>
+#include <SoundMgr.h>
+
+#if defined(SDK_VERSION) && SDK_VERSION < 35
 #define NON_PORTABLE
 #include <SystemPrv.h>
-#include <FeatureMgr.h>
+#endif
 
+#include "sdktypes.h"
 #include "crt.h"
 
-ULong start ()
+UInt32
+start ()
 {
-  SysAppInfoPtr appInfo;
-  Ptr prevGlobals;
-  Ptr globalsPtr;
-  ULong result;
-  Word mainCmd;
-  Ptr mainPBP;
-  Word mainFlags;
+  SysAppInfoType* appInfo;
+  void *prevGlobals;
+  void *globalsPtr;
+  UInt32 result;
+  Int16 mainCmd;
+  void *mainPBP;
+  UInt16 mainFlags;
 
   if (SysAppStartup (&appInfo, &prevGlobals, &globalsPtr) != 0)
     {

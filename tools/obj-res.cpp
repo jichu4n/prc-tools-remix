@@ -1,9 +1,12 @@
 /* obj-res.cpp: extract resources from a bfd executable.
 
-   Copyright (c) 1998 by John Marshall.
+   Copyright (c) 1998, 1999 by John Marshall.
    <jmarshall@acm.org>
 
-   This is free software, under the GNU General Public Licence v2 or greater.
+   This is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
    This program, obj-res v2.0, is mostly compatible with the old obj-res, the
    source code of which contains the following notices:
@@ -53,43 +56,44 @@ static char* shortopts = "lL:vz:";
 static struct option longopts[] = {
   { "help", no_argument, NULL, OPTION_HELP },
   { "version", no_argument, NULL, OPTION_VERSION },
-  { NULL }
+  { NULL, no_argument, NULL, 0 }
   };
-
-static bool
-no_extra_code_sections (char **namep, unsigned long *idp) {
-  return false;
-  }
 
 int
 main (int argc, char** argv) {
   int c, longind;
   bool work_desired = true;
+  bool verbose = false;
 
   progname = argv[0];
 
   struct binary_file_info info;
-  struct binary_file_stats stats;
-  info.kind = DK_APPLICATION;
-  info.maincode_id = UNSPECIFIED_RESID;
+
+  // By default, make an application:
+
+  info.maincode = ResKey ("code", 1);
+  // info.extracode was constructed as empty
+  info.emit_appl_extras = true;
+  info.stack_size = 4096;
+
   info.emit_data = info.force_rloc = true;
   info.data_compression = 0;
-  info.next_coderes = no_extra_code_sections;
-  info.stats = NULL;
 
   while ((c = getopt_long (argc, argv, shortopts, longopts, &longind)) != -1)
     switch (c) {
     case 'l':
-      info.kind = DK_GLIB;
+      info.maincode = ResKey ("GLib", 0);
+      info.emit_appl_extras = false;
       break;
 
     case 'L':
-      info.kind = DK_SYSLIB;
+      info.maincode = ResKey ("libr", 0);
+      info.emit_appl_extras = false;
       einfo (E_NOFILE|E_WARNING, "offset table not supported by this version");
       break;
 
     case 'v':
-      info.stats = &stats;
+      verbose = true;
       break;
 
     case 'z':
@@ -108,44 +112,46 @@ main (int argc, char** argv) {
       }
 
   if (!work_desired)
-    return 0;
+    return EXIT_SUCCESS;
 
   if (argc - optind != 1) {
     usage();
     return EXIT_FAILURE;
     }
 
-  init_binary();
+  struct binary_file_stats stats;
+  ResourceDatabase out = process_binary_file (argv[optind], info,
+					      (verbose)? &stats : NULL);
 
-  pfd out;
-  process_binary_file (out, argv[optind], info);
-
-  if (info.stats) {
+  if (verbose) {
     printf ("Zeroes in .data omitted completely due to 3-part format: %ld",
 	    (long) stats.omitted_zeros);
     if (stats.data_size)
-      printf (" (%ld%%)", (long) (stats.omitted_zeros * 100) / stats.data_size);
+      printf (" (%d%%)", int((stats.omitted_zeros * 100) / stats.data_size));
     printf ("\n");
     }
 
   if (nerrors == 0) {
-    // Write out individual resource files.
-    for (const pfd_entry* entry = out[0]; entry; entry = out.succ (entry)) {
-      char buffer[FILENAME_MAX];
-      sprintf (buffer, "%.4s%04lx.%s.grc", 
-	       entry->type(), entry->id(), argv[optind]);
+    char *basename = basename_with_changed_extension (argv[optind], NULL);
+    for (ResourceDatabase::const_iterator it = out.begin();
+	 it != out.end();
+	 ++it) {
+      // Write out individual resource files.
+      char fname[FILENAME_MAX];
+      sprintf (fname, "%.4s%04hx.%s.grc", 
+	       (*it).first.type, (*it).first.id, basename);
 
-      FILE *f = fopen (buffer, "wb");
+      FILE *f = fopen (fname, "wb");
       if (f) {
-	fwrite (entry->contents(), 1, entry->length(), f);
+	size_t len = (*it).second.size ();
+	if (fwrite ((*it).second.contents (), 1, len, f) != len)
+	  einfo (E_NOFILE | E_PERROR, "error writing to `%s'", fname);
 	fclose (f);
 	}
       else
-	einfo (E_NOFILE|E_WARNING|E_PERROR, "can't write to `%s'", buffer);
+	einfo (E_NOFILE | E_PERROR, "can't write to `%s'", fname);
       }
-
-    return EXIT_SUCCESS;
     }
-  else
-    return EXIT_FAILURE;
+
+  return (nerrors == 0)? EXIT_SUCCESS : EXIT_FAILURE;
   }

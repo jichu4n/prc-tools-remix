@@ -8,23 +8,24 @@
  *  Modified 19981104 by John Marshall  <jmarshall@acm.org>
  */
 
-#include <System/SystemMgr.h>
-#include <System/MemoryMgr.h>
-#include <System/DataMgr.h>
+#include <SystemMgr.h>
+#include <MemoryMgr.h>
+#include <DataMgr.h>
 
+#include "sdktypes.h"
 #include "crt.h"
 
-extern Byte data_start;
+extern char data_start;
 
 #ifdef Lsingle_dreloc
 
 void
 _GccRelocateData ()
 {
-  VoidHand relocH = DmGet1Resource ('rloc', 0);
+  MemHandle relocH = DmGet1Resource ('rloc', 0);
   if (relocH)
     {
-      Int *chain = MemHandleLock (relocH);
+      Int16 *chain = MemHandleLock (relocH);
 
       _RelocateChain (*chain++, &data_start);
       _RelocateChain (*chain++, &start);
@@ -42,8 +43,8 @@ extern void *__text__;
 void
 _GccLoadCodeAndRelocateData ()
 {
-  VoidHand relocH = DmGet1Resource ('rloc', 0);
-  Int *chain = (relocH)? MemHandleLock (relocH) : NULL;
+  MemHandle relocH = DmGet1Resource ('rloc', 0);
+  Int16 *chain = (relocH)? MemHandleLock (relocH) : NULL;
   void **basep = &__text__;
   int resno, ncoderes;
 
@@ -59,7 +60,7 @@ _GccLoadCodeAndRelocateData ()
 
   for (resno = 2; resno <= ncoderes; resno++)
     {
-      VoidHand codeH = DmGet1Resource ('code', resno);
+      MemHandle codeH = DmGet1Resource ('code', resno);
       *++basep = MemHandleLock (codeH);
       if (chain)
 	_RelocateChain (*chain++, *basep);
@@ -78,7 +79,7 @@ _GccLoadCodeAndRelocateData ()
 extern void *__text__;
 
 void
-_GccReleaseCode (Word cmd, Ptr pbp, Word flags)
+_GccReleaseCode (UInt16 cmd UNUSED_PARAM, void *pbp UNUSED_PARAM, UInt16 flags)
 {
   if (flags & sysAppLaunchFlagNewGlobals)
     {
@@ -89,7 +90,7 @@ _GccReleaseCode (Word cmd, Ptr pbp, Word flags)
 
       while (--ncoderes > 0)
 	{
-	  VoidHand hnd = MemPtrRecoverHandle (*++basep);
+	  MemHandle hnd = MemPtrRecoverHandle (*++basep);
 	  MemHandleUnlock (hnd);
 	  DmReleaseResource (hnd);
 	}
@@ -101,21 +102,21 @@ _GccReleaseCode (Word cmd, Ptr pbp, Word flags)
 
 union reloc
 {
-  struct { Int next; UInt addend; } r;
-  ULong value;
+  struct { Int16 next; UInt16 addend; } r;
+  UInt32 value;
 };
 
 void
-_RelocateChain (Int offset, void *base)
+_RelocateChain (Int16 offset, void *base)
 {
-  Byte *data_res = &data_start;
+  char *data_res = &data_start;
 
   while (offset >= 0)
     {
       union reloc *site = (union reloc *) (data_res + offset);
       offset = site->r.next;
       site->r.next = 0;
-      site->value += (ULong) base;
+      site->value += (UInt32) base;
     }
 }
 

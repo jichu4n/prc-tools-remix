@@ -1,295 +1,119 @@
-/* pfd.hpp: read and write PalmOS .pdb / .prc files.
+/* pfd.hpp: read/write PRC and PDB files.
 
-   Copyright (c) 1998 by John Marshall.
-   <jmarshall@acm.org>
+   Copyright (c) 1999 Palm Computing, Inc. or its subsidiaries.
+   All rights reserved.
 
-   This is free software, under the GNU General Public Licence v2 or greater.
- */
+   This is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.  */
 
-#ifndef _PFD_HPP_
-#define _PFD_HPP_
+#ifndef PFD_HPP
+#define PFD_HPP
 
-struct pfd_datablock {
-  unsigned int refcount;
-  unsigned char data[1];
-  };
+#include <map>
 
-class pfd;
+#include <string.h>
+#include <stdio.h>
 
-class pfd_data {
+#include "pfdheader.h"
+
+class Datablock {
 public:
-  pfd_data (size_t length);
-  pfd_data (const pfd_data& rhs);
-  pfd_data& operator= (const pfd_data& rhs);
-  ~pfd_data();
+  Datablock (long size = 0);
+  Datablock (const Datablock& rhs);
+  Datablock& operator= (const Datablock& rhs);
+  ~Datablock ();
 
-  const unsigned char* contents() const { return block->data + offset; }
-  unsigned char* writable_contents();
-  size_t length() const { return len; }
-  void set_length (size_t newlen);
+  long size () const { return len_; }
+  const unsigned char* contents () const { return b_->data_ + off_; }
+  unsigned char* writable_contents ();
+
+  Datablock operator() (long off, long len) const;
 
 private:
-  friend class pfd;
+  Datablock (const Datablock& rhs, long off0, long len0);
+  Datablock dup (long off, long len) const;
 
-  pfd_data (pfd_datablock* block, size_t offset, size_t len);
+  class block {
+  public:
+    block (long size) : count_ (0), data_ (new unsigned char[size]) { }
+    ~block () { delete [] data_; }
+    unsigned int count_;
+    unsigned char* data_;
+    };
 
-  pfd_datablock* block;
-  size_t offset, len;
+  block* b_;
+  long off_, len_;
   };
 
-class pfd_entry: public pfd_data {
+
+typedef unsigned long RecKey;
+
+struct Record: public Datablock {
+  bool deletable, dirty, busy, secret;
+  unsigned int category;
+  };
+
+
+struct ResKey {
+  char type[4];
+  unsigned int id;
+  ResKey () {}
+  ResKey (const char* type0, unsigned int id0) {
+    strncpy (type, type0, 4);
+    id = id0;
+    }
+  };
+
+inline bool
+operator< (const ResKey& a, const ResKey& b) {
+  int str = strncmp (a.type, b.type, 4);
+  return str < 0 || (str == 0 && a.id < b.id);
+  }
+
+
+typedef map<ResKey, Datablock> ResourceMap;
+typedef map<RecKey, Record> RecordMap;
+
+class PalmOSDatabase: public DatabaseHeader {
 public:
-  const char* type() const { return type_; }
-  unsigned long id() const { return id_; }
-  unsigned short attr() const { return attr_; }
-  void* userdata() const { return userdata_; }
+  bool write (FILE* f) const;
+  virtual ~PalmOSDatabase();
+
+  Datablock gap, appinfo, sortinfo;
+
+protected:
+  PalmOSDatabase (bool res0);
 
 private:
-  friend class pfd;
-  pfd_entry (const pfd_data& data, const char* type, unsigned long id,
-	     unsigned short attr, void* userdata);
-  ~pfd_entry();
-  /*
-  pfd_entry (pfd_datablock* block, size_t offset, size_t len, const char* type,
-	     unsigned long id, unsigned short attr, void* userdata);
-  */
+  virtual unsigned int dbsize() const = 0;
+  virtual bool write_directory (FILE* f, unsigned long& off) const = 0;
+  virtual bool write_data (FILE* f, unsigned long& off) const = 0;
 
-  pfd_entry (const pfd_entry& rhs);  // Not defined
-  pfd_entry& operator= (const pfd_entry& rhs);  // Not defined
-
-  char type_[4];
-  unsigned long id_;
-  unsigned short attr_;
-  void* userdata_;
-
-  pfd_entry* next;
-  pfd_entry* prev;
+  const bool resource;
   };
 
-class pfd {
+class ResourceDatabase: public PalmOSDatabase, public ResourceMap {
 public:
-  pfd();
-  ~pfd();
-
-  enum pfd_kind { record_db, resource_db };
-  void write (pfd_kind kind, const char* fname);
-
-  pfd_data* appinfo() const { return special[0]; }
-  bool attach_appinfo (const pfd_data& data)
-    { return attach_special (0, data); }
-  void remove_appinfo() { remove_special (0); }
-
-  pfd_data* sortinfo() const { return special[1]; }
-  bool attach_sortinfo (const pfd_data& data)
-    { return attach_special (1, data); }
-  void remove_sortinfo() { remove_special (1); }
-
-  int size() const { return nentries; }
-
-  pfd_entry* operator[] (int index) const;
-  pfd_entry* succ (const pfd_entry* e) const { return e->next; }
-  pfd_entry* pred (const pfd_entry* e) const { return e->prev; }
-  pfd_entry* find (const char* type, unsigned long id) const;
-  pfd_entry* find (unsigned long id) const { return find ("", id); }
-
-  bool attach (const pfd_data& data, const char* type, unsigned long id,
-	       void* userdata = NULL)
-    { return attach_before (NULL, data, type, id, userdata); }
-
-  bool attach (const pfd_data& data, unsigned long id, unsigned short attr,
-	       void* userdata = NULL)
-    { return attach_before (NULL, data, id, attr, userdata); }
-
-  bool attach_before (pfd_entry* entry, const pfd_data& data,
-		      const char* type, unsigned long id,
-		      void* userdata = NULL)
-    { return attach_internal (entry, data, type, id, 0, userdata); }
-
-  bool attach_before (pfd_entry* entry, const pfd_data& data,
-		      unsigned long id, unsigned short attr,
-		      void* userdata = NULL)
-    { return attach_internal (entry, data, "", id, attr, userdata); }
-
-  void remove (pfd_entry* entry);
+  ResourceDatabase();
+  virtual ~ResourceDatabase();
 
 private:
-  void init (int size);
-  pfd (const pfd& rhs);  // Not defined
-  pfd& operator= (const pfd& rhs);  // Not defined
-
-  bool attach_internal (pfd_entry* entry, const pfd_data& data,
-			const char* type, unsigned long id, unsigned short attr,
-			void* userdata);
-
-  bool attach_special (int which, const pfd_data& data);
-  void remove_special (int which);
-
-  pfd_entry*& lookup (const char* type, unsigned long id) const;
-  void rehash (unsigned int size);
-
-  int nentries;
-  pfd_entry* first;
-  pfd_entry* last;
-
-  pfd_data* special[2];
-
-  pfd_entry** tab;
-  unsigned int tab_free, tab_capacity;
-
-  // This would be static but for fears about portability of global
-  // objects.  :-)
-  pfd_entry* TOMBSTONE;
+  virtual unsigned int dbsize() const { return size(); }
+  virtual bool write_directory (FILE* f, unsigned long& off) const;
+  virtual bool write_data (FILE* f, unsigned long& off) const;
   };
 
-/* Until pi-macros.h uses this convention too.  */
-#ifndef _PILOT_MACROS_H_
+class RecordDatabase: public PalmOSDatabase, public RecordMap {
+public:
+  RecordDatabase();
+  virtual ~RecordDatabase();
 
-#ifndef _PILOT_LINK_SWAPPING_MACROS_
-#define _PILOT_LINK_SWAPPING_MACROS_
-
-inline unsigned long get_long(const void *buf) 
-{
-     unsigned char *ptr = (unsigned char *) buf;
-
-     return (*ptr << 24) | (*(++ptr) << 16) | (*(++ptr) << 8) | *(++ptr);
-}
-
-inline signed long get_slong(const void *buf)
-{
-     unsigned long val = get_long(buf);
-     if (val > 0x7FFFFFFF)
-         return ((signed long)(val & 0x7FFFFFFF)) - 0x80000000;
-     else
-         return val;
-}
-
-inline unsigned long get_treble(const void *buf) 
-{
-     unsigned char *ptr = (unsigned char *) buf;
-
-     return (*ptr << 16) | (*(++ptr) << 8) | *(++ptr);
-}
-
-inline signed long get_streble(const void *buf)
-{
-     unsigned long val = get_treble(buf);
-     if (val > 0x7FFFFF)
-         return ((signed long)(val & 0x7FFFFF)) - 0x800000;
-     else
-         return val;
-}
-
-inline int get_short(const void *buf) 
-{
-     unsigned char *ptr = (unsigned char *) buf;
-
-     return (*ptr << 8) | *(++ptr);
-}
-
-inline signed short get_sshort(const void *buf)
-{
-     unsigned short val = get_short(buf);
-     if (val > 0x7FFF)
-         return ((signed short)(val & 0x7FFF)) - 0x8000;
-     else
-         return val;
-}
-
-inline int get_byte(const void *buf) 
-{
-     return *((unsigned char *) buf);
-}
-
-inline signed char get_sbyte(const void *buf)
-{
-     unsigned char val = get_byte(buf);
-     if (val > 0x7F)
-         return ((signed char)(val & 0x7F)) - 0x80;
-     else
-         return val;
-}
-
-inline void set_long(void *buf, const unsigned long val) 
-{
-     unsigned char *ptr = (unsigned char *) buf;
-
-     *ptr = (val >> 24) & 0xff;
-     *(++ptr) = (val >> 16) & 0xff;
-     *(++ptr) = (val >> 8) & 0xff;
-     *(++ptr) = val & 0xff;
-}
-
-inline void set_slong(void *buf, const signed long val) 
-{
-     unsigned long uval;
-     
-     if (val < 0) {
-         uval = (val + 0x80000000);
-         uval |= 0x80000000;
-     } else
-         uval = val;
-     set_long(buf, uval);
-}
-
-inline void set_treble(void *buf, const unsigned long val) 
-{
-     unsigned char *ptr = (unsigned char *) buf;
-     
-     *ptr = (val >> 16) & 0xff;
-     *(++ptr) = (val >> 8) & 0xff;
-     *(++ptr) = val & 0xff;
-}
-
-inline void set_streble(void *buf, const signed long val) 
-{
-     unsigned long uval;
-     
-     if (val < 0) {
-         uval = (val + 0x800000);
-         uval |= 0x800000;
-     } else
-         uval = val;
-     set_treble(buf, uval);
-}
-
-inline void set_short(void *buf, const int val) 
-{
-     unsigned char *ptr = (unsigned char *) buf;
-
-     *ptr = (val >> 8) & 0xff;
-     *(++ptr) = val & 0xff;
-}
-
-inline void set_sshort(void *buf, const signed short val) 
-{
-     unsigned short uval;
-     
-     if (val < 0) {
-         uval = (val + 0x8000);
-         uval |= 0x8000;
-     } else
-         uval = val;
-     set_treble(buf, uval);
-}
-
-inline void set_byte(void *buf, const int val) 
-{
-     *((unsigned char *)buf) = val;
-}
-
-inline void set_sbyte(void *buf, const signed char val) 
-{
-     unsigned char uval;
-     
-     if (val < 0) {
-         uval = (val + 0x80);
-         uval |= 0x80;
-     } else
-         uval = val;
-     set_byte(buf, uval);
-}
-
-#endif
-#endif
+private:
+  virtual unsigned int dbsize() const { return size(); }
+  virtual bool write_directory (FILE* f, unsigned long& off) const;
+  virtual bool write_data (FILE* f, unsigned long& off) const;
+  };
 
 #endif

@@ -1,0 +1,280 @@
+<html>
+<head>
+<title>Building prc-tools</title>
+</head>
+
+<body>
+
+<h1>Building prc-tools</h1>
+
+Prc-tools builds easily on Linux, should build without too much trouble
+on other Unixes (any problems encountered are bugs and I would appreciate
+hearing about them), builds with some effort on Windows NT with
+<a href="http://sourceware.cygnus.com/cygwin/">Cygwin</a>, and doesn't
+have a hope on Windows 95.  (The build process simply creates too many
+processes too fast for Windows 95 -- though a recent bug fix to Cygwin's
+fork() may have resolved this.)
+
+<h2>Before you start</h2>
+
+You need to have at least one Palm OS SDK installed.  Prc-tools contains
+both host tools which run on your development computer and run-time support
+code which is linked into your application.  To build this support code,
+you will need a set of Palm OS header files.  (Indeed, you may wish to
+install several versions of the SDK, and switch between them for different
+projects.)
+<ul>
+<li>
+The 3.5 SDK is suitable for use with prc-tools, and contains instructions
+detailing how to install it for a prc-tools 2.0 tool chain.
+
+<li>
+Previous SDKs require modifications to be usable with this version of
+prc-tools; you can download suitably patched SDKs from
+<a href="http://www.palm.com/devzone/tools/gcc/#sdks">Palm's devzone</a>.
+</ul>
+By convention, prc-tools looks for SDKs in <code>/usr/local/palmdev</code>
+on Unix, or <code>C:\PalmDev</code> on Windows.  (You will get to configure
+where GCC looks for SDKs <a href="#sharedstatedir">later</a>.  These are
+the values which the prebuilt binaries use on the various platforms, and it
+seems like a useful convention to follow.)
+
+<p>
+You should install the SDK(s) you have selected into the directory you have
+chosen.  You may also wish to create a symlink for a `default SDK'.  For
+example, for a base directory of <code>/usr/local/palmdev</code>, the tree
+structure should look something like
+<blockquote><pre>
+/usr/local/palmdev/sdk-2/include/Core/...
+/usr/local/palmdev/sdk-3.5/include/Core/...
+/usr/local/palmdev/sdk-3.5/lib/...
+/usr/local/palmdev/sdk -> sdk-2
+</pre></blockquote>
+
+<p>
+You'll also need various software development packages:
+<ul>
+<li>
+You will need to have a C compiler, a C++ compiler, lex or
+<a href="http://www.gnu.org/software/flex/flex.html">flex</a>, and
+yacc or <a href="http://www.gnu.org/software/bison/bison.html">bison</a>
+installed.  Some of the post-linker tools are written with C++ and
+<a href="http://www.sgi.com/Technology/STL/">STL</a>, so if you are using
+GCC you will need at least egcs 1.1.1 or so, or any GCC 2.95.  If your
+normal <code>gcc</code> or <code>cc</code> is earlier than this but
+you have a recent GCC installed as, e.g., <code>gcc295</code>,
+you can specify that the tools be built using the non-default compiler
+by defining variables for the configure command:
+<blockquote><pre>
+~/build$ CC=gcc295 CXX=g++295 ../prc-tools-2.0/configure <i>...etc...</i>
+</pre></blockquote>
+
+<li>
+If you do much work on the configuration files, you'll need
+<a href="http://sourceware.cygnus.com/autoconf/">autoconf</a> as well.
+
+<li>
+If you want to generate the HTML documentation, you'll need
+<a href="http://wwwinfo.cern.ch/dis/texi2html/">texi2html</a>.
+(On Windows, you'll need either a
+<a href="http://cygutils.netpedia.net/">Cygwin-ised perl</a> or some fairly
+serious heroics involving
+<a href="http://sourceware.cygnus.com/cygwin/cygwin-ug-net/using-utils.html#CYGPATH">cygpath</a>.)
+
+<li>
+On Windows, I've found that Cygwin gives you a <code>makeinfo</code> that's
+just <code>/bin/true</code> (i.e., a shell script that doesn't do anything)!
+If your Cygwin suffers from this, you might want to build and install this
+<a href="http://www.palm.com/devzone/tools/gcc/dist/makeinfo.c">makeinfo.c</a>
+which will at least create an output file to keep the makefiles happy.
+</ul>
+
+<h2>Unpacking and patching the sources</h2>
+
+This prc-tools package contains source code for the post-linker tools and
+run-time support on the device, and patches against 
+<a href="ftp://sourceware.cygnus.com/pub/binutils/releases/">binutils-2.9.1</a>,
+<a href="ftp://sourceware.cygnus.com/pub/gdb/releases/">gdb-4.18</a>, and
+<a href="ftp://gcc.gnu.org/pub/gcc/releases/">gcc-2.95.2</a>.
+You will need to download source for each of these packages separately.
+Prc-tools also includes patches to generate HTML documentation for
+<a href="http://www.gnu.org/software/make/make.html">make</a>;
+if you want to generate this, you will also need
+<a href="ftp://ftp.gnu.org/pub/gnu/make/">make-3.77</a> source code.
+
+<p>
+Once you have downloaded the packages, you need to unpack them and apply
+the patches:
+<blockquote><pre>
+~$ tar xfz prc-tools-2.0.tar.gz
+~$ tar xfz binutils-2.9.1.tar.gz
+~$ tar xfz gdb-4.18.tar.gz
+~$ tar xfz gcc-2.95.2.tar.gz
+~$ tar xfz make-3.77.tar.gz
+~$ cat prc-tools-2.0/*.palmos.diff | patch -p0
+</pre></blockquote>
+(Omit <code>make-3.77.tar.gz</code> and <code>make-docs-3.77.palmos.diff</code>
+if you don't want to generate make documentation.)
+
+<p>
+On Windows, you should also apply the Cygwin-specific patches:
+<blockquote><pre>
+~$ cat prc-tools-2.0/*.cygwin.diff | patch -p0
+</pre></blockquote>
+
+<p>
+If you don't have autoconf installed, you need to fix the datestamp
+on <code>cstamp-h.in</code> to prevent autoconf from being invoked to
+regenerate it:
+<blockquote><pre>
+~$ touch gcc-2.95.2/gcc/cstamp-h.in
+</pre></blockquote>
+
+<p>
+Finally, you need to make the GNU packages available to prc-tools's configure
+script and top-level Makefile so that building all the packages can be
+integrated into just one build:
+
+<blockquote><pre>
+~$ cd prc-tools-2.0
+~/prc-tools-2.0$ ln -s ../binutils-2.9.1 binutils
+~/prc-tools-2.0$ ln -s ../gdb-4.18 gdb
+~/prc-tools-2.0$ ln -s ../gcc-2.95.2 gcc
+~/prc-tools-2.0$ ln -s ../make-3.77 make
+~/prc-tools-2.0$ cd ..
+</pre></blockquote>
+(On Windows, if you use any non-Cygwin programs in your build (such as the
+texi2html perl script), you should use <code>mv</code> instead of
+<code>ln -s</code> since non-Cygwin programs can't see through Cygwin's
+symlinks.)
+
+<h2>Configuring</h2>
+
+It's <a href="http://gcc.gnu.org/install/configure.html">recommended</a>
+that you configure and build these packages in a directory separate from
+their source trees:
+
+<blockquote><pre>
+~$ mkdir build
+~$ cd build
+~/build$ mkdir empty
+~/build$ ../prc-tools-2.0/configure --target=m68k-palmos \
+         --enable-languages=c,c++ \
+	 --with-headers=`pwd`/empty \
+	 --sharedstatedir=/usr/local/palmdev
+</pre></blockquote>
+
+These parameters specify the following:
+<dl>
+<dt>
+<code>--target=m68k-palmos</code>
+<dd>
+Sets the target platform for the tool chain.  The target used in
+prc-tools-0.5.0 was <code>m68k-palmos-coff</code>; dropping the
+<code>-coff</code> now will ease a potential future move to ELF, and
+just plain makes more sense.  But at the moment <code>m68k-palmos</code>
+is merely an alias for <code>m68k-palmos-coff</code>, so you can use
+the full name for compatibility with prc-tools-0.5.0 for now if you like.
+<dt>
+<code>--enable-language=c,c++</code>
+<dd>
+Only build C and C++ compilers.  In particular, the Objective-C runtime
+hasn't been ported to Palm OS, so <code>objc</code> won't work here.
+<dt>
+<code>--with-headers=`pwd`/empty</code>
+<dd>
+GCC fixes system headers by filtering out non-ISO standard constructs.
+Pointing it at an empty directory like this effectively suppresses that
+behaviour -- which may or may not be the best idea, but it makes life
+easier for now.  :-)
+<dt>
+<code>--with-build-sdk=2</code>
+<dd>
+Select which Palm OS SDK is to be used in building the target run-time
+support code.  Current choices are 1, 2, 3.0, 3.1, 3.5; by default,
+version 2.0 is used.
+<dt>
+<code><a name="sharedstatedir">--sharedstatedir=/usr/local/palmdev</a></code>
+<dd>
+(There's a bit of a hack here :-))  This is where the tool chain
+will look for Palm OS SDK headers and libraries and so on.
+You can put this wherever you like; by convention, we use
+<code>/usr/local/palmdev</code> on Unix and <code>/PalmDev</code>
+on Windows.
+<dt>
+<code>--prefix=/usr/local</code>
+<br>
+<code>--exec-prefix=</code><i>prefix</i>
+<dd>
+Use these configure parameters to install the package somewhere other than
+the default <code>/usr/local</code>.  On Windows, the prebuilt binary is
+configured with
+<code>--prefix=/prc-tools --exec-prefix=/prc-tools/H-i586-cygwin32</code>
+and then Cygwin
+<a href="http://sourceware.cygnus.com/cygwin/cygwin-ug-net/using-utils.html#MOUNT">mounts</a>
+are used to map the files from anywhere.  Alternatively, if you want to
+install these files into the same directories that Cygwin uses, follow
+<a href="http://www.xraylith.wisc.edu/~khan/software/gnu-win32/">Mumit Khan's
+instructions</a> and use <code>--prefix=/cygnus/cygwin-b20
+--exec-prefix=/cygnus/cygwin-b20/H-i586-cygwin32</code>.
+</dl>
+
+<h2>Building and installing</h2>
+
+If you're using an unprotected file system like Windows, or if you are
+willing to do all your building as a user who can write to your install
+directory (i.e., root), you can build and install in one fell swoop:
+<blockquote><pre>
+~/build# make all-install
+</pre></blockquote>
+
+<p>
+Otherwise, you'll need to make each of the dependencies of
+<code>all-install</code> explicitly, since the various builds and installs
+are interleaved:
+<blockquote><pre>
+~/build$ make all-host
+~/build$ su
+~/build# make install-host
+~/build# ^D
+~/build$ make all-gcc
+~/build$ su
+~/build# make install-gcc
+~/build# make install-palmdev
+~/build# ^D
+~/build$ make all-target
+~/build$ su
+~/build# make install-target
+</pre></blockquote>
+(This is less ridiculous if you happen to be building only <em>part</em> of
+the tool chain!)
+
+<p>
+The multistage process is needed because GCC requires binutils to be installed
+before it can be built (or we could use the
+<a href="http://www.objsw.com/CrossGCC/FAQ-4.html#ss4.2">unified binutils/gcc
+tree</a> trick, but that would cause other problems for us); and in turn
+<code>prc-tools-2.0/crt</code> needs GCC to be installed before it can be
+built.
+
+<p>
+There are further details in the GCC distribution's
+<a href="http://gcc.gnu.org/install/"><code>install</code> directory</a>
+and also in the <a href="http://www.objsw.com/CrossGCC/">Cross-FAQ</a>,
+if you run into problems.
+
+<h2>Generating and installing the HTML documentation</h2>
+
+The HTML documentation is not currently integrated with the rest of the
+build (since it really wants to be a configure option:
+<code>--enable-html-docs</code> or some such).  If you want to generate
+these, you need to do it separately:
+<blockquote><pre>
+~/build$ cd doc
+~/build/doc$ make html
+~/build/doc$ su
+~/build/doc# make install-html
+</pre></blockquote>
+
+</body>
+</html>

@@ -9,9 +9,11 @@
 #include <ctype.h>
 
 #ifndef __HAVE_ARCH_STRCMP
-int strcmp(const char * cs,const char * ct)
+int strcmp(const char * cs1,const char * ct1)
 {
-  register signed char __res;
+  const unsigned char * cs = (unsigned char *)cs1;
+  const unsigned char * ct = (unsigned char *)ct1;
+  register int __res;
   
   while (1) {
     if ((__res = *cs - *ct++) != 0 || !*cs++)

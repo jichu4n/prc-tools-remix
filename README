@@ -1,0 +1,117 @@
+			prc-tools version 2.0
+
+USING THESE TOOLS
+
+In addition to installing this package, you will also need to install
+a Palm OS SDK.  SDK versions 3.5 and greater work with prc-tools without
+modification.  Earlier SDKs require changes to work with prc-tools; you
+can find suitably modified SDKs in Palm's devzone at
+<http://www.palm.com/devzone/tools/gcc/#sdks>.  
+
+You may wish to install several SDKs, and you will probably want to choose
+one as the default SDK, to be used when you compile without any `-palmosN'
+command line option.  A symbolic link named `sdk' is used to select a
+default SDK; for example, to use the 3.5 SDK by default:
+
+	$ cd /usr/local/palmdev
+	$ rm -f sdk
+	$ ln -s sdk-3.5 sdk
+
+(On Windows, the default equivalent of /usr/local/palmdev is C:\PalmDev.)
+
+On Windows, you will also have to add the prc-tools bin directory to your
+PATH.  You need to add the directory <prc-tools-location>\H-i586-cygwin32\bin.
+For example, if you have installed prc-tools in the default place, you could
+add the following to your AUTOEXEC.BAT:
+
+	set PATH="C:\Program Files\PRC-Tools\H-i586-cygwin32\bin;%PATH%"
+
+For further documentation, read the info pages for prc-tools, gcc, etc.,
+which you can also install as HTML documents at
+
+	file:///C|/PalmDev/doc/index.html	(Windows)
+or
+	file:/usr/local/palmdev/doc/index.html	(Unix)
+
+
+BUILDING FROM SOURCE
+
+To build these tools yourself, you will need to download the source from
+<http://www.palm.com/devzone/tools/gcc/>.  You will also need the source
+for GCC 2.95.2, binutils 2.9.1, and gdb 4.18, which can be found via
+<http://www.gnu.org/software/software.html>.  See the file BUILDING.html.
+
+
+LICENSING
+
+* The patches to the GNU tools in *.palmos.diff and the code in the tools
+  subdirectory are free software, and may be redistributed and/or modified
+  under the terms of the GNU General Public License, either version 2, or
+  (at your option) any later version.  See the file COPYING.
+
+* The run-time support code in the crt subdirectory is in the public domain,
+  and the resulting object code may be freely linked into your programs.
+
+* The code in the libc subdirectory is redistributable as follows:
+
+  libc.a,
+  libc.sa
+	Small standard C library (static and shared versions).
+	Includes type stuff, printf and friends.  putchar()
+	and printf() send output to the LCD (even does scrolling!).
+	I would not expect this to be terribly useful for anything
+	except debugging, or perhaps a terminal program.  String
+	functions are also included, as are memmove, bcopy and
+	those sorts of things.  Much of this library thanks to
+	Linus Torvalds, from the Linux kernel lib directory.  He
+	gave me permission to release this stuff _without_ GPL
+	encumberance.
+
+  [From the prc-tools 0.5.0 README, by Jeff Dionne]
+
+* The code in the libm subdirectory is based on the Cephes Math Library
+  <http://people.ne.mediaone.net/moshier/index.html> and is freely
+  redistributable as follows:
+
+  libm.a
+	Single precision math library.  The standard kind of stuff
+	(like multiply, add etc) will be included with libgcc.a
+	when the compiler was built, this stuff is what one expects
+	from a complete libm.a.  This library was ported from
+	the Cephes Math Library Release 2.2:  June, 1992 and is
+	Copyright 1984, 1987, 1988 by Stephen L. Moshier.  Really
+	neet stuff!
+
+  [From the prc-tools 0.5.0 README, by Jeff Dionne]
+
+
+CONTRIBUTORS AND CONTRIBUTING
+
+The original post-linker tools and Palm OS support patches for gcc 2.7.2.2,
+binutils 2.7, and gdb 4.16 were written mainly by D. Jeff Dionne, Kresten
+Krab Thorup, Ian Goldberg, Keith Packard, and Kenneth Albanowski, with
+contributions from many others.
+
+John Marshall ported the patches to recent versions of GCC and binutils.
+Peter Trommler ported the gdb patches to 4.17.  Many others have contributed
+suggestions, patches, bug reports, and other support; many thanks to
+
+	Kenneth Albanowski, Marc Balmer, Simon Burge, Jesse Donaldson,
+	Tom Dyas, Mark W. Eichin, Peter Eisenlohr, Christian Falch,
+	Rick Flower, Lonnie Foster, Ian Goldberg, John Ioannidis, Oliver
+	Kasten, Scott Knight, David Loomes, Jonathan Lupa, Todd Mokros,
+	Bret Musser, Kjell M. Myksvoll, Joakim Ogren, Bob Petersen,
+	Thomas Pundt, Daniel R. Risacher, Alex Robinson, Keith Rollin,
+	Craig Setera, Katherine Smith, Michael Sokolov, Peter Trommler,
+	Valeriy "Uwe" Ushakov, Andrew Vasquez, Brian Warner, David
+	Williams, Ben Williamson, and Naoki Yamaya.
+
+	(If I've missed anybody out, please send me email.) 
+
+Most discussion of further prc-tools development takes place at
+<news://news.massena.com/pilot.programmer.gcc>.
+
+Happy hacking!
+
+John Marshall
+<john_w_marshall@palm.com>

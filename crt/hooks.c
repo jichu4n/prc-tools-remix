@@ -8,10 +8,17 @@
  *  Modified 19981104 by John Marshall  <jmarshall@acm.org>
  */
 
+#if defined(SDK_VERSION) && SDK_VERSION < 35
 #include <Common.h>
+#else
+#include <PalmTypes.h>
+#endif
+
+#include "sdktypes.h"
 #include "crt.h"
 
-void __do_bhook(Word cmd, Ptr PBP, Word flags)
+void
+__do_bhook (UInt16 cmd, void *PBP, UInt16 flags)
 {
     void **hookend, **hookptr;
     unsigned long text = (unsigned long)&start;
@@ -21,12 +28,13 @@ void __do_bhook(Word cmd, Ptr PBP, Word flags)
     asm ("lea bhook_end,%0; add.l %1,%0" : "=a" (hookend) : "g" (text));
 
     while (hookptr < hookend) {
-	void (*fptr)(Word,Ptr,Word) = (*(hookptr++)) + text;
+	void (*fptr)(UInt16,void*,UInt16) = (*(hookptr++)) + text;
 	fptr(cmd,PBP,flags);
     }
 }
 
-void __do_ehook(Word cmd, Ptr PBP, Word flags)
+void
+__do_ehook (UInt16 cmd, void *PBP, UInt16 flags)
 {
     void **hookstart, **hookptr;
     unsigned long text = (unsigned long)&start;
@@ -36,12 +44,13 @@ void __do_ehook(Word cmd, Ptr PBP, Word flags)
     asm ("lea ehook_end,%0; add.l %1,%0" : "=a" (hookptr) : "g" (text));
 
     while (hookptr > hookstart) {
-	void (*fptr)(Word,Ptr,Word) = (*(--hookptr)) + text;
+	void (*fptr)(UInt16,void*,UInt16) = (*(--hookptr)) + text;
 	fptr(cmd,PBP,flags);
     }
 }
 
-void __do_ctors(void)
+void
+__do_ctors (void)
 {
     void **hookend, **hookptr;
     unsigned long text = (unsigned long)&start;
@@ -56,7 +65,8 @@ void __do_ctors(void)
     }
 }
 
-void __do_dtors(void)
+void
+__do_dtors (void)
 {
     void **hookstart, **hookptr;
     unsigned long text = (unsigned long)&start;

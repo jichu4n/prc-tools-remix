@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>Palm OS Development Documentation</title>
+</head>
+
+<body>
+
+<h1>Palm OS Development Documentation</h1>
+
+<hr>
+
+<h2>PRC-Tools / GCC tool chain</h2>
+
+<a href="texi/prc-tools_toc.html">PRC-Tools</a> gives an overview
+of the whole tool chain, and details of features specific to this
+Palm&nbsp;OS port.  The remainder are the user manuals for the various
+<a href="http://www.gnu.org/">GNU</a> packages used in the tool chain.
+
+<p>
+<table>
+
+@texidocs@
+
+<tr><td colspan=2>&nbsp;<br>
+You may also have some or all of the following documentation installed:
+<br>&nbsp;</td></tr>
+
+<tr><td><b><a href="pilrc.htm">PilRC</a></b></td>
+    <td>Resource compiler</td></tr>
+</table>
+
+<p><hr>
+<h2>Palm OS SDK Documentation</h2>
+
+<table>
+<tr><td><b><a href="Palm OS Reference.pdf">Palm OS Reference</a></b></td>
+    <td>Reference guide to all Palm OS API functions</td></tr>
+<tr><td><b><a href="Palm OS Companion.pdf">Palm OS Companion</a></b></td>
+    <td>Design guidelines and SDK tutorials</td></tr>
+</table>
+
+<p><hr>
+
+</body>
+</html>

@@ -1,9 +1,12 @@
 /* def.y: parser for .def files.
 
-   Copyright (c) 1998 by John Marshall.
-   <jmarshall@acm.org>
+   Copyright (c) 1999 Palm Computing, Inc. or its subsidiaries.
+   All rights reserved.
 
-   This is free software, under the GNU General Public Licence v2 or greater.
+   This is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
    This program follows in the footsteps of obj-res and build-prc, the
    source code of which contains the following notices:
@@ -26,43 +29,52 @@
  */
 
 %{
+#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <string.h>
 
-#include "pi-dlp.h"
-#include "pi-source.h"
-
+#include "config.h"
 #include "utils.h"
 #include "def.h"
-#include "config.h"
+#include "pfdheader.h"
 
-static struct def_database_info ginfo;
-static const struct def_callbacks *gcallbacks;
+#ifdef __GNUC__
+#define UNUSED_PARAM __attribute__ ((unused))
+#else
+#define UNUSED_PARAM
+#endif
 
-void yyerror(char *s);
-int yylex();
+static const struct def_callbacks *call;
+static struct database_header db;
 
-static unsigned long lookup_trapno(const char *name);
+extern int yylex ();
+extern FILE *yyin;
+
+void yyerror (char *s);
+
+static unsigned long lookup_trapno (const char *name);
 %}
 
 %union {
   unsigned long uint;
   char *str;
-  unsigned short flag;
   enum database_kind kind;
+  struct { unsigned int vector; char *fname; } trap;
   }
 
-%token	MULTIPLE CODE DATA TRAP EXPORT
-%token	TYPE VERSION MODNO
+%token	MULTIPLE CODE DATA TRAP EXPORT STACK
+%token	VERSION MODNO
+%token	READONLY APPINFO_DIRTY BACKUP OK_TO_INSTALL_NEWER RESET_AFTER_INSTALL
+%token	COPY_PREVENTION STREAM HIDDEN LAUNCHABLE_DATA
 
 %token	<uint>	UINT
-%token	<str>	STR
+%token	<str>	STR FNAME
 %token	<kind>	APPLICATION GLIB SYSLIB HACK DATABASE
-%token	<flag>	DBFLAG
 
-%type	<kind>	database_kind
-%type	<uint>	trap_w_section trap trap_spec
-%type	<str>	section_spec section
+%type	<kind>	project_kind specific_db_kind
+%type	<uint>	trap_vector trap_list resource_number
+%type	<str>	str_or_file
+%type	<trap>	trap
 
 %%
 
@@ -71,19 +83,25 @@ def_file:
 	;
 
 database_def:
-	  database_kind '{' STR STR header_item_list '}'
-	  	{ ginfo.kind = $1;
-		  strcpy(ginfo.db.name, $3);
-		  ginfo.db.creator = $4;
-		  }
+	  project_kind '{' STR STR header_item_list '}'
+				{ strncpy (db.name, $3, 32);
+				  strncpy (db.creator, $4, 4);
+				  call->db_header ($1, &db); }
 	;
 
-database_kind:
+project_kind:
+	  specific_db_kind	{ strncpy (db.type, standard_db_type ($1), 4);
+				  $$ = $1; }
+	| specific_db_kind STR	{ strncpy (db.type, $2, 4); $$ = $1; }
+	| DATABASE STR		{ strncpy (db.type, $2, 4); $$ = DK_GENERIC; }
+	;
+
+
+specific_db_kind:
 	  APPLICATION
 	| GLIB
 	| SYSLIB
 	| HACK
-	| DATABASE
 	;
 	
 header_item_list:
@@ -92,11 +110,18 @@ header_item_list:
 	;
 
 header_item:
-	  TYPE '=' STR
-		{ ginfo.db.type = $3; ginfo.type_specified = 1; }
-	| VERSION '=' UINT	{ ginfo.db.version = $3; }
-	| MODNO '=' UINT	{ ginfo.db.modnum = $3; }
-	| DBFLAG		{ ginfo.db.flags |= $1; }
+	  VERSION '=' UINT	{ db.version = $3; }
+	| MODNO '=' UINT	{ db.modnum = $3; }
+	| READONLY		{ db.readonly = 1; }
+	| APPINFO_DIRTY		{ db.appinfo_dirty = 1; }
+	| BACKUP		{ db.backup = 1; }
+	| OK_TO_INSTALL_NEWER	{ db.ok_to_install_newer = 1; }
+	| RESET_AFTER_INSTALL	{ db.reset_after_install = 1; }
+	| COPY_PREVENTION	{ db.copy_prevention = 1; }
+	| STREAM		{ db.stream = 1; }
+	| HIDDEN		{ db.hidden = 1; }
+	| LAUNCHABLE_DATA	{ db.launchable_data = 1; }
+	| STACK '=' UINT	{ call->stack ($3); }
 	;
 
 def_list:
@@ -106,6 +131,7 @@ def_list:
 
 def:
 	  trap_def
+	| version_def
 	| multiple_code_def
 	| export_def
 	;
@@ -114,54 +140,64 @@ trap_def:
 	  TRAP '{' trap_list '}'
 
 trap_list:
-	  /* empty */
-	| trap_list trap_w_section
-	;
-
-trap_w_section:
-	  trap
-	| trap '{' section_spec '}'
+	  /* empty */		{ $$ = 1000; }
+	| trap_list trap	{ call->trap ($1, $2.vector, $2.fname);
+				  $$ = $1 + 1; }
 	;
 
 trap:
-	  trap_spec
-	| trap_spec '(' UINT ')'
+	  trap_vector	{ $$.vector = $1; $$.fname = NULL; }
+	| trap_vector FNAME
+			{ $$.vector = $1; $$.fname = $2; }
 	;
 
-trap_spec:
+trap_vector:
 	  UINT		{ $$ = $1; }
-	| STR		{ $$ = lookup_trapno($1); }
+	| STR		{ $$ = lookup_trapno ($1); }
+	;
+
+version_def:
+	  VERSION resource_number str_or_file
+			{ call->version_resource ($2, $3); }
+	;
+
+resource_number:
+	  /* empty */	{ $$ = 1; }
+	| UINT		{ $$ = $1; }
+	;
+
+str_or_file:
+	  STR		{ $$ = $1; }
+	| FNAME		{ long len;
+			  char *text = slurp_file ($1, "r", &len);
+			  if (text) { chomp (text); $$ = text; }
+			  else { einfo (E_FILELINE | E_PERROR,
+				        "can't read `%s'", $1); $$ = $1; } }
 	;
 
 multiple_code_def:
-	  MULTIPLE CODE '{' section_list '}'
+	  MULTIPLE CODE '{' sectionname_list '}'
 	;
 
-section_list:
+sectionname_list:
 	  /* empty */
-	| section_list section
+	| sectionname_list STR	{ call->multicode_section ($2); }
 	;
-
-section:
-	  section_spec
-	| section_spec '(' UINT ')'
-	;
-
-section_spec:
-	  STR
-	| '<' STR '>'			{ $$ = $2; }
-	| '<' STR '.' STR '>'		{ $$ = $2; }
-	;
-
 
 export_def:
-	  EXPORT '{' '}'
+	  EXPORT '{' export_list '}'
+	;
+
+export_list:
+	  /* empty */
+	| export_list STR	{ call->export_function ($2); }
 	;
 
 %%
 
 void
-yyerror(char *s) {
+yyerror (char *s) {
+  einfo (E_FILELINE, "%s", s);
   }
 
 
@@ -170,7 +206,7 @@ struct string_store *lexer_store = NULL;
 static char *trapno_text = NULL;
 
 static unsigned long
-lookup_trapno(const char *name) {
+lookup_trapno (const char *name) {
   static int trapfile_missing = 0;
 
   char *record;
@@ -178,8 +214,8 @@ lookup_trapno(const char *name) {
 
   if (trapno_text == NULL && !trapfile_missing) {
     long length;
-    if ((trapno_text = slurp_file(TRAPNO_FNAME, "r", &length)) == NULL) {
-      einfo(E_NOFILE | E_PERROR, "can't open config file `%s'", TRAPNO_FNAME);
+    if ((trapno_text = slurp_file (TRAPNO_FNAME, "r", &length)) == NULL) {
+      einfo (E_NOFILE | E_PERROR, "can't open config file `%s'", TRAPNO_FNAME);
       trapfile_missing = 1;
       }
     }
@@ -187,50 +223,59 @@ lookup_trapno(const char *name) {
   if (trapfile_missing)
     return 0;
 
-  namelen = strlen(name);
-  for (record = trapno_text+1; (record = strstr(record, name)); record++)
+  namelen = strlen (name);
+  for (record = trapno_text+1; (record = strstr (record, name)); record++)
     if (record[-1] == '<' && record[namelen] == '>')
-      return strtoul(&record[namelen+1], NULL, 0);
+      return strtoul (&record[namelen+1], NULL, 0);
 
-  einfo(E_FILELINE, "unknown systrap `%s'", name);
+  einfo (E_FILELINE, "unknown systrap `%s'", name);
   return 0;
   }
 
 
 static void
-cleanup() {
-  free_string_store(lexer_store);
-  free(trapno_text);
+cleanup () {
+  free_string_store (lexer_store);
+  free (trapno_text);
   }
 
-int
-read_def_file(const char *fname, struct def_database_info *info,
-	      const struct def_callbacks *callbacks) {
+
+void
+read_def_file (const char *fname, const struct def_callbacks *callbacks) {
   if (lexer_store == NULL) {
-    lexer_store = new_string_store();
-    atexit(cleanup);
+    lexer_store = new_string_store ();
+    atexit (cleanup);
     }
 
+  call = callbacks;
   filename = fname;
   lineno = 1;
 
-  gcallbacks = callbacks;
+  init_database_header (&db);
 
-  ginfo.db.flags = 0;
-  ginfo.db.version = 0;
-  ginfo.db.modnum = 0;
-  strcpy(ginfo.db.name, "");
-  ginfo.type_specified = 0;
-
-  yyparse();
-
-  if (!ginfo.type_specified && ginfo.kind != DK_GENERIC) {
-    ginfo.db.type = standard_db_type(ginfo.kind);
-    ginfo.type_specified = 1;
+  if ((yyin = fopen (filename, "r")) != NULL) {
+    yyparse ();
+    fclose (yyin);
     }
-
-  if (info)
-    *info = ginfo;
-
-  return 0;
+  else
+    einfo (E_NOFILE | E_PERROR, "can't open def file `%s'", fname);
   }
+
+static void default_str (const char *s UNUSED_PARAM) {}
+static void default_ul (unsigned long ul UNUSED_PARAM) {}
+static void default_ui_ui_str (unsigned int ui1 UNUSED_PARAM,
+			       unsigned int ui2 UNUSED_PARAM,
+			       const char *s UNUSED_PARAM) {}
+static void default_kind_dh (enum database_kind k UNUSED_PARAM,
+			     const struct database_header *h UNUSED_PARAM) {}
+static void default_ul_str (unsigned long ul UNUSED_PARAM,
+			    const char *s UNUSED_PARAM) {}
+
+struct def_callbacks default_def_callbacks = {
+  default_kind_dh,
+  default_str,
+  default_str,
+  default_ui_ui_str,
+  default_ul,
+  default_ul_str
+  };

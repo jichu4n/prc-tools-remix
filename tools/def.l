@@ -1,12 +1,16 @@
 /* def.l: lexical analyser for .def files.
 
-   Copyright (c) 1998 by John Marshall.
+   Copyright (c) 1998, 1999 by John Marshall.
    <jmarshall@acm.org>
 
-   This is free software, under the GNU General Public Licence v2 or greater.
+   This is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
    This program follows in the footsteps of obj-res and build-prc, the
    source code of which contains the following notices:
+
 
  * obj-res.c:  Dump out .prc compatible binary resource files from an object
  *
@@ -28,17 +32,16 @@
 %option nounput
 
 %{
-#include <time.h>
-#include "pi-dlp.h"
-
 #include "utils.h"
 #include "def.tab.h"
+#include "pfdheader.h"
 
 static char *dup(const char *s);
 %}
 
 %x comment
 %x sstr dstr
+%x fstr
 
 _	[_\-]?
 
@@ -86,6 +89,21 @@ HD	[0-9A-Fa-f]
 <sstr>[^\\\n\']+	|
 <dstr>[^\\\n\"]+	{ strcpy(strp, yytext); strp += yyleng; }
 
+	/* Filenames: */
+
+\<			{ strp = str_buffer; BEGIN(fstr); }
+
+<fstr>\>		{ BEGIN(INITIAL); *strp = '\0';
+			  yylval.str = dup (str_buffer); return FNAME; }
+
+<fstr>\n		{ einfo (E_FILELINE | E_WARNING,
+				 "filename terminated by end of line");
+			  lineno++;
+			  BEGIN(INITIAL); *strp = '\0';
+			  yylval.str = dup (str_buffer); return FNAME; }
+
+<fstr>[^\n\>]+		{ strcpy (strp, yytext); strp += yyleng; }
+
 	/* Comments and whitespace: */
 
 "/*"			BEGIN(comment);
@@ -106,7 +124,6 @@ HD	[0-9A-Fa-f]
 glib			{ yylval.kind = DK_GLIB; return GLIB; }
 syslib			{ yylval.kind = DK_SYSLIB; return SYSLIB; }
 hack			{ yylval.kind = DK_HACK; return HACK; }
-database		{ yylval.kind = DK_GENERIC; return DATABASE; }
 
 code			return CODE;
 data			return DATA;
@@ -114,22 +131,28 @@ data			return DATA;
 trap			return TRAP;
 multiple		return MULTIPLE;
 export			return EXPORT;
+stack			return STACK;
 
-type			return TYPE;
 version			return VERSION;
-(modno)|(modification)	return MODNO;
+(mod(no|num))|(modification)  return MODNO;
 
-read{_}only		{ yylval.flag = dlpDBFlagReadOnly; return DBFLAG; }
-appinfo{_}dirty		{ yylval.flag = dlpDBFlagAppInfoDirty; return DBFLAG; }
-backup			{ yylval.flag = dlpDBFlagBackup; return DBFLAG; }
-ok{_}to{_}install{_}newer { yylval.flag = dlpDBFlagNewer; return DBFLAG; }
-reset{_}after{_}install	{ yylval.flag = dlpDBFlagReset; return DBFLAG; }
-copy{_}prevention	{ yylval.flag = dlpDBFlagCopyPrevention; return DBFLAG;}
-stream			{ yylval.flag = dlpDBFlagStream; return DBFLAG; }
+read{_}only		return READONLY;
+appinfo{_}dirty		return APPINFO_DIRTY;
+backup			return BACKUP;
+ok{_}to{_}install{_}newer return OK_TO_INSTALL_NEWER;
+reset{_}after{_}install	return RESET_AFTER_INSTALL;
+copy{_}prevention	return COPY_PREVENTION;
+stream			return STREAM;
+hidden			return HIDDEN;
+launchable{_}data	return LAUNCHABLE_DATA;
 
 	/* Other words ("identifiers", but for us they're unquoted strings): */
 
 [A-Za-z_][A-Za-z0-9_]*	{ yylval.str = dup(yytext); return STR; }
+
+	/* Punctuation: */
+
+[{}\[\]()=]	return yytext[0];
 
 <*>.	einfo(E_FILELINE | E_WARNING, "unexpected character `%c'", yytext[0]);
 

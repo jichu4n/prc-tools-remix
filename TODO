@@ -1,0 +1,27 @@
+* fix the `-l' gas flag.  (flag_short_refs in md_estimate_size_before_relax()
+in binutils/gas/config/tc-m68k.c)  This would let a few patches in gcc's
+m68k.md and lb1sf68palmos.asm go away; in particular, getting rid of the
+`define_insn "jump"' one would reduce code size, maybe even non-trivially.
+
+* get rid of pilot.ld / palmos_link.ld in favour of a customized set of
+scripts in binutils/ld/scripttempl/m68kcoff.sc.  Besides being a bit of a
+tidy-up, this would get -r linking going -- not that that's particularly
+useful.  (Might need to hack a little just above the base_file stuff in
+binutils/bfd/cofflink.c too.)
+* maybe try to make the binutils palmos stuff a proper subtarget -- separate
+off the machine independent patches to send off to the main binutils
+distribution.
+
+* Update the ChangeLogs, and start submitting patches to the various GNU
+maintainers (without any of the remaining nasty hacks!).
+
+* figure out what to do to unify the different floating point implementations.
+You can now (finally!) call new float manager routines by hand, but you
+probably want them to get called for operators too.  Unfortunately, libcalls
+don't see prototypes (i.e., they don't see callseqs!), so there's a bit of
+internals hacking needed here.
+
+* get GDB to notice Macsbug function names in the absence of other symbols
+(like in the ROM, for example).
+
+* sort out GLibs and integrate Michael's stuff.
