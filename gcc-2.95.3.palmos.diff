@@ -14,7 +14,16 @@ diff -urN orig-gcc-2.95.3/configure.in gcc-2.95.3/configure.in
      # emacs is emacs 18, which does not work on Irix 5 (emacs19 does work)
 diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
 --- orig-gcc-2.95.3/gcc/Makefile.in	Thu Jan 25 15:02:58 2001
-+++ gcc-2.95.3/gcc/Makefile.in	Tue Apr 23 01:03:42 2002
++++ gcc-2.95.3/gcc/Makefile.in	Wed Apr 24 14:24:43 2002
+@@ -41,7 +41,7 @@
+ # Selection of languages to be made.
+ # This is overridden by configure.
+ CONFIG_LANGUAGES = @all_languages@
+-LANGUAGES = c proto gcov$(exeext) $(CONFIG_LANGUAGES)
++LANGUAGES = c $(CONFIG_LANGUAGES)
+ 
+ # Languages should create dependencies of $(INTL_TARGETS) on generated
+ # sources in Make-lang.in.  Example:
 @@ -198,7 +198,7 @@
      if [ "$(host_canonical)" = "$(target)" ] ; then \
        echo ar; \
