@@ -167,6 +167,117 @@ diff -urN orig-binutils-2.11.2/config.sub binutils-2.11.2/config.sub
  	      | -storm-chaos* | -tops10* | -tenex* | -tops20* | -its* | -os2*)
  	# Remember, each alternative MUST END IN *, to match a version number.
  		;;
+diff -urN orig-binutils-2.11.2/gas/config/m68k-parse.h binutils-2.11.2/gas/config/m68k-parse.h
+--- orig-binutils-2.11.2/gas/config/m68k-parse.h	Thu Jun  7 03:15:26 2001
++++ binutils-2.11.2/gas/config/m68k-parse.h	Thu Jan  3 12:58:31 2002
+@@ -240,12 +240,13 @@
+   int scale;
+ };
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+ /* The type of a PIC expression.  */
+ 
+ enum pic_relocation
+ {
+   pic_none,			/* not pic */
++  pic_endrel,			/* @END (for COFF_RELEND_RELOC) */
+   pic_plt_pcrel,		/* @PLTPC */
+   pic_got_pcrel,		/* @GOTPC */
+   pic_plt_off,			/* @PLT */
+@@ -260,7 +261,7 @@
+   /* The size to use.  */
+   enum m68k_size size;
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   /* The type of pic relocation if any.  */
+   enum pic_relocation pic_reloc;
+ #endif
+diff -urN orig-binutils-2.11.2/gas/config/m68k-parse.y binutils-2.11.2/gas/config/m68k-parse.y
+--- orig-binutils-2.11.2/gas/config/m68k-parse.y	Thu Jun  7 03:15:26 2001
++++ binutils-2.11.2/gas/config/m68k-parse.y	Mon Jan  7 16:24:32 2002
+@@ -973,7 +973,7 @@
+ 	tail = 2;
+     }
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   {
+     /* Look for @PLTPC, etc.  */
+     char *cp;
+@@ -1005,6 +1005,11 @@
+ 	    yylval.exp.pic_reloc = pic_got_off;
+ 	    tail += 4;
+ 	  }
++	else if (strncmp (cp - 4, "@END", 4) == 0)
++	  {
++	    yylval.exp.pic_reloc = pic_endrel;
++	    tail += 4;
++	  } 
+       }
+   }
+ #endif
+diff -urN orig-binutils-2.11.2/gas/config/obj-coff.h binutils-2.11.2/gas/config/obj-coff.h
+--- orig-binutils-2.11.2/gas/config/obj-coff.h	Thu Jun  7 03:15:26 2001
++++ binutils-2.11.2/gas/config/obj-coff.h	Tue Jan  8 10:06:39 2002
+@@ -25,6 +25,9 @@
+ 
+ #define OBJ_COFF 1
+ 
++#define COFF_RELEND_RELOC
++#define NEED_FX_R_TYPE
++
+ #ifndef BFD_ASSEMBLER
+ 
+ #define WORKING_DOT_WORD
+diff -urN orig-binutils-2.11.2/gas/config/tc-m68k.c binutils-2.11.2/gas/config/tc-m68k.c
+--- orig-binutils-2.11.2/gas/config/tc-m68k.c	Mon Jun 11 10:04:48 2001
++++ binutils-2.11.2/gas/config/tc-m68k.c	Mon Jan  7 16:40:42 2002
+@@ -215,7 +215,7 @@
+ 	 significance of some values (in the branch instruction, for
+ 	 example).  */
+       int pcrel_fix;
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+       /* Whether this expression needs special pic relocation, and if
+ 	 so, which.  */
+       enum pic_relocation pic_reloc;
+@@ -283,7 +283,7 @@
+   the_ins.reloc[the_ins.nrel].exp = exp->exp;
+   the_ins.reloc[the_ins.nrel].wid = width;
+   the_ins.reloc[the_ins.nrel].pcrel_fix = pc_fix;
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   the_ins.reloc[the_ins.nrel].pic_reloc = exp->pic_reloc;
+ #endif
+   the_ins.reloc[the_ins.nrel++].pcrel = pc_rel;
+@@ -692,6 +692,11 @@
+ tc_coff_fix2rtype (fixP)
+      fixS *fixP;
+ {
++#ifdef COFF_RELEND_RELOC
++  if (fixP->fx_r_type != NO_RELOC)
++    return fixP->fx_r_type;
++#endif
++
+   if (fixP->fx_tcbit && fixP->fx_size == 4)
+     return R_RELLONG_NEG;
+ #ifdef NO_PCREL_RELOCS
+@@ -875,8 +880,12 @@
+ }
+ 
+ #else /* !OBJ_ELF */
+-
++#ifdef COFF_RELEND_RELOC
++#define get_reloc_code(SIZE,PCREL,PIC) \
++  (((PIC) == pic_endrel && (SIZE) == 2)? R_RELENDWORD : NO_RELOC)
++#else
+ #define get_reloc_code(SIZE,PCREL,OTHER) NO_RELOC
++#endif /* COFF_RELEND_RELOC */
+ 
+ #define relaxable_symbol(symbol) 1
+ 
 diff -urN orig-binutils-2.11.2/gas/configure.in binutils-2.11.2/gas/configure.in
 --- orig-binutils-2.11.2/gas/configure.in	Mon Jun 11 10:04:44 2001
 +++ binutils-2.11.2/gas/configure.in	Wed Jan  2 14:05:07 2002
@@ -205,6 +316,30 @@ diff -urN orig-binutils-2.11.2/gas/configure binutils-2.11.2/gas/configure
  
        m88k-motorola-sysv3*) fmt=coff em=delt88 ;;
        m88k-*-coff*)         fmt=coff ;;
+diff -urN orig-binutils-2.11.2/gas/m68k-parse.c binutils-2.11.2/gas/m68k-parse.c
+--- orig-binutils-2.11.2/gas/m68k-parse.c	Sun Jun 10 15:37:29 2001
++++ binutils-2.11.2/gas/m68k-parse.c	Mon Jan  7 16:24:35 2002
+@@ -1978,7 +1978,7 @@
+ 	tail = 2;
+     }
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   {
+     /* Look for @PLTPC, etc.  */
+     char *cp;
+@@ -2010,6 +2010,11 @@
+ 	    yylval.exp.pic_reloc = pic_got_off;
+ 	    tail += 4;
+ 	  }
++	else if (strncmp (cp - 4, "@END", 4) == 0)
++	  {
++	    yylval.exp.pic_reloc = pic_endrel;
++	    tail += 4;
++	  } 
+       }
+   }
+ #endif
 diff -urN orig-binutils-2.11.2/include/coff/internal.h binutils-2.11.2/include/coff/internal.h
 --- orig-binutils-2.11.2/include/coff/internal.h	Thu Jun  7 03:21:39 2001
 +++ binutils-2.11.2/include/coff/internal.h	Wed Jan  9 10:24:19 2002
