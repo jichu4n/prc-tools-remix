@@ -74,6 +74,7 @@ extra_dependencies=/dev/null
 extra_target_configs=
 first_enabled_target=.
 m68k_target=
+gccdir=gcc
 
 AC_SUBST(extra_subdirs)
 AC_SUBST(configure_args)
@@ -82,6 +83,7 @@ AC_SUBST_FILE(extra_dependencies)
 AC_SUBST(extra_target_configs)
 AC_SUBST(first_enabled_target)
 AC_SUBST(m68k_target)
+AC_SUBST(gccdir)
 
 target_gcc_prereqs=
 target_gcc_flags=
@@ -149,10 +151,11 @@ if test -n "$enable_targets"; then
   fi
 else
   case "$target_cpu" in
-  m68k)	config_subdirs="$config_subdirs binutils gcc gdb"
+  m68k)	config_subdirs="$config_subdirs binutils gcc295 gdb"
   	output_files="$output_files crt/Makefile libc/Makefile libm/Makefile"
-	all_subdirs="$all_subdirs binutils gcc gdb crt libc libm"
+	all_subdirs="$all_subdirs binutils gcc295 gdb crt libc libm"
 	m68k_target="$target_alias"
+	gccdir="gcc295"
 	;;
   arm)	config_subdirs="$config_subdirs binutils gcc"
   	output_files="$output_files libc/Makefile"

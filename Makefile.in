@@ -60,7 +60,7 @@ BUILT_AS = binutils/gas/as-new$(exeext)
 BUILT_LD = binutils/ld/ld-new$(exeext)
 BUILT_AR = binutils/binutils/ar$(exeext)
 BUILT_RANLIB = binutils/binutils/ranlib$(exeext)
-BUILT_GCC_DIR = gcc/gcc
+BUILT_GCC_DIR = @gccdir@/gcc
 BUILT_GCC = $(BUILT_GCC_DIR)/xgcc$(exeext)
 INSTALLED_TARGET_GCC = @target_alias@-gcc$(exeext)
 
@@ -76,7 +76,7 @@ SDKFLAGS = -DBOOTSTRAP -I$${abssrcdir}/bootstrap \
 	   -specs=$${abssrcdir}/bootstrap/bootstrap-specs -palmos-none
 
 .PHONY: crt doc include libc libm tools
-.PHONY: binutils real-binutils gcc real-gcc gdb make $(extra_subdirs)
+.PHONY: binutils real-binutils @gccdir@ real-gcc gdb make $(extra_subdirs)
 
 binutils: binutils.stamp
 
@@ -86,7 +86,7 @@ real-binutils:
 	cd binutils && $(MAKE) all
 
 real-gcc: @target_gcc_prereqs@
-	cwd=`pwd`; cd gcc && $(MAKE) $(target_gcc_flags) all
+	cwd=`pwd`; cd @gccdir@ && $(MAKE) $(target_gcc_flags) all
 
 doc: @doc_prereqs@
 
@@ -136,7 +136,7 @@ clean:
 
 
 distdir = prc-tools
-nondistpat = ^(binutils|gcc|gdb|make)$$
+nondistpat = ^(binutils|gcc|gcc295|gdb|make)$$
 
 # The source directory is likely to be a working development directory.
 # We need to do some tidying up before creating the distribution tarball:

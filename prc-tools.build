@@ -22,10 +22,13 @@ for pkg_ver in `grep '^%setup.*-n' prc-tools.spec | cut -d' ' -f3`; do
     tar xvf$decompression $SOURCES/$pkg_ver.tar$extension
     [ -f $pkg_ver.palmos.diff ] && $PATCH -p0 < $pkg_ver.palmos.diff
     mv $pkg_ver $pkg
+    # HACK  This is fragile and only works because 2.95.3 is unpacked before
+    # 3.2.  We've left the fragility to provide more motivation to lose 2.95.3.
+    [ "$pkg_ver" = "gcc-2.95.3" ] && mv $pkg gcc295
   fi
 done
 
-touch "gcc/gcc/cstamp-h.in"
+touch "gcc295/gcc/cstamp-h.in"
 
 #build
 : ${prefix:=/usr/local} ${docdir:=$prefix/doc/prc-tools}
