@@ -12,8 +12,6 @@ VPATH = @srcdir@
 
 SHELL = /bin/sh
 
-configured_subdirs = @subdirs@
-
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 palmdev_prefix = @palmdev_prefix@
@@ -99,22 +97,30 @@ index.html: index.html.in html-subtargets
 
 MKHTML = $(MAKEHTML) $(MAKEHTMLFLAGS)
 
+# "Non-generic" build directory: either .././binutils etc for an old-style
+# single target prc-tools build, or ../<target>/binutils etc for a tree
+# configured with --enable-targets=<target>,...
+ngdir = ../@first_enabled_target@
+
 html-binutils:
 	-@rm -f binutils[_.]*html ld[_.]*html as[_.]*html
 	[ -f $(srcdir)/../binutils/ld/configdoc.texi ] || \
-	[ -f ../binutils/ld/configdoc.texi ] || (cd ../binutils; $(MAKE) info)
-	$(MKHTML) -I ../binutils/binutils/doc \
+	[ -f $(ngdir)/binutils/ld/configdoc.texi ] || \
+	  (cd $(ngdir)/binutils; $(MAKE) info)
+	$(MKHTML) -I $(ngdir)/binutils/binutils/doc \
 	  -I $(srcdir)/../binutils/binutils/doc \
 	  $(srcdir)/../binutils/binutils/doc/binutils.texi
-	$(MKHTML) -I ../binutils/ld -I $(srcdir)/../binutils/ld \
+	$(MKHTML) -I $(ngdir)/binutils/ld -I $(srcdir)/../binutils/ld \
 	  -I $(srcdir)/../binutils/bfd/doc $(srcdir)/../binutils/ld/ld.texinfo
-	$(MKHTML) -I ../binutils/gas/doc -I $(srcdir)/../binutils/gas/doc \
+	$(MKHTML) -I $(ngdir)/binutils/gas/doc \
+	  -I $(srcdir)/../binutils/gas/doc \
 	  $(srcdir)/../binutils/gas/doc/as.texinfo
 
 html-gdb:
 	-@rm -f gdb[_.]*html
-	[ -f ../gdb/gdb/doc/gdb-cfg.texi ] || (cd ../gdb; $(MAKE) info)
-	$(MKHTML) -I ../gdb/gdb/doc -I $(srcdir)/../gdb/gdb/doc \
+	[ -f $(ngdir)/gdb/gdb/doc/gdb-cfg.texi ] || \
+	  (cd $(ngdir)/gdb; $(MAKE) info)
+	$(MKHTML) -I $(ngdir)/gdb/gdb/doc -I $(srcdir)/../gdb/gdb/doc \
 	  -I $(srcdir)/../gdb/readline/doc -I $(srcdir)/../gdb/gdb/mi \
 	  $(srcdir)/../gdb/gdb/doc/gdb.texinfo
 
@@ -130,8 +136,8 @@ html-make:
 	$(MKHTML) -I $(srcdir)/../make $(srcdir)/../make/make.texinfo
 
 html-subtargets:
-	for d in $(configured_subdirs); do \
-	  if [ -d ../$$d ]; then echo html-$$d; else :; fi; \
+	-for d in binutils gcc gdb make; do \
+	  if [ -d ../$$d ] || [ -d $(ngdir)/$$d ]; then echo html-$$d; fi; \
 	done > $@
 	$(MAKE) "MAKEHTML=$(MAKEHTML)" "MAKEHTMLFLAGS=$(MAKEHTMLFLAGS)" `cat $@`
 

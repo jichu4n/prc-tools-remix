@@ -72,12 +72,14 @@ configure_args=
 bfd_configure_args=
 extra_dependencies=/dev/null
 extra_target_configs=
+first_enabled_target=.
 
 AC_SUBST(extra_subdirs)
 AC_SUBST(configure_args)
 AC_SUBST(bfd_configure_args)
 AC_SUBST_FILE(extra_dependencies)
 AC_SUBST(extra_target_configs)
+AC_SUBST(first_enabled_target)
 
 target_gcc_prereqs=
 target_gcc_flags=
@@ -133,8 +135,9 @@ if test -n "$enable_targets"; then
     changequote(,)dnl
     first=`echo $enable_targets | sed 's/,.*//'`
     others=`echo $enable_targets | sed 's/^[^,]*,//'`
-    bfd_configure_args="--target=$first --enable-targets=$others"
     changequote([,])dnl
+    bfd_configure_args="--target=$first --enable-targets=$others"
+    first_enabled_target="$first"
   fi
 else
   case "$target_cpu" in
