@@ -22,16 +22,7 @@ diff -urN orig-gcc-3.3.1/configure.in gcc-3.3.1/configure.in
      ;;
 diff -urN orig-gcc-3.3.1/gcc/Makefile.in gcc-3.3.1/gcc/Makefile.in
 --- orig-gcc-3.3.1/gcc/Makefile.in	Sun Aug  3 17:48:36 2003
-+++ gcc-3.3.1/gcc/Makefile.in	Tue Aug 26 21:12:32 2003
-@@ -47,7 +47,7 @@
- # Selection of languages to be made.
- # This is overridden by configure.
- CONFIG_LANGUAGES = @all_languages@
--LANGUAGES = c gcov$(exeext) $(CONFIG_LANGUAGES)
-+LANGUAGES = c $(CONFIG_LANGUAGES)
- 
- # Selection of languages to be made during stage1 build.
- # This is overridden by configure.
++++ gcc-3.3.1/gcc/Makefile.in	Tue Sep  9 23:30:26 2003
 @@ -2197,7 +2197,7 @@
    -DGPLUSPLUS_TOOL_INCLUDE_DIR=\"$(gcc_gxx_include_dir)/$(target_alias)\" \
    -DGPLUSPLUS_BACKWARD_INCLUDE_DIR=\"$(gcc_gxx_include_dir)/backward\" \
@@ -41,14 +32,6 @@ diff -urN orig-gcc-3.3.1/gcc/Makefile.in gcc-3.3.1/gcc/Makefile.in
    -DTOOL_INCLUDE_DIR=\"$(gcc_tooldir)/include\"
  
  LIBCPP_OBJS =	cpplib.o cpplex.o cppmacro.o cppexp.o cppfiles.o cpptrad.o \
-@@ -2836,7 +2836,6 @@
- 	    rm -f $(DESTDIR)$(bindir)/gcov$(exeext); \
- 	    $(INSTALL_PROGRAM) gcov$(exeext) $(DESTDIR)$(bindir)/$(GCOV_INSTALL_NAME)$(exeext); \
- 	fi
--	$(INSTALL_SCRIPT) gccbug $(DESTDIR)$(bindir)/$(GCCBUG_INSTALL_NAME)
- 
- # Install the driver program as $(target_alias)-gcc, 
- # $(target-alias)-gcc-$(version)
 diff -urN orig-gcc-3.3.1/gcc/config.gcc gcc-3.3.1/gcc/config.gcc
 --- orig-gcc-3.3.1/gcc/config.gcc	Fri Jun 27 13:44:22 2003
 +++ gcc-3.3.1/gcc/config.gcc	Tue Aug 26 21:12:32 2003

@@ -98,7 +98,6 @@ ln -s `${CXX:-g++} -print-file-name=libstdc++.a` static-libs/libstdc++.a
 LDFLAGS=-L`pwd`/static-libs ./configure \
   --enable-targets=m68k-palmos,arm-palmos \
   --enable-languages=c,c++ \
-  --disable-cpp \
   --with-palmdev-prefix=%{palmdev_prefix} \
   --enable-html-docs=%{palmdev_prefix}/doc \
   --prefix=%{_prefix} --exec-prefix=%{_exec_prefix} \
@@ -127,6 +126,9 @@ make %{make_opts}
 (cd $RPM_BUILD_ROOT%{_infodir} && rm -f [!p]*)
 (cd $RPM_BUILD_ROOT%{_datadir} && rm -f locale/*/LC_MESSAGES/*)
 (cd $RPM_BUILD_ROOT%{_mandir}  && rm -f man1/[!bp]* man7/*)
+(cd $RPM_BUILD_ROOT%{_bindir}  && rm -f *-cpp *-gcc-* *-gcov *-gccbug)
+(cd $RPM_BUILD_ROOT%{_libdir}  && rm -f ../*/bin/[cg]++)
+(cd $RPM_BUILD_ROOT%{_libdir}  && rm -rf gcc-lib/*/*/install-tools)
 
 %clean
 [ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
