@@ -68,3 +68,8 @@
   SYSTEM_HEADER_DIR (or better NATIVE_SYSTEM_HEADER_DIR?) in t-m68kpalmos.
   (See Zack Weinberg's gcc@ message of 2002-08-03 "Re: gcc 3.2's cpp breaks
   configure scripts" <20020803230707.GG466@codesourcery.com>.)
+
+* Implement ARM "-fvery-PIC" that avoids using a GOT, as was done for m68k.
+  Currently the compiler will generate GOT-relative relocations in some
+  circumstances -- which will crash an armlet, because they don't have the
+  infrastructure to set up a GOT.
