@@ -1,6 +1,6 @@
 /* trapfilt.c: add Palm OS trap names to disassembly listings.
 
-   Copyright 2002 John Marshall.
+   Copyright 2002, 2003 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ load_trapnumbers () {
     char *s = strchr (traptext, '\n');
 
     s = strchr (s, '*');
-    sscanf (s, "*%*d%i%i", &minvector, &maxvector);
+    sscanf (s, "*%*d%x%x", &minvector, &maxvector);
 
     trapname = xmalloc ((maxvector - minvector + 1) * sizeof (const char *));
     for (i = minvector; i <= maxvector; i++)  trapname[i - minvector] = NULL;
