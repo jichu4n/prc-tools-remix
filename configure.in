@@ -43,6 +43,25 @@ esac])
 AC_SUBST(build_sdk)
 
 
+htmldocs_prefix='$(palmdev_prefix)/doc'
+htmldocs_enabled=''
+install_htmldocs_enabled=''
+
+AC_ARG_ENABLE(html-docs,
+[  --enable-html-docs[=DIR]where to install HTML versions of the documentation
+                          [disabled; PALMDEV_PREFIX/doc]],
+[case "${enableval}" in
+yes)	htmldocs_enabled=html install_htmldocs_enabled=install-html ;;
+no)	;;
+*)	htmldocs_prefix=${enableval}
+	htmldocs_enabled=html install_htmldocs_enabled=install-html ;;
+esac])
+
+AC_SUBST(htmldocs_prefix)
+AC_SUBST(htmldocs_enabled)
+AC_SUBST(install_htmldocs_enabled)
+
+
 AC_CANONICAL_SYSTEM
 
 AC_PROG_CC

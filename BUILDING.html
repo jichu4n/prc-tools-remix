@@ -235,6 +235,15 @@ will look for Palm OS SDK headers and libraries and so on.
 You can put this wherever you like; by convention, we use
 <code>/opt/palmdev</code> on Unix and <code>/PalmDev</code>
 on Windows.  By default, the tool chain will look in <code>/opt/palmdev</code>.
+<dt>
+<code>--enable-html-docs[=/path]</code>
+<dd>
+Generate HTML-formatted documentation for prc-tools and also whichever of
+binutils, GDB, GCC, and make have been made available within the source tree.
+By default, generation of HTML documentation is disabled.  If you enable it,
+you can specify where the resulting HTML files should be installed, or, if you
+omit the optional directory argument, <i>palmdev-prefix</i><code>/doc</code>
+will be used by default.
 </dl>
 
 <h2>Building and installing</h2>
@@ -280,19 +289,6 @@ There are further details in the GCC distribution's
 <a href="http://gcc.gnu.org/install/"><code>install</code> directory</a>
 and also in the <a href="http://www.objsw.com/CrossGCC/">Cross-FAQ</a>,
 if you run into problems.
-
-<h2>Generating and installing the HTML documentation</h2>
-
-The HTML documentation is not currently integrated with the rest of the
-build (since it really wants to be a configure option:
-<code>--enable-html-docs</code> or some such).  If you want to generate
-these, you need to do it separately:
-<blockquote><pre>
-~/build$ cd doc
-~/build/doc$ make html
-~/build/doc$ su
-~/build/doc# make install-html
-</pre></blockquote>
 
 <p><hr>
 <i>To the <a href="http://prc-tools.sourceforge.net/">prc-tools website</a></i>
