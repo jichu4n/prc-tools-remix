@@ -4916,8 +4916,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.md gcc-2.95.2/gcc/config/m68k/m68
  ;; This is the first machine-dependent peephole optimization.
 diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68k/m68kpalmos.h
 --- orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Wed Dec 31 16:00:00 1969
-+++ gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Sun Mar 12 01:35:57 2000
-@@ -0,0 +1,328 @@
++++ gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Mon Jun 26 17:11:41 2000
+@@ -0,0 +1,336 @@
 +/* Definitions of target machine for GNU compiler.  "naked" 68020,
 +   COFF object files and debugging, version.
 +   Copyright (C) 1994 Free Software Foundation, Inc.
@@ -5106,29 +5106,37 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68
 +
 +#undef CPP_SUBTARGET_SPEC
 +#define CPP_SUBTARGET_SPEC "\
-+%(palmdev_includes) \
++%(palmdev_includes) %(palmdev_sdk_includes) -remap \
++%{mown-gp:-D__OWNGP__ }%{mextralogues:-D__EXTRALOGUES__ }"
++
++/* Alas, "sdk%{palmos*:-%*}" doesn't work, because you end up with a space:
++   ".../sdk%{palmos*:-%*}/include" -palmos3.5 -> ".../sdk-3.5 /include".  */
++
++#define PALM_SDK "\
++sdk%{palmos1*:-1}%{palmos2*:-2}\
++%{palmos3:-3}%{palmos3.0:-3}%{palmos3.1:-3.1}%{palmos3.5:-3.5}"
++
++/* Add Palm OS related but not Palm SDK related header directories here.  */
++
++#define PALMDEV_INCLUDES "\
++-isystem %(palmdev_prefix)include"
++
++
++#define PALMDEV_SDK_INCLUDES "\
 +-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/System \
 +-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/UI \
 +-isystem %(palmdev_prefix)%(palm_sdk)/include \
 +-isystem %(palmdev_prefix)%(palm_sdk)/include/Core \
 +-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/Hardware \
-+-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/System/Unix \
-+-remap"
-+
-+#define PALMDEV_INCLUDES "\
-+-isystem %(palmdev_prefix)include"
-+
-+/* Alas, "sdk%{palmos*:-%*}" doesn't work, because you end up with a space:
-+   ".../sdk%{palmos*:-%*}/include" -palmos3.5 -> ".../sdk-3.5 /include".  */
++-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/System/Unix"
 +
 +#undef SUBTARGET_EXTRA_SPECS
 +#define SUBTARGET_EXTRA_SPECS						\
 +  { "palmdev_prefix", PALMDEV_PREFIX },					\
 +  { "full_target_machine", FULL_TARGET_MACHINE },			\
 +  { "palmdev_includes", PALMDEV_INCLUDES },				\
-+  { "palm_sdk", "\
-+sdk%{palmos1*:-1}%{palmos2*:-2}\
-+%{palmos3:-3}%{palmos3.0:-3}%{palmos3.1:-3.1}%{palmos3.5:-3.5}" },
++  { "palmdev_sdk_includes", PALMDEV_SDK_INCLUDES },			\
++  { "palm_sdk", PALM_SDK },
 +
 +extern int palmos_valid_machine_decl_attribute ();
 +#define VALID_MACHINE_DECL_ATTRIBUTE(DECL, ATTRIBUTES, ID, ARGS)	\
