@@ -120,82 +120,14 @@ if [ "$1" = 0 ]; then
 fi
 
 %files
-# prc-tools-specific post-linker tools
-%{exec_prefix}/bin/build-prc%{exeext}
-%{exec_prefix}/bin/%{target}-multigen%{exeext}
-%{exec_prefix}/bin/%{target}-obj-res%{exeext}
-%{exec_prefix}/bin/%{target}-sdkfind%{exeext}
-%{exec_prefix}/bin/%{target}-stubgen%{exeext}
-# these unadorned names (here for compatibility) will stop being installed soon
-%{exec_prefix}/bin/multigen%{exeext}
-%{exec_prefix}/bin/obj-res%{exeext}
-%{exec_prefix}/bin/stubgen%{exeext}
-
-# generic binutils/gcc/gdb tools
-%{exec_prefix}/bin/%{target}-addr2line%{exeext}
-%{exec_prefix}/bin/%{target}-ar%{exeext}
-%{exec_prefix}/bin/%{target}-as%{exeext}
-%{exec_prefix}/bin/%{target}-c++%{exeext}
-%{exec_prefix}/bin/%{target}-c++filt%{exeext}
-%{exec_prefix}/bin/%{target}-cpp%{exeext}
-%{exec_prefix}/bin/%{target}-g++%{exeext}
-%{exec_prefix}/bin/%{target}-gasp%{exeext}
-%{exec_prefix}/bin/%{target}-gcc%{exeext}
-%{exec_prefix}/bin/%{target}-gdb%{exeext}
-%{exec_prefix}/bin/%{target}-ld%{exeext}
-%{exec_prefix}/bin/%{target}-nm%{exeext}
-%{exec_prefix}/bin/%{target}-objcopy%{exeext}
-%{exec_prefix}/bin/%{target}-objdump%{exeext}
-%{exec_prefix}/bin/%{target}-protoize%{exeext}
-%{exec_prefix}/bin/%{target}-ranlib%{exeext}
-%{exec_prefix}/bin/%{target}-size%{exeext}
-%{exec_prefix}/bin/%{target}-strings%{exeext}
-%{exec_prefix}/bin/%{target}-strip%{exeext}
-%{exec_prefix}/bin/%{target}-unprotoize%{exeext}
-
-# info files and man pages
-%doc %{prefix}/info/as.info*
-%doc %{prefix}/info/binutils.info*
-%doc %{prefix}/info/cpp.info*
-%doc %{prefix}/info/gasp.info*
-%doc %{prefix}/info/gcc.info*
-%doc %{prefix}/info/gdb.info*
-%doc %{prefix}/info/ld.info*
-%doc %{prefix}/info/prc-tools.info*
-%doc %{prefix}/man/man1/%{target}-addr2line.1*
-%doc %{prefix}/man/man1/%{target}-ar.1*
-%doc %{prefix}/man/man1/%{target}-as.1*
-%doc %{prefix}/man/man1/%{target}-c++filt.1*
-%doc %{prefix}/man/man1/%{target}-g++.1*
-%doc %{prefix}/man/man1/%{target}-gcc.1*
-%doc %{prefix}/man/man1/%{target}-gdb.1*
-%doc %{prefix}/man/man1/%{target}-ld.1*
-%doc %{prefix}/man/man1/%{target}-nlmconv.1*
-%doc %{prefix}/man/man1/%{target}-nm.1*
-%doc %{prefix}/man/man1/%{target}-objcopy.1*
-%doc %{prefix}/man/man1/%{target}-objdump.1*
-%doc %{prefix}/man/man1/%{target}-ranlib.1*
-%doc %{prefix}/man/man1/%{target}-size.1*
-%doc %{prefix}/man/man1/%{target}-strings.1*
-%doc %{prefix}/man/man1/%{target}-strip.1*
-
-# support stuff tucked away in GCC's directories
-%{exec_prefix}/lib/gcc-lib/%{target}/2.95.3-kgpd/[A-o]*
-%config %{exec_prefix}/lib/gcc-lib/%{target}/2.95.3-kgpd/pilot.ld
-%config %{exec_prefix}/lib/gcc-lib/%{target}/2.95.3-kgpd/specs
-%{exec_prefix}/%{target}/bin/
-%{exec_prefix}/%{target}/include/
-%{exec_prefix}/%{target}/lib/
-%{exec_prefix}/%{target}/real-bin/
-# but not .../sys-include
-
-# PalmDev framework
-%dir %{palmdev_prefix}
-%dir %{palmdev_prefix}/include
-%dir %{palmdev_prefix}/lib
-# yes, this is intentionally not %{target}
-%dir %{palmdev_prefix}/lib/m68k-palmos-coff
-%docdir %{palmdev_prefix}/doc
+%defattr(-, root, root)
+%{_bindir}/*
+%{_exec_prefix}/%{target}
+%{_libdir}/gcc-lib/%{target}
+# Native packages provide gcc.info* etc, so we limit ourselves to this one
+%doc %{_infodir}/prc-tools*
+# Similarly, the native packages have already provided equivalent manpages
+#%doc %{_mandir}/man1/*
 
 %doc COPYING README
 
