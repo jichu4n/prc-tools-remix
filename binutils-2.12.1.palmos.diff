@@ -629,9 +629,51 @@ diff -urN orig-binutils-2.12.1/include/coff/internal.h binutils-2.12.1/include/c
  
  /* This reloc identifies mov.b instructions with a 16bit absolute
     address.  The linker tries to turn insns with this reloc into
+diff -urN orig-binutils-2.12.1/ld/Makefile.am binutils-2.12.1/ld/Makefile.am
+--- orig-binutils-2.12.1/ld/Makefile.am	Thu May  9 16:50:49 2002
++++ binutils-2.12.1/ld/Makefile.am	Mon Jun  3 12:13:06 2002
+@@ -216,6 +216,7 @@
+ 	em68klinux.o \
+ 	em68klynx.o \
+ 	em68knbsd.o \
++	em68kpalmos.o \
+ 	em68kpsos.o \
+ 	em88kbcs.o \
+ 	emcorepe.o \
+@@ -799,6 +800,9 @@
+ em68knbsd.c:	$(srcdir)/emulparams/m68knbsd.sh \
+   $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/aout.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} m68knbsd "$(tdir_m68knbsd)"
++em68kpalmos.c: $(srcdir)/emulparams/m68kpalmos.sh \
++  $(srcdir)/emultempl/m68kcoff.em $(srcdir)/scripttempl/m68kpalmos.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} m68kpalmos "$(tdir_m68kpalmos)"
+ em68kpsos.c:	$(srcdir)/emulparams/m68kpsos.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/psos.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} m68kpsos "$(tdir_m68kpsos)"
+diff -urN orig-binutils-2.12.1/ld/Makefile.in binutils-2.12.1/ld/Makefile.in
+--- orig-binutils-2.12.1/ld/Makefile.in	Thu May  9 16:50:49 2002
++++ binutils-2.12.1/ld/Makefile.in	Mon Jun  3 12:13:24 2002
+@@ -325,6 +325,7 @@
+ 	em68klinux.o \
+ 	em68klynx.o \
+ 	em68knbsd.o \
++	em68kpalmos.o \
+ 	em68kpsos.o \
+ 	em88kbcs.o \
+ 	emcorepe.o \
+@@ -1520,6 +1521,9 @@
+ em68knbsd.c:	$(srcdir)/emulparams/m68knbsd.sh \
+   $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/aout.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} m68knbsd "$(tdir_m68knbsd)"
++em68kpalmos.c: $(srcdir)/emulparams/m68kpalmos.sh \
++  $(srcdir)/emultempl/m68kcoff.em $(srcdir)/scripttempl/m68kpalmos.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} m68kpalmos "$(tdir_m68kpalmos)"
+ em68kpsos.c:	$(srcdir)/emulparams/m68kpsos.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/psos.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} m68kpsos "$(tdir_m68kpsos)"
 diff -urN orig-binutils-2.12.1/ld/configure.tgt binutils-2.12.1/ld/configure.tgt
 --- orig-binutils-2.12.1/ld/configure.tgt	Tue Apr  2 03:29:20 2002
-+++ binutils-2.12.1/ld/configure.tgt	Wed May 15 17:51:52 2002
++++ binutils-2.12.1/ld/configure.tgt	Mon Jun  3 16:06:29 2002
 @@ -229,6 +229,7 @@
  arm*-*-linux-gnu*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
  arm*-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
@@ -644,10 +686,18 @@ diff -urN orig-binutils-2.12.1/ld/configure.tgt binutils-2.12.1/ld/configure.tgt
  m68*-*-psos*)		targ_emul=m68kpsos ;;
  m68*-*-rtemscoff*)	targ_emul=m68kcoff ;;
  m68*-*-rtems*)		targ_emul=m68kelf ;;
-+m68*-*-palmos*)		targ_emul=m68kcoff ;;
++m68*-*-palmos*)		targ_emul=m68kpalmos ;;
  hppa*64*-*-linux-gnu*)	targ_emul=hppa64linux ;;
  hppa*64*-*)		targ_emul=elf64hppa ;;
  hppa*-*-linux-gnu*)	targ_emul=hppalinux ;;
+diff -urN orig-binutils-2.12.1/ld/emulparams/m68kpalmos.sh binutils-2.12.1/ld/emulparams/m68kpalmos.sh
+--- orig-binutils-2.12.1/ld/emulparams/m68kpalmos.sh	Thu Jan  1 00:00:00 1970
++++ binutils-2.12.1/ld/emulparams/m68kpalmos.sh	Mon Jun  3 12:15:20 2002
+@@ -0,0 +1,4 @@
++SCRIPT_NAME=m68kpalmos
++OUTPUT_FORMAT="coff-m68k"
++ARCH=m68k
++TEMPLATE_NAME=m68kcoff
 diff -urN orig-binutils-2.12.1/ld/emultempl/m68kcoff.em binutils-2.12.1/ld/emultempl/m68kcoff.em
 --- orig-binutils-2.12.1/ld/emultempl/m68kcoff.em	Tue Mar 13 07:14:27 2001
 +++ binutils-2.12.1/ld/emultempl/m68kcoff.em	Wed May 15 17:51:52 2002
@@ -691,3 +741,77 @@ diff -urN orig-binutils-2.12.1/ld/emultempl/m68kcoff.em binutils-2.12.1/ld/emult
        ASSERT (relsec != NULL);
  
        if (! bfd_m68k_coff_create_embedded_relocs (abfd, &link_info,
+diff -urN orig-binutils-2.12.1/ld/scripttempl/m68kpalmos.sc binutils-2.12.1/ld/scripttempl/m68kpalmos.sc
+--- orig-binutils-2.12.1/ld/scripttempl/m68kpalmos.sc	Thu Jan  1 00:00:00 1970
++++ binutils-2.12.1/ld/scripttempl/m68kpalmos.sc	Wed Jun  5 16:23:07 2002
+@@ -0,0 +1,70 @@
++# Note that genscripts.sh strips blank lines, but converts lines
++# matching ^\t$ into blank lines on output.  So we use the latter here.
++
++cat <<EOF
++OUTPUT_FORMAT ("${OUTPUT_FORMAT}")
++	
++${LIB_SEARCH_DIRS}
++	
++/* The LENGTH of coderes determines how large the .text section (which winds
++   up as the final database's main 'code' resource) may be before producing
++   linker errors.  Typical values on Palm OS are "about 32K" and "about 64K":
++	
++   32770 is the largest .text section whose start and end can be reached from
++   each other via a 16 bit signed m68k jump (although only the first 32K can
++   be called from other sections, that's enough because no function can start
++   beyond there because it must end in rts);
++	
++   64720 is the largest resource allowable all the way back to Palm OS 1.0;
++	
++   65505 is the largest resource allowable on Palm OS 3.0 and higher.  */
++	
++MEMORY
++{
++    coderes : ORIGIN = 0x0, LENGTH = 32770
++    datares : ORIGIN = 0x0, LENGTH = 32767
++}
++	
++SECTIONS
++{
++    .text :
++    {
++	*(.text)
++	. = ALIGN(4);
++	bhook_start = .;
++	*(bhook)
++	bhook_end = .;
++	. = ALIGN(4);
++	ehook_start = .;
++	*(ehook)
++	ehook_end = .;
++EOF
++if [ -n "${CONSTRUCTING}" ]; then cat <<EOF
++	. = ALIGN(4);
++	ctors_start = .;
++	*(.ctors)
++	ctors_end = .;
++	. = ALIGN(4);
++	dtors_start = .;
++	*(.dtors)
++	dtors_end = .;
++EOF
++fi
++cat <<EOF
++    } > coderes
++    .data :
++    {
++	data_start = .;
++	*(.data)
++	*(.gcc_exc)
++    } > datares
++    .bss :
++    {
++	bss_start = .;
++       	*(.bss)
++       	*(COMMON)
++    } > datares
++    end = ALIGN( 4 );
++    edata = ALIGN( 4 );
++}
++EOF

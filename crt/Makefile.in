@@ -36,6 +36,7 @@ CFLAGS = -O5 -fno-builtin -Wall -W -g \
 MOWN_GP_FILES = mown-gp/crt0.o mown-gp/scrt0.o mown-gp/gdbstub.o \
   mown-gp/libcrt.a
 INSTALL_FILES = crt0.o gdbstub.o libcrt.a libnoexcept.a libnfm.a \
+  text_64k text_64k_palmos3 \
   $(MOWN_GP_FILES)
 
 all: $(INSTALL_FILES)
@@ -77,6 +78,20 @@ sub-multilibs: mown-gp/Makefile
 	$(MAKE) MULTIFLAGS=-mown-gp `echo $(MOWN_GP_FILES) | sed 's,[^ /]*/,,g'`
 
 
+text_64k: text_in
+	sed "s/@@@@@/`grep 'Palm OS 1\.0' text_in | \
+	  sed 's/is.*//' | sed 's/[^0-9]//g'`/" text_in > $@
+
+text_64k_palmos3: text_in
+	sed "s/@@@@@/`grep 'Palm OS 3\.0' text_in | \
+	  sed 's/is.*//' | sed 's/[^0-9]//g'`/" text_in > $@
+
+text_in:
+	$(CC) -nostartfiles -nostdlib -Wl,--verbose 2>&1 | \
+	sed -n '/^=/,/^=/p' | grep -v '^=' | \
+	sed '/coderes/s/LENGTH = [0-9]*/LENGTH = @@@@@/' > $@
+
+
 NOEXCEPTLIB_OBJS = new.o vnew.o newnt.o vnewnt.o del.o vdel.o delnt.o vdelnt.o
 
 libnoexcept.a: $(NOEXCEPTLIB_OBJS)
@@ -106,7 +121,7 @@ $(NFMLIB_OBJS): nfm.c
 	$(CC) $(CFLAGS) -c -o $@ -DL__`basename $@ .o` $(srcdir)/nfm.c
 
 clean:
-	-rm -f *.o *.a
+	-rm -f *.o *.a text_*
 	-rm -rf mown-gp
 
 distclean: clean

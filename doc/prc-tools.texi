@@ -5,7 +5,7 @@
 @c @footnotestyle separate
 
 @set update-month June 2002
-@set update-date 1 @value{update-month}
+@set update-date 6 @value{update-month}
 @set prc-tools-version 2.1.90
 
 @c %**end of header
@@ -68,8 +68,7 @@ last modified on @value{update-date}.
 @menu
 * GCC on Palm OS::    Features (and mis-features) specific to Palm OS.
 * Global data::       Accessing global data.
-* Multiple code resources::
-                      Writing applications with more than 32K of code.
+* Special projects::  Large applications, libraries, standalone code, etc.
 * Definition files::  Using a project definition file.
 * Debugging::         Enabling and using a debugger.
 
@@ -670,17 +669,92 @@ So this isn't a good example, but hopefully it serves to demonstrate the
 issues.  Perhaps someone will find a good use for all this flexibility!
 
 
-@node Multiple code resources
-@chapter Multiple code resources
+@node Special projects
+@chapter Special projects
 
-Since the Dragonball processor can only make a relative jump if it is of
-a distance of 32K or less, it is only possible to jump arbitrarily within a
-code resource if that resource is at most 32K in size.  With various
-heroic techniques, such as ``jump islands'', the processor's effective
-jump distance can be increased without limit, but this is not really
-worthwhile because resources are still limited to 64K by the HotSync
-protocol.  Hence the best way to allow an application to have more than
-32K of code is to allow it to have multiple separate code resources.
+Because the Dragonball processor can only make a relative jump if it is of a
+distance of 32K or less, it is only possible to jump arbitrarily within a
+code resource if that resource is at most 32K in size.  Attempting to jump
+further leads to error messages that can be confusing to neophytes, so by
+default prc-tools limits the size of your code to 32K.  While it is certainly
+possible to create larger applications, there are choices to be made and
+issues to be aware of, so it is not the default.
+
+@menu
+* Single code resource::       Size limitations for a single code resource.
+* Multiple code resources::      ...and how to escape them.
+@end menu
+@c FIXME * Shared libraries::           Creating and using shared libraries.
+@c FIXME * Standalone code::            Hacks, armlets, etc.
+
+
+@node Single code resource
+@section Size limitations for a single code resource
+
+Even though the processor is unable to make a relative jump directly between
+the extremities of a code section larger than 32K, it is still possible to
+use such a code section if you are willing to indulge in manual heroics to
+help the compiler avoid needing to make such an extreme function call.
+
+Note that a code section corresponds to a @code{code} resource in your
+project's final Palm OS database, and the maximum size for any kind of
+resource is still limited to approximately 64K by the Palm OS memory manager
+and the HotSync protocol.
+
+Some of the heroic techniques are:
+
+@itemize @bullet
+@item
+Rearrange functions within source codes and object files on the link command
+line so that function calls are only between ``nearby'' functions.
+
+@item
+When rearrangements are insufficient, insert ``jump islands'':  proxy
+functions @code{foo_aux()} that just call the real function @code{foo()}
+with the same arguments and which can be placed anywhere, thus effectively
+giving each such @code{foo()} two entry points and loosening the constraints
+on the arrangement problem.  Or use the assembly language equivalent of a
+proxy function, which can avoid remarshalling the arguments and really be
+a jump.
+
+@item
+Others are up to your imagination.
+@end itemize
+
+The maximum size of the main code section is specified in the linker
+script and enforced during linking (@pxref{Linker Scripts, Scripts,
+Linker Scripts, ld, Using ld}).  You can override the default script's
+32K size by using the @code{-T @var{script}} linker option.
+Two suitable linker scripts, which can be used as is or copied and modified,
+are already provided, both allowing a @code{.text} section of up to
+approximately 64K:
+
+@table @code
+@item -T text_64k
+Up to 64720 bytes, the maximum resource size supported by all versions of
+Palm OS to date.
+
+@item -T text_64k_palmos3
+Up to 65505 bytes, the maximum supported by Palm OS version 3.0 and higher.
+@end table
+
+There is, of course, some risk in going right up to the maximum resource
+size limits.  In practice, the limit has typically been increasing with
+each new version of Palm OS, and has never decreased.  Nonetheless, it may
+be wise to use @code{text_64k} even if you plan to target only Palm OS 3.0
+and higher devices.
+
+
+@node Multiple code resources
+@section Multiple code resources
+
+Theoretically, the heroics required to make functions calls over a distance
+of more than 32K are applicable for an arbitrarily large code resource.
+Unfortunately each resource is still limited to only 64K by the HotSync
+protocol, at least on Palm OS versions up to and including Palm OS 4.1.
+Thus the gain compared to a hassle-free 32K code resource is not great,
+and the best way to allow an application to increase beyond 32K of code is
+to allow it to have @emph{multiple} separate code resources.
 
 One simple technique for producing multiple code resources is to map
 distinct GCC code sections into distinct Palm OS code resources.  This
@@ -707,7 +781,7 @@ them from the same definition file clause (@pxref{multigen}).
 
 
 @node Multiple code resources and globals
-@section Multiple code resources and global data
+@subsection Multiple code resources and global data
 
 The current implementation puts pointers to the code resources into the
 application's global data, and uses those pointers in the code emitted
@@ -720,7 +794,7 @@ launch code that doesn't give you globals must be in the main code section.
 This always includes @code{PilotMain}, which is always called by the startup
 code for all launch codes.
 
-@subsection Read-only data
+@subsubheading Read-only data
 
 Read-only data, such as string literals and other constant data, are put
 into code sections rather than the global data section.  This saves global
@@ -791,7 +865,7 @@ inter-section reference will be safe too.)
 
 
 @node Multiple code tutorial
-@section Breaking up an existing application
+@subsection Breaking up an existing application
 
 To use multiple code resources in an existing application, you need to
 do the following:
