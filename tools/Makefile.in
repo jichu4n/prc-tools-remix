@@ -87,9 +87,6 @@ install: $(INSTALL_FILES)
 	  || $(INSTALL) ./$(target_alias)-$${f} ./$${f}; \
 	done
 
-info:
-
-install-info:
 
 .SUFFIXES: .cpp
 
