@@ -1,6 +1,6 @@
 # Makefile for prc-tools include files.
 #
-# Copyright 2002 John Marshall.
+# Copyright 2002, 2003 John Marshall.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,13 +20,13 @@ INSTALL_DATA = @INSTALL_DATA@
 all: Pilot.fake PalmOS.fake
 
 install: all
-	$(INSTALL) -d $(headerdir)
+	$(INSTALL) -d $(DESTDIR)$(headerdir)
 	for f in EntryPoints.h NewTypes.h Standalone.h \
 		 ctype.h stdint.h stdlib.h string.h; do \
-	  $(INSTALL_DATA) $(srcdir)/$$f $(headerdir)/$$f; \
+	  $(INSTALL_DATA) $(srcdir)/$$f $(DESTDIR)$(headerdir)/$$f; \
 	done
-	$(INSTALL_DATA) Pilot.fake $(headerdir)/Pilot.h
-	$(INSTALL_DATA) PalmOS.fake $(headerdir)/PalmOS.h
+	$(INSTALL_DATA) Pilot.fake $(DESTDIR)$(headerdir)/Pilot.h
+	$(INSTALL_DATA) PalmOS.fake $(DESTDIR)$(headerdir)/PalmOS.h
 
 .PHONY: all install clean
 

@@ -1,6 +1,6 @@
 # Makefile for prc-tools.
 #
-# Copyright 1998, 1999, 2002 John Marshall.
+# Copyright 1998, 1999, 2002, 2003 John Marshall.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -78,15 +78,13 @@ INSTALL_FILES = $(GENERIC_PROGS) $(M68K_PROGS)
 all: $(INSTALL_FILES)
 
 install: $(INSTALL_FILES)
-	$(INSTALL) -d $(bindir)
+	$(INSTALL) -d $(DESTDIR)$(bindir)
 	for f in $(GENERIC_PROGS); do \
-	  echo $${f}; \
-	  $(INSTALL) $${f} $(bindir)/$${f}; \
+	  $(INSTALL) $$f $(DESTDIR)$(bindir)/$$f; \
 	done
 	if test -n "$(m68k_target)"; then \
 	  for f in $(M68K_PROGS); do \
-	    echo $${f}; \
-	    $(INSTALL) $${f} $(bindir)/$(m68k_target)-$${f}; \
+	    $(INSTALL) $$f $(DESTDIR)$(bindir)/$(m68k_target)-$$f; \
 	  done; \
 	fi
 

@@ -39,29 +39,30 @@ html: prc-tools.html index.html index.texi.html
 install: install-info @install_manpages_enabled@ @install_htmldocs_enabled@
 
 install-info: info
-	$(INSTALL) -d $(infodir)
-	-rm -f $(infodir)/prc-tools.info*
+	$(INSTALL) -d $(DESTDIR)$(infodir)
+	-rm -f $(DESTDIR)$(infodir)/prc-tools.info*
 	for f in prc-tools.info*; do \
-	  $(INSTALL_DATA) $${f} $(infodir)/$${f}; \
+	  $(INSTALL_DATA) $$f $(DESTDIR)$(infodir)/$$f; \
 	done
 	-if $(SHELL) -c 'install-info --version' >/dev/null 2>&1; then \
-	  if [ -f $(infodir)/dir ]; then \
-	    install-info --dir-file=$(infodir)/dir $(infodir)/prc-tools.info; \
+	  if [ -f $(DESTDIR)$(infodir)/dir ]; then \
+	    install-info --dir-file=$(DESTDIR)$(infodir)/dir \
+			 $(DESTDIR)$(infodir)/prc-tools.info; \
 	  else true; fi; \
 	else true; fi
 
 install-man: man
-	$(INSTALL) -d $(mandir)/man1
-	$(INSTALL_DATA) build-prc.1 $(mandir)/man1/build-prc.1
-	$(INSTALL_DATA) palmdev-prep.1 $(mandir)/man1/palmdev-prep.1
+	$(INSTALL) -d $(DESTDIR)$(mandir)/man1
+	$(INSTALL_DATA) build-prc.1 $(DESTDIR)$(mandir)/man1/build-prc.1
+	$(INSTALL_DATA) palmdev-prep.1 $(DESTDIR)$(mandir)/man1/palmdev-prep.1
 
 install-html: html
-	$(INSTALL) -d $(htmldir)
-	$(INSTALL_DATA) index.texi.html $(htmldir)/index.html
-	-rm -rf $(htmldir)/texi
-	$(INSTALL) -d $(htmldir)/texi
+	$(INSTALL) -d $(DESTDIR)$(htmldir)
+	$(INSTALL_DATA) index.texi.html $(DESTDIR)$(htmldir)/index.html
+	-rm -rf $(DESTDIR)$(htmldir)/texi
+	$(INSTALL) -d $(DESTDIR)$(htmldir)/texi
 	for f in `ls *.html | grep -v '^index'`; do \
-	  $(INSTALL_DATA) $$f $(htmldir)/texi/$$f; \
+	  $(INSTALL_DATA) $$f $(DESTDIR)$(htmldir)/texi/$$f; \
 	done
 
 .PHONY: all info man html install install-info install-man install-html clean

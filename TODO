@@ -33,6 +33,10 @@
 * Consider how to use --emit-relocs instead of --embedded-relocs in ld and
   return to reading real relocs in binres.cpp instead of .reloc sections.
 
+* Although prc-tools itself has now been DESTDIRified, this is not a great
+  deal of use until *all* of the other packages -- binutils, GCC, GDB -- we
+  build have been fully DESTDIRified too.
+
 * Future palmdev-prep facilities:
   - write_specs with target="none" should mean don't write any link_* specs
   - Perhaps preserve the default SDK when reruning without a -d option,

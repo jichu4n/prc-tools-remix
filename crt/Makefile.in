@@ -42,11 +42,10 @@ INSTALL_FILES = $(INSTALL_C_LIBS) @install_cxx_libs@ $(MOWN_GP_FILES)
 all: $(INSTALL_FILES)
 
 install: $(INSTALL_FILES)
-	$(INSTALL) -d $(exec_prefix)/$(target_alias)/lib
-	$(INSTALL) -d $(exec_prefix)/$(target_alias)/lib/mown-gp
+	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/$(target_alias)/lib
+	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/$(target_alias)/lib/mown-gp
 	for f in $(INSTALL_FILES); do \
-	  echo $${f}; \
-	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib/$${f}; \
+	  $(INSTALL_DATA) $$f $(DESTDIR)$(exec_prefix)/$(target_alias)/lib/$$f;\
 	done
 
 .PHONY: all install clean sub-multilibs
