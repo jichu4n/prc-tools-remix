@@ -1528,11 +1528,12 @@ diff -urN orig-binutils-2.12.1/ld/configure.tgt binutils-2.12.1/ld/configure.tgt
  hppa*-*-linux-gnu*)	targ_emul=hppalinux ;;
 diff -urN orig-binutils-2.12.1/ld/emulparams/armpalmos.sh binutils-2.12.1/ld/emulparams/armpalmos.sh
 --- orig-binutils-2.12.1/ld/emulparams/armpalmos.sh	Thu Jan  1 00:00:00 1970
-+++ binutils-2.12.1/ld/emulparams/armpalmos.sh	Thu Aug 15 06:09:01 2002
-@@ -0,0 +1,5 @@
++++ binutils-2.12.1/ld/emulparams/armpalmos.sh	Thu Oct 31 02:04:44 2002
+@@ -0,0 +1,6 @@
 +. ${srcdir}/emulparams/armelf.sh
 +SCRIPT_NAME=armpalmos
 +
++GENERATE_COMBRELOC_SCRIPT=yes
 +unset GENERATE_SHLIB_SCRIPT
 +unset ENTRY
 diff -urN orig-binutils-2.12.1/ld/emulparams/m68kpalmos.sh binutils-2.12.1/ld/emulparams/m68kpalmos.sh
