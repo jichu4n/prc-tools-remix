@@ -12,6 +12,24 @@ binutils/bfd/cofflink.c too.)
 off the machine independent patches to send off to the main binutils
 distribution.
 
+* Overhaul the way we accomodate the "%a5 is the *end* of the globals"
+problem in binutils.  Currently we have a weird reloc END16(<foo>,<offset>)
+that means "+ <foo> + <offset> - edata", weird code in bfd to evaluate edata
+(which is hardcoded) at the right time, and weird code in gas to generate
+the reloc.  A possibly feasible alternative is to emit *two* relocs,
+(<foo>,<offset>) and (negedata,0).  The upgrade path is
+  * Leave the reloc and bfd code for compatibility with old link libraries
+  * Remove the @END stuff in gas since we no longer need to generate it
+  * Have GCC emit "<foo>+negedata(%a5)" instead of "<foo>@END(%a5)"
+  * Have gas split these fixups into two relocs.  It looks like this is
+  flaky in the COFF assembler, but very practical in the ELF assembler.
+There is more research to do here.
+* An alternative is to do a trial link to find out how big the global data
+memory region is, and then do the real link with datares ORIGIN = -size.
+This would Just Work, but is less flexible (you can't mix %a4 and %a5
+addressing in the same executable), and I *really* want to avoid doing a
+trial link if possible.
+
 * Update the ChangeLogs, and start submitting patches to the various GNU
 maintainers (without any of the remaining nasty hacks!).
 

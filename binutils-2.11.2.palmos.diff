@@ -1,3 +1,88 @@
+diff -urN orig-binutils-2.11.2/ChangeLogs.palmos binutils-2.11.2/ChangeLogs.palmos
+--- orig-binutils-2.11.2/ChangeLogs.palmos	Thu Jan  1 00:00:00 1970
++++ binutils-2.11.2/ChangeLogs.palmos	Tue Jan  8 23:11:47 2002
+@@ -0,0 +1,81 @@
++Collect all the changelog entries here for use on the eventual submission
++to the FSF:
++
++(Many of these log entries no longer relate to the current form of the
++patches.  But at the moment they are still of historical interest to us.)
++
++bfd/ChangeLog
++=============
++
++2002-01-09  John Marshall  <johnm@falch.net>
++
++	* cofflink.c (_bfd_coff_generic_relocate_section): Removed handling
++	of R_RELENDWORD from here...
++	* coff-m68k.c (m68kcoff_rtype_to_howto): ...handling it here instead.
++	(m68kcoff_global_data_size): New helper function.
++
++Tue Feb  1 21:54:44 2000  John Marshall  <john_w_marshall@palm.com>
++
++	* coff-m68k.c (_bfd_m68kcoff_create_embedded_relocs,
++	coff_m68k_bfd_print_private_bfd_data), emultempl/m68kcoff.em:
++	Pad the .reloc records to 12 bytes.
++	* coffcode.h (coff_new_section_hook): Don't try to change .reloc's
++	alignment.
++
++Thu Sep 24 14:24:36 1998  John Marshall  <jmarshall@acm.org>
++
++      * coff-m68k.c (m68k_rtype2howto, m68k_howto2rtype,
++      m68k_reloc_type_lookup): New reloc type R_RELENDWORD.
++      * cofflink.c (_bfd_coff_generic_relocate_section): Likewise.
++
++Sat Sep  5 14:10:23 1998  John Marshall  <jmarshall@acm.org>
++
++      * cofflink.c (_bfd_coff_generic_relocate_section): Fill in .dreloc
++      section, somewhat similarly to base file.
++
++
++gas/ChangeLog
++=============
++
++2002-01-09  John Marshall  <johnm@falch.net>
++
++	* config/obj-elf.h, config/tc-m68k.h: Reorganised the setting of
++	NEED_FX_R_TYPE and SPECIAL_PIC_RELOC (now renamed COFF_RELEND_RELOC)
++	so as to avoid touching these two files.
++
++Tue Oct 13 01:30:47 1998  John Marshall  <jmarshall@acm.org>
++
++      * config/m68k-parse.h, config/m68k-parse.y, config/tc-m68k.c: Use
++      SPECIAL_PIC_RELOC instead of OBJ_ELF to activate special PIC
++      relocation code.
++      * config/obj-elf.h, config/obj-coff.h: Define SPECIAL_PIC_RELOC.
++      * config/tc-m68k.h [SPECIAL_PIC_RELOC]: Define NEED_FX_R_TYPE.
++
++      * config/m68k-parse.h: New pic_relocation type pic_endrel.
++      * config/m68k-parse.y: Encode `symbol@END' as pic_endrel.
++
++      * config/tc-m68k.c (get_reloc_code) [SPECIAL_PIC_RELOC]: Set
++      fx_r_type if the reloc has a special pic type.
++      (tc_coff_fix2rtype) [SPECIAL_PIC_RELOC]: Use fx_r_type if set.
++
++
++include/coff/ChangeLog
++======================
++
++Sat Sep  5 21:38:15 1998  John Marshall  <jmarshall@acm.org>
++
++      * internal.h (R_RELENDWORD): Define.
++
++
++ld/ChangeLog
++============
++
++Sat Sep  5 14:10:23 1998  John Marshall  <jmarshall@acm.org>
++
++      * emultempl/m68kcoff.em: New file, based on generic.em, with a
++      custom gld${EMULATION_NAME}_after_open that creates a .dreloc
++      section for input bfds which need it, if --embedded-relocs is used.
++      * emulparams/m68kcoff.sh (TEMPLATE_NAME): Set to m68kcoff.
++      * Makefile.am (em68kcoff.c): Depend upon m68kcoff.em rather than
++      generic.em.
++      * Makefile.in (em68kcoff.c): Likewise.
 diff -urN orig-binutils-2.11.2/bfd/coff-m68k.c binutils-2.11.2/bfd/coff-m68k.c
 --- orig-binutils-2.11.2/bfd/coff-m68k.c	Thu Jun  7 03:08:23 2001
 +++ binutils-2.11.2/bfd/coff-m68k.c	Wed Jan  9 11:32:52 2002
