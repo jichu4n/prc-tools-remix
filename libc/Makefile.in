@@ -35,14 +35,7 @@ CFLAGS = -Wall -O2 -fno-builtin -DPRINT_FLOATS \
 
 INSTALL_DIR = $(exec_prefix)/$(target_alias)
 
-XOBJS = conio.o vsprintf.o printf.o ctype.o setjmp.o \
-     bcopy.o memmove.o strchr.o strncat.o strspn.o \
-     memscan.o strcmp.o strncmp.o strstr.o \
-     memset.o strcpy.o strncpy.o strtok.o \
-     memcmp.o strnlen.o strtol.o \
-     memcpy.o strcat.o strlen.o strpbrk.o strtoul.o
-
-SOME_XOBJS = conio.o vsprintf.o printf.o ctype.o setjmp.o \
+OBJS = conio.o vsprintf.o printf.o ctype.o setjmp.o \
      bcopy.o memmove.o strchr.o strncat.o strspn.o \
      memscan.o strcmp.o strncmp.o strstr.o \
      memset.o strcpy.o strncpy.o strtok.o \
@@ -50,17 +43,6 @@ SOME_XOBJS = conio.o vsprintf.o printf.o ctype.o setjmp.o \
      memcmp.o strnlen.o strtol.o \
      memcpy.o strcat.o strlen.o strpbrk.o strtoul.o \
      abort.o atexit.o bzero.o
-
-STDLIB_OBJS = \
-  div.o ldiv.o \
-  malloc.o free.o calloc.o realloc.o \
-  rand.o srand.o \
-  strtol.o strtoul.o atoil.o \
-  bmemcmp.o memcpy.o bcopy.o memset.o bzero.o
-
-
-#OBJS = $(STDLIB_OBJS)
-OBJS = $(SOME_XOBJS)
 
 GOBJS =
 
@@ -86,22 +68,6 @@ install: $(INSTALL_FILES) $(INSTALL_HFILES)
 	  echo $${f}; \
 	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib/$${f}; \
 	done
-
-#all: libc.a libc.sa libg.a libg.sa
-
-old-install: libc.a libc.sa libg.a libg.sa
-	cp -f libc.a $(PREFIX)/m68k-palmos-coff/lib
-	chmod 644 $(PREFIX)/m68k-palmos-coff/lib/libc.a
-	cp -f libg.a $(PREFIX)/m68k-palmos-coff/lib
-	chmod 644 $(PREFIX)/m68k-palmos-coff/lib/libg.a
-	cp -f libc.sa $(PREFIX)/m68k-palmos-coff/lib/libc.sa
-	chmod 644 $(PREFIX)/m68k-palmos-coff/lib/libc.sa
-	cp -f libg.sa $(PREFIX)/m68k-palmos-coff/lib/libg.sa
-	chmod 644 $(PREFIX)/m68k-palmos-coff/lib/libg.sa
-	cp -r include/* $(PREFIX)/m68k-palmos-coff/include
-	-mkdir -p $(PREFIX)/lib
-	cp -f Libc.prc $(PREFIX)/lib/Libc.prc
-	chmod 644 $(PREFIX)/lib/Libc.prc
 
 .c.s:
 	$(CC) $(CFLAGS) -S $<
@@ -135,33 +101,6 @@ libstdc++.a:
 	$(AR) cur libstdc++.a
 	$(RANLIB) libstdc++.a
 
-libc.sa: libc.a
-	rm -f libc.sa
-	$(EXPORTLIST) libc.a > libc.exp
-	$(STUBGEN) "C Library" Libc libcstub.c Libc.S < libc.exp
-	ln -sf ../$(LIBGLIBDIR)/scrt0.o scrt0.o
-	$(CC) -shared -static Libc.S ./libc.a -o Libc
-	$(OBJRES) -l Libc
-	$(BUILDPRC) -l Libc.prc "C Library" Libc *.Libc.grc
-	$(CC) $(CFLAGS) -c libcstub.c
-	$(AR) cur libc.sa libcstub.o
-	$(RANLIB) libc.sa
-
-libg.sa: libc.sa
-	rm -f libg.sa
-	ln -s libc.sa libg.sa
-
-libgr.sa: libg.a
-	rm -f libg.sa
-	$(EXPORTLIST) libg.a > libg.exp
-	$(STUBGEN) "Debug C Lib" Libg libgstub.c Libg.S < libg.exp
-	ln -sf ../$(LIBGLIBDIR)/scrt0.o scrt0.o
-	$(CC) -shared -static Libg.S ./libg.a -o Libg
-	$(OBJRES) -l Libg
-	$(BUILDPRC) -l Libg.prc "Debug C Lib" Libg *.Libg.grc
-	$(CC) $(CFLAGS) -c libgstub.c
-	$(AR) cur libg.sa libgstub.o
-	$(RANLIB) libg.sa
 
 .S.o:
 	$(CC) $(TARGETFLAGS) $(SDKFLAGS) $(DEFINES) -c $<
