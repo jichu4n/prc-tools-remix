@@ -142,15 +142,18 @@ diff -urN orig-gcc-3.3.1/gcc/config/palmos.h gcc-3.3.1/gcc/config/palmos.h
 +#define CPP_PREDEFINES "-D__palmos__ -Asystem=palmos"
 diff -urN orig-gcc-3.3.1/gcc/config/t-palmos gcc-3.3.1/gcc/config/t-palmos
 --- orig-gcc-3.3.1/gcc/config/t-palmos	Thu Jan  1 00:00:00 1970
-+++ gcc-3.3.1/gcc/config/t-palmos	Fri May 16 01:03:57 2003
-@@ -0,0 +1,7 @@
++++ gcc-3.3.1/gcc/config/t-palmos	Tue Jan 13 01:43:28 2004
+@@ -0,0 +1,10 @@
 +# Some Palm OS-related headers can be found here, and the remainder are in
 +# directories that will be found via custom specs.
 +CROSS_SYSTEM_HEADER_DIR = $(datadir)/prc-tools/include
 +
 +# But these headers are generally not yet installed while building GCC,
-+# so there's no point trying to fix them.
++# so there's no point in trying to fix them.
 +STMP_FIXPROTO =
++
++# ...Nor in trying to use them while compiling libgcc, startup code, etc.
++CRTSTUFF_T_CFLAGS = -Dinhibit_libc
 diff -urN orig-gcc-3.3.1/gcc/defaults.h gcc-3.3.1/gcc/defaults.h
 --- orig-gcc-3.3.1/gcc/defaults.h	Mon Dec  9 18:54:03 2002
 +++ gcc-3.3.1/gcc/defaults.h	Fri May 16 01:03:57 2003
