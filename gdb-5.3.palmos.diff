@@ -171,8 +171,8 @@ diff -urN orig-gdb-5.3/gdb/m68k-tdep.c gdb-5.3/gdb/m68k-tdep.c
  
 diff -urN orig-gdb-5.3/gdb/remote-palmos.c gdb-5.3/gdb/remote-palmos.c
 --- orig-gdb-5.3/gdb/remote-palmos.c	Thu Jan  1 00:00:00 1970
-+++ gdb-5.3/gdb/remote-palmos.c	Thu Dec 12 13:26:30 2002
-@@ -0,0 +1,1284 @@
++++ gdb-5.3/gdb/remote-palmos.c	Thu Dec 12 14:29:48 2002
+@@ -0,0 +1,1288 @@
 +/* Remote target communications for serial-line targets in custom GDB protocol
 +   Copyright 1988, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 +   
@@ -451,10 +451,12 @@ diff -urN orig-gdb-5.3/gdb/remote-palmos.c gdb-5.3/gdb/remote-palmos.c
 +     struct target_waitstatus status;
 +  immediate_quit = 1;		/* Allow user to interrupt it */
 +  
-+  /*remote_wait(0,&status); /* Wait for remote to halt, hopefully fetching
++#if 0
++  remote_wait(0,&status); /* Wait for remote to halt, hopefully fetching
 +                             offsets in the process */
 +
-+  /*get_offsets ();		/* Get text, data & bss offsets */
++  get_offsets ();		/* Get text, data & bss offsets */
++#endif
 +
 +  immediate_quit = 0;
 +
@@ -1143,6 +1145,8 @@ diff -urN orig-gdb-5.3/gdb/remote-palmos.c gdb-5.3/gdb/remote-palmos.c
 +   
 +  if (serial_write(remote_desc, buffer, len+12))
 +         perror_with_name ("putpkt: write failed");
++
++  return 0;
 +}
 +
 +/* Read a packet from the remote machine, with error checking,
@@ -1299,7 +1303,7 @@ diff -urN orig-gdb-5.3/gdb/remote-palmos.c gdb-5.3/gdb/remote-palmos.c
 +  
 +  putpkt(buffer, 38);
 +  
-+  if (i = getpkt(&ret, 0)) {
++  if ((i = getpkt(&ret, 0))) {
 +    return ((unsigned char)ret[10] != (unsigned char)0x8c) || (i != 12);
 +  }
 +  return 1;
