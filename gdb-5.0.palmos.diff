@@ -186,8 +186,8 @@ diff -urN orig-gdb-5.0/gdb/m68k-tdep.c gdb-5.0/gdb/m68k-tdep.c
  
 diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 --- orig-gdb-5.0/gdb/remote-palmos.c	Thu Jan  1 00:00:00 1970
-+++ gdb-5.0/gdb/remote-palmos.c	Wed Oct 17 14:29:56 2001
-@@ -0,0 +1,1257 @@
++++ gdb-5.0/gdb/remote-palmos.c	Wed Aug 14 18:35:57 2002
+@@ -0,0 +1,1282 @@
 +/* Remote target communications for serial-line targets in custom GDB protocol
 +   Copyright 1988, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 +   
@@ -326,6 +326,9 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +static int remote_timeout = 2;
 +
 +static CORE_ADDR text_addr=0, data_addr=0, bss_addr=0;
++static CORE_ADDR save_ssp, save_usp;
++static enum target_signal wbreakpoint_signo;
++static CORE_ADDR wbreakpoint_addr;
 +/*static struct Pilot_state state;*/
 +
 +#define MAX_BREAKS 5
@@ -614,9 +617,15 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +   }
 +
 +   if (sr & 0x2000)
-+     memcpy(buffer+66, regs+REGISTER_BYTE(15), 4); /* Store SSP */
++     {
++       memcpy(buffer+62, &save_usp, 4);
++       memcpy(buffer+66, regs+REGISTER_BYTE(15), 4); /* Store SSP */
++     }
 +   else
-+     memcpy(buffer+62, regs+REGISTER_BYTE(15), 4); /* Store USP */
++     {
++       memcpy(buffer+62, regs+REGISTER_BYTE(15), 4); /* Store USP */
++       memcpy(buffer+66, &save_ssp, 4);
++     }
 +   memcpy(buffer+70, regs+REGISTER_BYTE(17), 4);   /* Store PC */
 +   set_short(buffer+74, sr);   /* Store SR */
 +   
@@ -812,9 +821,15 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +	    
 +	    sr = get_short(buf+State_SR);
 +	    if (sr & 0x2000) /* Check supervisor bit */
-+	      memcpy(regs+REGISTER_BYTE(15), buf+State_SSP, 4); /* SSP */
++	      {
++		memcpy(&save_usp, buf+State_USP, 4);
++		memcpy(regs+REGISTER_BYTE(15), buf+State_SSP, 4); /* SSP */
++	      }
 +	    else
-+	      memcpy(regs+REGISTER_BYTE(15), buf+State_USP, 4); /* USP */
++	      {
++		memcpy(regs+REGISTER_BYTE(15), buf+State_USP, 4); /* USP */
++		memcpy(&save_ssp, buf+State_SSP, 4);
++	      }
 +	    
 +	    set_long(regs+REGISTER_BYTE(16), sr); /* SR */
 +	    memcpy(regs+REGISTER_BYTE(17), buf+State_PC, 4); /* PC */
@@ -824,14 +839,18 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +	      breakpoint[i].on = get_byte(buf+Breakpoint_0+4+i*6);
 +	    }
 +
-+	    if (get_long(buf+State_PC) == breakpoint[MAX_BREAKS].address) {
++	    if (get_long(buf+State_PC) == wbreakpoint_addr) {
 +	      enum target_signal truesig = remote_remove_wbreakpoint();
 +	      if (truesig != TARGET_SIGNAL_0)
 +		status->value.sig = truesig;
 +	    }
 +	    
-+	    if ((get_short(buf+State_exception) == 40 *4) &&
-+		(get_long(buf+State_D3) == 0x12BEEF34)) {
++	    /* We used to test (get_short(buf+State_exception) == 40 * 4) as
++	       well, but Ton reports that the Simulator returns bogus values
++	       for this field of the state packet.  */
++	    if (get_long(buf+State_D3) == 0x12BEEF34) {
++	      CORE_ADDR bp;
++	      struct symtab_and_line sal;
 +
 +#if 0
 +  	      puts_filtered ("Got target position.\n");
@@ -839,9 +858,15 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +	      text_addr = get_long(buf+State_D0);
 +	      bss_addr =  get_long(buf+State_D1);
 +	      data_addr = get_long(buf+State_D2);
-+              remote_insert_wbreakpoint(get_long(buf+State_A0) + 4,
-+					TARGET_SIGNAL_STOP);
 +	      get_offsets();
++	      /* Find pc value corresponding to first executable statement
++	         after the PilotMain prologue and insert breakpoint there.  */
++	      bp = get_long(buf+State_A0);
++	      INIT_SAL (&sal);
++	      sal = find_pc_line (bp, 0);
++	      if (sal.pc && bp != sal.pc && bp > sal.pc && bp <= sal.end)
++	        bp = sal.end;
++	      remote_insert_wbreakpoint(bp, TARGET_SIGNAL_STOP);
 +              remote_resume(0,0,TARGET_SIGNAL_0);
 +	      stop_soon_quietly = 0;
 +              continue;
@@ -1330,8 +1355,6 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +  return 0;
 +}
 +
-+static enum target_signal wbreakpoint_signo;
-+
 +static void
 +remote_insert_wbreakpoint (addr, signo)
 +     CORE_ADDR addr;
@@ -1341,6 +1364,7 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +  breakpoint[MAX_BREAKS].on = 1;
 +  set_breakpoints();
 +  wbreakpoint_signo = signo;
++  wbreakpoint_addr = addr;
 +}
 +
 +static enum target_signal
@@ -1348,6 +1372,7 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +{
 +  breakpoint[MAX_BREAKS].address = 0;
 +  breakpoint[MAX_BREAKS].on = 0;
++  wbreakpoint_addr = (CORE_ADDR) 0;
 +  set_breakpoints();
 +  return wbreakpoint_signo;
 +}
