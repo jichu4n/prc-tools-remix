@@ -4,9 +4,9 @@
 @settitle Using PRC-Tools
 @c @footnotestyle separate
 
-@set update-month March 2001
-@set update-date 29 @value{update-month}
-@set prc-tools-version 2.0.91
+@set update-month April 2001
+@set update-date 17 @value{update-month}
+@set prc-tools-version 2.0.92
 
 @c %**end of header
 
