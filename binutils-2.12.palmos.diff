@@ -440,8 +440,8 @@ diff -urN orig-binutils-2.12/config.sub binutils-2.12/config.sub
 +		os=-palmos
 +		;;
  	# Recognize the basic CPU types with company name.
- 	# FIXME: clean up the formatting here.
- 	vax-* | tahoe-* | i[234567]86-* | i860-* | ia64-* | m32r-* | m68k-* | m68000-* \
+ 	580-* \
+ 	| a29k-* \
 @@ -1017,6 +1021,7 @@
  	      | -mingw32* | -linux-gnu* | -uxpv* | -beos* | -mpeix* | -udk* \
  	      | -interix* | -uwin* | -rhapsody* | -darwin* | -opened* \
