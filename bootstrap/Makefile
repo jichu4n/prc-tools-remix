@@ -11,7 +11,7 @@
 # Unlike all the others, this Makefile is not autoconfiscated, nor is it
 # called by the top level Makefile.  GenBootstrap is neither built nor run
 # as part of building prc-tools.  Instead, the output from GenBootstrap --
-# bootstrap*.h -- is used by other parts of prc-tools instead of requiring
+# bootstrap*.h -- is used by other parts of prc-tools rather than requiring
 # a Palm OS SDK.
 #
 # To update bootstrap*.h you need to run this makefile manually.  (Only
@@ -24,10 +24,26 @@
 # To build GenBootstrap you will need to have a Palm OS SDK installed.
 # Any version 3.0 or later is suitable.
 #
-# GenBootstrap will run on any 3.0+ Palm OS device, and generate its output
+# GenBootstrap will run on any 3.0+ Palm OS device, and generates its output
 # files as File Stream databases.  If run on the Emulator, it will also
 # update the files bootstrap*.h in the current directory (i.e., within
 # the source tree, not any separate build tree) if necessary.
+
+# Of course, neither a Palm OS SDK nor a ROM (for use with the Emulator)
+# is included in or redistributed with prc-tools.  Doing so would be a
+# violation of copyright and of the respective licenses.
+#
+# On the other hand, using the SDK in connection with the development of
+# GenBootstrap is precisely in accordance with the SDK's license.
+# Furthermore that license of course makes no claims about any output from
+# GenBootstrap, namely the bootstrap*.h headers, so, in particular since
+# they are not a derived work of the SDK in the copyright sense, we are
+# free to grant them to the public domain, as we have done.
+#
+# (While the bootstrap*.h headers contain, e.g., trap numbers which come
+# from the SDK with which GenBootstrap was built, this does not make them
+# a derived work of the SDK; otherwise every Palm OS application would be
+# as well, which is clearly ridiculous.)
 
 CC = m68k-palmos-gcc
 POSE = pose
