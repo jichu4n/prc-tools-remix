@@ -270,7 +270,8 @@ if test x$enable_generic != xno; then
   # checked above) and a recent Pod::Man
   AC_MSG_CHECKING([for recent Pod::Man])
   if (perl -e 'use 1.10 Pod::Man') >/dev/null 2>&1; then
-    AC_MSG_RESULT(yes)
+    pod_man_version=`perl -e 'use Pod::Man; print $Pod::Man::VERSION'`
+    AC_MSG_RESULT([yes ($pod_man_version)])
     manpages_enabled=man
     install_manpages_enabled=install-man
   else
