@@ -302,13 +302,34 @@ write_lib_tree (FILE *f, const struct root *root,
   if (root->lib) {
     const char * const *targetdir;
     for (targetdir = kind->targetdirs; *targetdir; targetdir++) {
-      TREE *tree = opentree (DIRS_PREORDER,
+      size_t libpath_len = strlen (root->prefix) + 1 + strlen (root->lib) + 1
+			   + strlen (*targetdir);
+      TREE *tree = opentree (DIRS_POSTORDER,
 			     "%s/%s/%s", root->prefix, root->lib, *targetdir);
       const char *dir;
 
       while ((dir = readtree (tree)) != NULL) {
-	/* FIXME check for multi-libs.  */
+	const char *s, *slim;
+	int i, n = 0;
+
+	for (s = dir + libpath_len; *s == '/'; s = slim) {
+	  s++;
+	  slim = strchr (s, '/');
+	  if (slim == NULL)  slim = strrchr (s, '\0');
+
+	  /* FIXME We might want our callers to tell us some likely multilib
+	     directory names through struct spec_kind, but for now this simple
+	     pattern is good enough.  */
+	  if (matches ("m", s)) {
+	    fprintf (f, " %%{%.*s:", (int) (slim - s), s);
+	    n++;
+	    }
+	  }
+
 	write_option (f, "-L", dir);
+
+	for (i = 0; i < n; i++)
+	  putc ('}', f);
 	}
 
       closetree (tree);

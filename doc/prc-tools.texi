@@ -1743,8 +1743,8 @@ instructed to search for header files within @emph{all} subdirectories nested
 thereunder.
 Similarly, if an SDK directory contains a directory named @file{lib} or
 @file{GCC Libraries}, the linker will be instructed to search for libraries in
-the directories (immediately) thereunder corresponding to the particular target
-architecture in use.
+the directories thereunder corresponding to the particular target architecture
+and multilib options in use.
 
 If an SDK directory contains a file named @file{base}, then that file should
 contain a single line (e.g.@: @samp{sdk-3.5} or simply @samp{4}) specifying

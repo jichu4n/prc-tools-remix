@@ -34,9 +34,6 @@
   return to reading real relocs in binres.cpp instead of .reloc sections.
 
 * Future palmdev-prep facilities:
-  - Handle multi-libs correctly, instead of just recursively listing
-    everything under "lib" directories
-  - Add "base" file handling, to facilitate use of SDK updates
   - write_specs with target="none" should mean don't write any link_* specs
   - Perhaps preserve the default SDK when reruning without a -d option,
     instead of resetting to the highest SDK (remember the current setting by
