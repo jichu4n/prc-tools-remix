@@ -29,6 +29,17 @@
 static struct string_store *store;
 
 
+/* These specs teach GCC how to preprocess and compile .rcp files.  */
+static const char rcp_spec[] =
+  "*rcp_temp:\n"
+  " %{save-temps:%b.ri} %{!save-temps:%g.ri}\n"
+  "\n"
+  ".rcp:\n"
+  "%(trad_capable_cpp) -D__PILRC__ -D__rcp__ "
+    "%(cpp_options) %(cpp_debug_options) %{!E:%(rcp_temp)\n"
+  "%(rcp_compiler) %{!v:%{!Q:-q}} -ro %{o*} %Y %(rcp_temp) %{!o*:%b.ro}} \n";
+
+
 /* Returns true if STR starts with PREFIX, folding STR to lower case before
    comparing.  */
 int
@@ -404,6 +415,10 @@ write_specs (FILE *f, const char *target, const struct root *default_sdk) {
 
   write_main_spec (f, default_sdk, &include);
   write_main_spec (f, default_sdk, &lib);
+
+  fprintf (f, "*rcp_compiler:\n pilrc%s\n\n",
+	   (matches ("arm-", target))? " -LE32" : "");
+  fprintf (f, "%s\n", rcp_spec);
   }
 
 

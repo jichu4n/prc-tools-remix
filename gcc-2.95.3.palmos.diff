@@ -4963,8 +4963,8 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68k.md gcc-2.95.3/gcc/config/m68k/m68
  ;; This is the first machine-dependent peephole optimization.
 diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h gcc-2.95.3/gcc/config/m68k/m68kpalmos.h
 --- orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Thu Jan  1 00:00:00 1970
-+++ gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Sun Nov 24 12:59:39 2002
-@@ -0,0 +1,342 @@
++++ gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Wed Sep 10 01:02:39 2003
+@@ -0,0 +1,356 @@
 +/* Definitions of target machine for GNU compiler.  "naked" 68020,
 +   COFF object files and debugging, version.
 +   Copyright (C) 1994 Free Software Foundation, Inc.
@@ -5190,6 +5190,20 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h gcc-2.95.3/gcc/config/m68
 +#define CPP_SUBTARGET_SPEC \
 +  "%{mown-gp:-D__OWNGP__} %{mextralogues:-D__EXTRALOGUES__} \
 +   %{!mnoshort:-D__INT_MAX__=32767}"
++
++#undef SUBTARGET_EXTRA_SPECS
++#define SUBTARGET_EXTRA_SPECS \
++  { "trad_capable_cpp", \
++      "cpp0 %{traditional} %{ftraditional:-traditional}\
++       %{traditional-cpp:-traditional}" }, \
++  { "cpp_options", \
++      "%{ansi:-std=c89} %{std*} %{nostdinc*} %{C} %{v} %{A*} %{I*} %{P} %{$} %I\
++       %{!no-gcc:-D__GNUC__=%v1 -D__GNUC_MINOR__=%v2}\
++       %{ansi|std=*:%{!std=gnu*:-trigraphs -D__STRICT_ANSI__}}\
++       %{!undef:%{!ansi:%{!std=*:%p}%{std=gnu*:%p}} %P} %{trigraphs} %{remap}\
++       %c %{fleading-underscore} %{fno-leading-underscore} %{g*} %{W*} %{w}\
++       %{pedantic*} %{H} %C %{D*} %{U*} %{i*} %Z %i" }, \
++  { "cpp_debug_options", "%{d*}" },
 +
 +extern int palmos_valid_machine_decl_attribute ();
 +#define VALID_MACHINE_DECL_ATTRIBUTE(DECL, ATTRIBUTES, ID, ARGS)	\
