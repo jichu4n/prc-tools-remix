@@ -7,8 +7,8 @@ Copyright: GPL
 URL: http://www.palm.com/devzone/tools/gcc/
 Group: Development/Tools
 Source0: http://www.palm.com/devzone/tools/gcc/dist/prc-tools-%{version}.tar.gz
-Source1: ftp://sourceware.cygnus.com/pub/binutils/releases/binutils-2.9.1.tar.gz
-Source2: ftp://sourceware.cygnus.com/pub/gdb/releases/gdb-4.18.tar.gz
+Source1: ftp://sources.redhat.com/pub/binutils/releases/binutils-2.9.1.tar.gz
+Source2: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.0.tar.gz
 Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.2/gcc-2.95.2.tar.gz
 Source4: ftp://ftp.gnu.org/pub/gnu/make/make-3.77.tar.gz
 NoSource: 1 2 3 4
@@ -37,7 +37,7 @@ AutoReqProv: no
 
 %description
 A complete compiler tool chain for building Palm OS applications in C or C++.
-Includes (patched versions of) binutils 2.9.1, gdb 4.18, and GCC 2.95.2, along
+Includes (patched versions of) binutils 2.9.1, gdb 5.0, and GCC 2.95.2, along
 with various post-linker tools to produce Palm OS .prc files.
 
 You will also need a Palm OS SDK and some way of creating resources, such as
@@ -51,7 +51,7 @@ GCC, binutils, gdb, and general prc-tools documentation in HTML format
 
 %prep
 %setup -n binutils-2.9.1 -T -b 1
-%setup -n gdb-4.18 -T -b 2
+%setup -n gdb-5.0 -T -b 2
 %setup -n gcc-2.95.2 -T -b 3
 %setup -n make-3.77 -T -b 4
 %setup
@@ -62,7 +62,7 @@ cat *.cygwin.diff | (cd .. && patch -p0)
 %endif
 
 mv ../binutils-2.9.1 binutils
-mv ../gdb-4.18 gdb
+mv ../gdb-5.0 gdb
 mv ../gcc-2.95.2 gcc
 mv ../make-3.77 make
 
@@ -102,11 +102,20 @@ cd $RPM_BUILD_DIR/build-prc-tools
 make all-install
 
 cd %{exec_prefix}/bin
-strip build-prc%{exeext} multigen%{exeext} obj-res%{exeext} %{target}-*%{exeext}
+strip build-prc%{exeext} multigen%{exeext} stubgen%{exeext} obj-res%{exeext} \
+%{target}-obj-res%{exeext} %{target}-addr2line%{exeext} %{target}-ar%{exeext} \
+%{target}-as%{exeext} %{target}-c++%{exeext} %{target}-c++filt%{exeext} \
+%{target}-cpp%{exeext} %{target}-g++%{exeext} %{target}-gasp%{exeext} \
+%{target}-gcc%{exeext} %{target}-gdb%{exeext} %{target}-ld%{exeext} \
+%{target}-nm%{exeext} %{target}-objcopy%{exeext} %{target}-objdump%{exeext} \
+%{target}-protoize%{exeext} %{target}-ranlib%{exeext} %{target}-size%{exeext} \
+%{target}-strings%{exeext} %{target}-strip%{exeext} \
+%{target}-unprotoize%{exeext}
 cd %{exec_prefix}/lib/gcc-lib/%{target}/2.95.2-kgpd
 strip cc1%{exeext} cc1plus%{exeext} collect2%{exeext} cpp%{exeext}
 cd %{exec_prefix}/%{target}/bin
-strip *%{exeext}
+strip ar%{exeext} as%{exeext} gcc%{exeext} ld%{exeext} nm%{exeext} \
+ranlib%{exeext} strip%{exeext}
 
 cd $RPM_BUILD_DIR/build-prc-tools/doc
 make install-html
@@ -136,6 +145,7 @@ fi
 %files
 %{exec_prefix}/bin/build-prc%{exeext}
 %{exec_prefix}/bin/multigen%{exeext}
+%{exec_prefix}/bin/stubgen%{exeext}
 %{exec_prefix}/bin/obj-res%{exeext}
 %{exec_prefix}/bin/%{target}-obj-res%{exeext}
 %{exec_prefix}/bin/%{target}-addr2line%{exeext}
