@@ -212,10 +212,10 @@ it (it can cause a special cross-section calling sequence to be emitted).
 
 In practice, probably the best policy is to have exactly one declaration
 for each function that needs one, in a header file somewhere, and to use
-@samp{-Wimplicit}, and possibly also @samp{-Wmissing-declarations}, to
-ensure that the declaration is visible when it needs to be (@pxref{Warning
-Options, warnings, Options to Request or Suppress Warnings, gcc, Using and
-Porting GCC}).
+@samp{-Wimplicit} (which is implied by @samp{-Wall}), and possibly also
+@samp{-Wmissing-declarations}, to ensure that the declaration is visible
+when it needs to be (@pxref{Warning Options, warnings, Options to Request
+or Suppress Warnings, gcc, Using and Porting GCC}).
 
 
 @node Unsupported GCC features
@@ -704,7 +704,7 @@ A project definition file (@pxref{Definition files}) must be used, with
 a multiple code clause to inform @code{build-prc} of the new sections.
 You also need to define the pointer variables mentioned above in an
 assembly language stub file linked into your executable, and should use
-a linker script to placed the new sections as appropriate addresses.
+a linker script to place the new sections at appropriate addresses.
 The easiest way to do these things is to use @code{multigen} to generate
 them from the same definition file clause (@pxref{multigen}).
 
@@ -726,7 +726,7 @@ myapp.prc: code0000.myapp.grc @dots{}
         build-prc @dots{} *.myapp.grc @dots{}
 
 code0000.myapp.grc: myapp
-        obj-res myapp
+        m68k-palmos-obj-res myapp
 @end smallexample
 
 remove references to .grc files, and delete the obj-res rule altogether:
@@ -746,6 +746,16 @@ void EditFormHandler (@dots{}) EDIT_SECTION;
 void DrawEditForm () EDIT_SECTION;
 @end smallexample
 (This also demonstrates using a macro to ease moving several functions at once.)
+
+Make very sure that the relevant annotated declaration is visible when you
+define such a function, and especially @strong{everywhere} you call it.
+If there is a call to a non-default sectioned function from which the
+annotated declaration is not visible, the call will be generated as a call
+to the default code section.  When such a call is executed, it jumps to
+effectively a random location in the wrong code section and almost
+certainly crashes.  (Warning options which can detect these mistakes at
+compile time are noted in the discussion of required visibilities in
+@ref{Function attributes}.)
 
 Note that COFF only stores eight character of a section name:  if your
 section names are any longer than this, they will be truncated, leading
