@@ -190,10 +190,8 @@ easier for now.  :-)
 <code>--with-build-sdk[=-palmosX]</code>
 <dd>
 Select an installed Palm OS SDK with which to build the runtime code.
-By default, the files in <code>prc-tools/sdk-bootstrap</code> are used,
+By default, the header files in <code>prc-tools/bootstrap</code> are used,
 which provide just enough functionality to compile the startup code.
-(But the bootstrap SDK is not currently written, so you <b>need to use
-this option</b>.)
 <dt>
 <code><a name="palmdev-prefix">--with-palmdev-prefix=/opt/palmdev</a></code>
 <dd>
@@ -248,6 +246,7 @@ are interleaved:
 ~/build$ make all-gcc
 ~/build$ su
 ~/build# make install-gcc
+~/build# make install-wrappers
 ~/build# make install-palmdev
 ~/build# ^D
 ~/build$ make all-target
