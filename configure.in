@@ -66,8 +66,9 @@ AC_ARG_ENABLE(generic,
 config_subdirs=""
 output_files="Makefile"
 
-if false
+if false; then
   # FIXME handle "top level configury"
+  :
 else
   case "$target_cpu" in
   m68k)	config_subdirs="$config_subdirs binutils gcc gdb"
