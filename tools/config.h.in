@@ -1,15 +1,12 @@
+/* config.h.in: communicate various configure options to the C code.
 
-/* Define if you have a <sys/wait.h> which is POSIX.1 compatible.  */
-#undef HAVE_SYS_WAIT_H 
+   Copyright 2002 John Marshall.
 
-/* Define various configure options so they can be seen by C code without
-   massive -Dfoo=bar lists.  EXEC_PREFIX would be in this list too, but it
-   is set too late by configure, so must be done with -DEXEC_PREFIX=bar in
-   the Makefile.  */
+   This is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.  */
 
-#undef TARGET
 #undef TARGET_ALIAS
 #undef PALMDEV_PREFIX
-#undef PALMDEV_PATH
 #undef PRC_TOOLS_VERSION
-#undef EXEEXT
