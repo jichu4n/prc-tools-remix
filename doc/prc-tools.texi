@@ -13,8 +13,12 @@
 @ifinfo
 @dircategory Programming
 @direntry
-* prc-tools: (prc-tools).       Using GCC with Palm OS.
-* build-prc: (prc-tools)build-prc.  The Palm OS post-linker.
+* prc-tools: (prc-tools).      Using GCC et al with Palm OS.
+@end direntry
+@dircategory Individual utilities
+@direntry
+* build-prc: (prc-tools)build-prc.              The Palm OS post-linker.
+* palmdev-prep: (prc-tools)palmdev-prep.        Preparing PalmDev trees.
 @end direntry
 
 This file documents the use of PRC-Tools, version @value{prc-tools-version}.
