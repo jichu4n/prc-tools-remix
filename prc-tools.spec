@@ -21,6 +21,17 @@ NoSource: 5
 BuildRoot: %{_tmppath}/%{name}-root
 BuildRequires: texinfo
 
+# Don't build an extra package of debuginfo: we're not going to use it, and
+# it produces copious numbers of warnings because many source files appear
+# to be missing due to symlinks and other vagaries in our source tree.
+%define debug_package %{nil}
+
+# Don't run the brp-strip-static-archive policy script: it tries to use a
+# native strip on all static archives in the package.  This fails when some
+# of those archives are in fact for other architectures.
+%global oip %{__os_install_post}
+%define __os_install_post %(echo "%{oip}" | grep -v brp-strip-static-archive)
+
 # This is the canonical place to look for Palm OS-related header files and
 # such on Unix-like file systems.
 %define palmdev_prefix /opt/palmdev
@@ -30,8 +41,8 @@ A complete compiler tool chain for building Palm OS applications in C or C++.
 Includes (patched versions of) binutils 2.14, GCC 2.95.3, and GDB 5.3,
 along with various post-linker tools to produce Palm OS .prc files.
 
-You will also need a Palm OS SDK and some way of creating resources, such as
-PilRC.
+You will also need a Palm OS SDK and some way of creating user interface
+resources, such as PilRC.
 
 %package arm
 Summary: GCC and related tools for ARM targeted Palm OS development
