@@ -21,6 +21,10 @@ extern void GLibClose(struct LibRef *);
 
 void GLib_@crid@(void)
 {
+#ifdef A4_GLOBALS
+    asm volatile (".equ A4_GLOBALS,1");
+#endif
+
     asm volatile ("
 @-function-jumps-@
 
@@ -31,26 +35,18 @@ libname:
 dispatch:
     lea libname(%%pc),%%a1
     move.l %%a1,%%d2
-    ");
 
-#ifdef A4_GLOBALS
-    asm volatile ("
+    .ifdef A4_GLOBALS
     move.l %%a4,%%d1
     move.l %%d1,%%d1
     jbeq noglobals
-    lea libref(%%a4),%%a1
-noglobals:
-    ");
-#else
-    asm volatile ("
-    lea libref@END(%%a5),%%a1
-    ");
-#endif
+    .endif
 
-    asm volatile ("
-    move.l %0,%%d1
+    lea %0,%%a1
+noglobals:
+    move.l %1,%%d1
     braw GLibDispatch
-    " : : "i" ('@crid@') );
+    " : : "g" (libref), "i" ('@crid@') );
 }
 
 #ifdef A4_GLOBALS
@@ -61,7 +57,8 @@ noglobals:
 
 register void *reg_a4 asm("%a4");
 
-void GLib_@crid@_clean(unsigned short cmd, void *PBP, unsigned short flags)
+static void
+GLib_@crid@_clean(unsigned short cmd, void *PBP, unsigned short flags)
 {
     if (reg_a4 && libref) {
 	GLibClose(libref);
@@ -69,16 +66,13 @@ void GLib_@crid@_clean(unsigned short cmd, void *PBP, unsigned short flags)
     }
 }
 
-asm("
-.section ehook
-.long GLib_@crid@_clean
-");
+static void *hook
+  __attribute__ ((section ("ehook"), unused)) = GLib_@crid@_clean;
 
 #else
 
-static void GLib_@crid@_clean() __attribute__ ((destructor, unused));
-
-static void GLib_@crid@_clean()
+static void __attribute__ ((destructor, unused))
+GLib_@crid@_clean()
 {
     if (libref) {
 	GLibClose(libref);
