@@ -26,6 +26,25 @@
 extern "C" {
 #endif
 
+/* 7.20.1  Numeric conversion functions [partial; integer only, no errno].  */
+
+int atoi (const char *_nptr);
+long int atol (const char *_nptr);
+long long int atoll (const char *_nptr);
+
+/* Note that this implementation of the strto* functions does clip their
+   return values to the bounds allowed by their respective return types,
+   but it DOES NOT signal those overflows via errno.  */
+
+long int strtol (const char *_nptr, char **_endptr, int _base);
+long long int strtoll (const char *_nptr, char **_endptr, int _base);
+unsigned long int strtoul (const char *_nptr, char **_endptr, int _base);
+unsigned long long int strtoull (const char *_nptr, char **_endptr, int _base);
+
+#ifdef __OPTIMIZE__
+extern __inline__ int atoi (const char *_nptr) { return (int) atol (_nptr); }
+#endif
+
 /* 7.20.3  Memory management functions.  */
 
 /* FIXME Add __attribute__ ((__malloc__)) to these when we update to GCC 3.  */

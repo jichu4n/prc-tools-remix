@@ -54,6 +54,8 @@ LIBC_OBJS_m68k = \
 	ctype.o isalnum.o isalpha.o isblank.o iscntrl.o isdigit.o isgraph.o \
 	islower.o isprint.o ispunct.o isspace.o isupper.o isxdigit.o \
 	tolower.o toupper.o \
+	atoi.o atol.o atoll.o \
+	_Strtoul.o _Strtoull.o strtol.o strtoll.o strtoul.o strtoull.o \
 	malloc.o free.o realloc.o calloc.o \
 	abs.o labs.o llabs.o div.o ldiv.o lldiv.o \
 	memcmp.o strnlen.o \
@@ -71,6 +73,8 @@ LIBC_OBJS_arm = \
 	ctype.o isalnum.o isalpha.o isblank.o iscntrl.o isdigit.o isgraph.o \
 	islower.o isprint.o ispunct.o isspace.o isupper.o isxdigit.o \
 	tolower.o toupper.o \
+	atoi.o atol.o atoll.o \
+	_Strtoul.o _Strtoull.o strtol.o strtoll.o strtoul.o strtoull.o \
 	abs.o labs.o llabs.o div.o ldiv.o lldiv.o \
 	memcpy.o memset.o
 
@@ -105,6 +109,15 @@ ctype.o isalnum.o isalpha.o isblank.o iscntrl.o isdigit.o isgraph.o \
 islower.o isprint.o ispunct.o isspace.o isupper.o isxdigit.o \
 tolower.o toupper.o: ctype.c ../include/ctype.h
 	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/ctype.c
+
+atoi.o atol.o _Strtoul.o \
+strtol.o strtoul.o: intconv.c ../include/stdlib.h ../include/ctype.h
+	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/intconv.c
+
+atoll.o _Strtoull.o \
+strtoll.o strtoull.o: intconv.c ../include/stdlib.h ../include/ctype.h
+	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` -DLONG_LONG \
+	  $(srcdir)/intconv.c
 
 malloc.o free.o calloc.o realloc.o: malloc.c ../include/stdlib.h $(bootstrap_h)
 	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/malloc.c
