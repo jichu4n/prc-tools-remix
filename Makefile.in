@@ -88,6 +88,8 @@ real-binutils:
 real-gcc: @target_gcc_prereqs@
 	cwd=`pwd`; cd gcc && $(MAKE) $(target_gcc_flags) all
 
+doc: @doc_prereqs@
+
 tools: @tools_prereqs@
 
 gdb doc include tools $(extra_subdirs):

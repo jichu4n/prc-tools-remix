@@ -89,6 +89,7 @@ targetlib_prereqs=
 targetlib_flags=
 tools_prereqs=
 tools_bfdiberty=
+doc_prereqs=
 
 AC_SUBST(target_gcc_prereqs)
 AC_SUBST(target_gcc_flags)
@@ -96,6 +97,7 @@ AC_SUBST(targetlib_prereqs)
 AC_SUBST(targetlib_flags)
 AC_SUBST(tools_prereqs)
 AC_SUBST(tools_bfdiberty)
+AC_SUBST(doc_prereqs)
 
 if test -n "$enable_targets"; then
   # Collect up the arguments that were given to configure, except for
@@ -229,6 +231,11 @@ if test -n "$htmldocs_enabled"; then
   then :
   else
     AC_MSG_ERROR(modern texi2html needed to build HTML documentation)
+  fi
+  # In a multi-target build, hmtldocs needs to ensure that this is configured
+  # before it tries to "make info" over there.
+  if test $first_enabled_target != .; then
+    doc_prereqs="$first_enabled_target/config.status"
   fi
 fi
 
