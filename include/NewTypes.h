@@ -3,13 +3,25 @@
 
 #ifndef SDK_VERSION
 
-/* 3.5 uses <PalmTypes.h> instead of <Common.h>.  */
-#if defined(__PALMTYPES_H__)
-#define SDK_VERSION  35
+/* Start by assuming that the minimum possible number of headers have been
+   #included.  On a pre-3.5 SDK, that means that <Common.h> is one of them.
+   Similarly, in a 3.5 or later SDK, <PalmTypes.h> must have been #included.
 
-/* Otherwise, all versions of Common.h unconditionally #include
-   <BuildRules.h>.  #defines corresponding to new functionality in
-   each SDK were added to this file.  */
+   All versions of <Common.h> unconditionally #include <BuildRules.h>.
+   All versions of <PalmTypes.h> unconditionally #include <BuildDefaults.h>,
+   and thence <BuildDefines.h>.
+
+   #defines corresponding to new functionality in each SDK were added to
+   <BuildRules.h> or <BuildDefines.h>.  We can use those #defines to
+   identify the SDK.  */
+
+/* 4.0 introduced tracing.  */
+#if defined(TRACE_OUTPUT_ON)
+#define SDK_VERSION  40
+
+/* 3.5 uses <PalmTypes.h> instead of <Common.h>.  */
+#elif defined(__PALMTYPES_H__)
+#define SDK_VERSION  35
 
 /* 3.1 added Japanese support.  */
 #elif defined(LANGUAGE_JAPANESE)
