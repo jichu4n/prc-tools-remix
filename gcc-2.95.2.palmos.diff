@@ -3901,8 +3901,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm gcc-2.95.2/gcc/confi
 +
 diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k.c
 --- orig/gcc-2.95.2/gcc/config/m68k/m68k.c	Sun Aug  1 21:51:08 1999
-+++ gcc-2.95.2/gcc/config/m68k/m68k.c	Thu Dec 23 20:08:00 1999
-@@ -126,6 +126,350 @@
++++ gcc-2.95.2/gcc/config/m68k/m68k.c	Wed Sep 13 01:01:21 2000
+@@ -126,6 +126,412 @@
      m68k_align_funcs = def_align;
  }
  
@@ -4248,12 +4248,74 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
 +  app_disable ();
 +}
 +
++
++/* Output a MacsBug debugger symbol, somewhat simplified: the Palm OS
++   emulator doesn't handle spaces properly so we won't ever emit them even
++   though occasionally they'd save space.  Or they would if we emitted
++   the data length field, but since the emulator doesn't do much with it,
++   we never do.  */
++
++static void
++output_macsbug_epilogue (stream, name, size)
++     FILE *stream;
++     const char *name;
++     int size;
++{
++  int len = strlen (name);
++  int printed;
++
++  if (size != 0)
++    abort ();
++  
++  switch (len)
++    {
++      case 0:
++	abort ();
++	break;
++
++      case 8:
++	assemble_string (name, len);
++	break;
++
++      case 16:
++	assemble_string (name, 1);
++	ASM_OUTPUT_BYTE (stream, name[1] | 0x80);
++	assemble_string (name + 2, len - 2);
++	break;
++
++      default:
++	if (len > 255)
++	  len = 255;
++	
++	printed = 0;
++	
++	if (len < 32)
++	  {
++	    ASM_OUTPUT_BYTE (stream, len | 0x80);
++	    printed += 1;
++	  }
++	else
++	  {
++	    ASM_OUTPUT_BYTE (stream, 0x80);
++	    ASM_OUTPUT_BYTE (stream, len);
++	    printed += 2;
++	  }
++	
++	assemble_string (name, len);
++	printed += len;
++
++	if (printed & 1)
++	  ASM_OUTPUT_BYTE (stream, 0);
++	break;
++    }
++}
++
 +#endif /* PALMOS */
 +
  /* This function generates the assembly code for function entry.
     STREAM is a stdio stream to output the code to.
     SIZE is an int: how many units of temporary storage to allocate.
-@@ -150,6 +494,15 @@
+@@ -150,6 +556,15 @@
    extern char call_used_regs[];
    int fsize = (size + 3) & -4;
    int cfa_offset = INCOMING_FRAME_SP_OFFSET, cfa_store_offset = cfa_offset;
@@ -4269,7 +4331,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
    
  
    if (frame_pointer_needed)
-@@ -346,7 +699,8 @@
+@@ -346,7 +761,8 @@
        num_saved_regs = 0;
      }
    for (regno = 0; regno < 16; regno++)
@@ -4279,7 +4341,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
        {
          mask |= 1 << (15 - regno);
          num_saved_regs++;
-@@ -356,11 +710,15 @@
+@@ -356,11 +772,15 @@
        mask &= ~ (1 << (15 - FRAME_POINTER_REGNUM));
        num_saved_regs--;
      }
@@ -4295,7 +4357,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
  
  #if NEED_PROBE
  #ifdef MOTOROLA
-@@ -462,6 +820,38 @@
+@@ -462,6 +882,38 @@
  				  -cfa_store_offset + n_regs++ * 4);
  	}
      }
@@ -4334,7 +4396,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
    if (flag_pic && current_function_uses_pic_offset_table)
      {
  #ifdef MOTOROLA
-@@ -491,8 +881,22 @@
+@@ -491,8 +943,22 @@
       separate layout routine to perform the common work.  */
    
    for (regno = 0 ; regno < FIRST_PSEUDO_REGISTER ; regno++)
@@ -4358,7 +4420,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
    
    return 1;
  }
-@@ -538,6 +942,64 @@
+@@ -538,6 +1004,64 @@
      }
  #endif
  
@@ -4423,7 +4485,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
  #ifdef FUNCTION_EXTRA_EPILOGUE
    FUNCTION_EXTRA_EPILOGUE (stream, size);
  #endif
-@@ -563,16 +1025,21 @@
+@@ -563,16 +1087,21 @@
    if (frame_pointer_needed)
      regs_ever_live[FRAME_POINTER_REGNUM] = 0;
    for (regno = 0; regno < 16; regno++)
@@ -4446,7 +4508,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
    offset = foffset + nregs * 4;
    /* FIXME : leaf_function_p below is too strong.
       What we really need to know there is if there could be pending
-@@ -832,6 +1299,16 @@
+@@ -832,6 +1361,17 @@
      asm_fprintf (stream, "\trtd %0I%d\n", current_function_pops_args);
    else
      fprintf (stream, "\trts\n");
@@ -4454,16 +4516,17 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
 +#ifdef PALMOS
 +  if (TARGET_DEBUG_LABELS)
 +    {
-+      int len = strlen (current_function_name);
-+      ASM_OUTPUT_BYTE (stream, (len | 0x80));
-+      assemble_string (current_function_name, len < 0x7f ? len : 0x7f);
-+      ASM_OUTPUT_BYTE (stream, 0);
++      /* This is sure to be the mangled function name -- toplev.c just
++	 went through the same sequence to get it.  */
++      char *name = XSTR (XEXP (DECL_RTL (current_function_decl), 0), 0);
++      STRIP_NAME_ENCODING (name, name);
++      output_macsbug_epilogue (stream, name, 0);
 +    }
 +#endif /* PALMOS */
  }
  
  /* Similar to general_operand, but exclude stack_pointer_rtx.  */
-@@ -1317,6 +1794,61 @@
+@@ -1317,6 +1857,61 @@
     That (in a nutshell) is how *all* symbol and label references are 
     handled.  */
  
@@ -4525,7 +4588,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
  rtx
  legitimize_pic_address (orig, mode, reg)
       rtx orig, reg;
-@@ -1330,6 +1862,17 @@
+@@ -1330,6 +1925,17 @@
        if (reg == 0)
  	abort ();
  
@@ -4543,7 +4606,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
        pic_ref = gen_rtx_MEM (Pmode,
  			     gen_rtx_PLUS (Pmode,
  					   pic_offset_table_rtx, orig));
-@@ -1337,6 +1880,7 @@
+@@ -1337,6 +1943,7 @@
        if (reload_in_progress)
  	regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
        RTX_UNCHANGING_P (pic_ref) = 1;
@@ -4551,7 +4614,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
        emit_move_insn (reg, pic_ref);
        return reg;
      }
-@@ -1523,12 +2067,28 @@
+@@ -1523,12 +2130,28 @@
    else if ((GET_CODE (operands[1]) == SYMBOL_REF
  	    || GET_CODE (operands[1]) == CONST)
  	   && push_operand (operands[0], SImode))
@@ -4583,7 +4646,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
  }
  
  char *
-@@ -1606,6 +2166,7 @@
+@@ -1606,6 +2229,7 @@
  {
    rtx xoperands[4];
  
@@ -4591,7 +4654,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
    /* This is probably useless, since it loses for pushing a struct
       of several bytes a byte at a time.	 */
    /* 68k family always modifies the stack pointer by at least 2, even for
-@@ -1635,6 +2196,7 @@
+@@ -1635,6 +2259,7 @@
  	output_asm_insn ("move%.b %1,%-\n\tmove%.b %@,%2", xoperands);
        return "";
      }
@@ -4599,7 +4662,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
  
    /* clr and st insns on 68000 read before writing.
       This isn't so on the 68010, but we have no TARGET_68010.  */
-@@ -2116,7 +2678,7 @@
+@@ -2116,7 +2741,7 @@
  	 stack slots over 64k from the frame pointer.  */
        if (GET_CODE (operands[2]) == CONST_INT
  	  && INTVAL (operands[2]) + 0x8000 >= (unsigned) 0x10000)
@@ -4608,7 +4671,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
  #ifdef SGS
        if (GET_CODE (operands[2]) == REG)
  	return "lea 0(%1,%2.l),%0";
-@@ -2181,7 +2743,7 @@
+@@ -2181,7 +2806,7 @@
  #endif
  	}
      }
@@ -4617,7 +4680,7 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
  }
  
  /* Store in cc_status the expressions that the condition codes will
-@@ -3085,6 +3647,17 @@
+@@ -3085,6 +3710,17 @@
  		output_addr_const (file, addr);
  	        if (flag_pic && (breg == pic_offset_table_rtx))
  		  {
