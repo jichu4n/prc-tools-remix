@@ -186,8 +186,8 @@ diff -urN orig/gdb-5.0/gdb/m68k-tdep.c gdb-5.0/gdb/m68k-tdep.c
  
 diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 --- orig/gdb-5.0/gdb/remote-palmos.c	Wed Dec 31 16:00:00 1969
-+++ gdb-5.0/gdb/remote-palmos.c	Tue Jun 20 15:16:51 2000
-@@ -0,0 +1,1222 @@
++++ gdb-5.0/gdb/remote-palmos.c	Sat Jul 22 15:53:44 2000
+@@ -0,0 +1,1251 @@
 +/* Remote target communications for serial-line targets in custom GDB protocol
 +   Copyright 1988, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 +   
@@ -265,6 +265,8 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +
 +static void remote_open PARAMS ((char *name, int from_tty));
 +
++static void remote_open_pilot PARAMS ((char *name, int from_tty));
++
 +static void extended_remote_open PARAMS ((char *name, int from_tty));
 +
 +static void remote_open_1 PARAMS ((char *, int, struct target_ops *));
@@ -274,6 +276,8 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +static void remote_store_registers PARAMS ((int regno));
 +
 +static void remote_mourn PARAMS ((void));
++
++static void remote_mourn_pilot PARAMS ((void));
 +
 +static void extended_remote_restart PARAMS ((void));
 +
@@ -311,7 +315,7 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +
 +static void remote_remove_wbreakpoint PARAMS ((void));
 +
-+extern struct target_ops palmos_ops;	/* Forward decl */
++extern struct target_ops palmos_ops, pilot_ops;	/* Forward decl */
 +
 +/* This was 5 seconds, which is a long time to sit and wait.
 +   Unless this is going though some terminal server or multiplexer or
@@ -480,6 +484,14 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +  remote_open_1 (name, from_tty, &palmos_ops);
 +}
 +
++static void
++remote_open_pilot (name, from_tty)
++     char *name;
++     int from_tty;
++{
++  remote_open_1 (name, from_tty, &pilot_ops);
++}
++
 +/* Generic code for opening a connection to a remote target.  */
 +static DCACHE *remote_dcache;
 +
@@ -493,8 +505,7 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +     struct target_ops *target;
 +{
 +  if (name == 0)
-+    error ("To open a remote debug connection, you need to specify what serial\n\
-+device is attached to the remote system (e.g. /dev/ttya).");
++    name = "localhost:2000";  /* Connect to emulator by default.  */
 +
 +  target_preopen (from_tty);
 +
@@ -1228,7 +1239,19 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +static void
 +remote_mourn ()
 +{
-+  unpush_target (&palmos_ops);
++  remote_mourn_1 (&palmos_ops);
++}
++
++static void
++remote_mourn_pilot ()
++{
++  remote_mourn_1 (&pilot_ops);
++}
++
++static void
++remote_mourn_1 (struct target_ops *ops)
++{
++  unpush_target (ops);
 +  generic_mourn_inferior ();
 +}
 +
@@ -1326,17 +1349,17 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +
 +/* Define the target subroutine names */
 +
-+struct target_ops palmos_ops;
++struct target_ops palmos_ops, pilot_ops;
 +
 +static void
 +init_palmos_ops (void)
 +{
-+  palmos_ops.to_shortname = "pilot";
-+  palmos_ops.to_longname =
-+      "Remote serial target in PalmOS/Pilot-specific protocol";
++  palmos_ops.to_shortname = "palmos";
++  palmos_ops.to_longname = "Remote target in Palm OS-specific protocol";
 +  palmos_ops.to_doc = "\
-+Use Palm Pilot via a serial line, using a PalmOS-specific protocol.\n\
-+Specify the serial device it is connected to (e.g. /dev/ttya).";
++Use Palm OS device via a serial line, or emulator via TCP/IP, using\n\
++a Palm OS-specific protocol.  Specify the device it is connected to\n\
++(e.g., /dev/ttya); localhost:2000 is assumed by default.";
 +
 +  palmos_ops.to_open = remote_open;
 +  palmos_ops.to_close = remote_close;
@@ -1405,10 +1428,16 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +}
 +
 +void
-+_initialize_pilot ()
++_initialize_remote_palmos ()
 +{
 +  init_palmos_ops ();
 +  add_target (&palmos_ops);
++
++  pilot_ops = palmos_ops;
++  pilot_ops.to_shortname = "pilot";
++  pilot_ops.to_open = remote_open_pilot;
++  pilot_ops.to_mourn_inferior = remote_mourn_pilot;
++  add_target (&pilot_ops);
 +}
 diff -urN orig/gdb-5.0/gdb/stack.c gdb-5.0/gdb/stack.c
 --- orig/gdb-5.0/gdb/stack.c	Mon Feb 28 23:17:15 2000
