@@ -7,10 +7,10 @@
 
 #define __need_size_t
 #define __need_NULL
-#include "stddef.h"
+#include <stddef.h>
 
 /* for sysRandomMax */
-#include "System/SysUtils.h"
+#include <SysUtils.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +46,7 @@ extern long atol (const char *__ptr);
 extern long strtol (const char *__ptr, char **__ptrlim, int __base);
 extern unsigned long strtoul (const char *__ptr, char **__ptrlim, int __base);
 
-/* Anyone want to choose a float represntation for atof() and strtod()?  */
+/* Anyone want to choose a float representation for atof() and strtod()?  */
 
 /* Division */
 
