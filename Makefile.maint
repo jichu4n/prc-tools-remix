@@ -1,0 +1,58 @@
+# Maintainer makefile for prc-tools.
+#
+# Copyright 2002, 2003 John Marshall.
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+# The source directory is likely to be a working development directory.
+# We need to do some tidying up before creating the distribution tarball:
+#
+#  * It may contain links to other huge (GCC etc) source trees.  We filter
+#    these out even before the first tar invocation to save time.
+#  * If the directory is checked out from CVS, it will be littered with
+#    "CVS" subdirectories which shouldn't go into the tarball.
+#  * If the directory is checked out from Perforce, many of the files will
+#    likely be read-only.  We want them to be read-write in the tarball.
+
+srcdir = .
+distdir = prc-tools
+nondistpat = ^(binutils|gcc|gcc295|gdb|make)$$
+
+.PHONY: dist-tree dist-tarball dist snapshot release-check release
+
+dist-tree:
+	-rm -rf $(distdir) $(distdir).tar $(distdir).tar.gz
+	mkdir $(distdir)
+	-chmod 777 $(distdir)
+	(cd $(srcdir) && tar cf - `ls | egrep -v '$(nondistpat)'`) | \
+	  (cd $(distdir) && tar xf -)
+	-rm -rf `find $(distdir) -name CVS -print`
+	for dir in `find $(distdir) -type d -print`; do \
+	  (cd $$dir && chmod a+rw *); \
+	done
+
+dist-tarball:
+	tar cf $(distdir).tar $(distdir)
+	gzip -9 $(distdir).tar
+	-rm -rf $(distdir)
+
+
+dist: dist-tree dist-tarball
+
+snapshot:
+	$(MAKE) -f $(srcdir)/Makefile.maint srcdir=$(srcdir) \
+	distdir=prc-tools-`date +%Y%m%d` dist-tree dist-tarball
+
+$(distdir)/configure: $(distdir)/configure.in
+	cd $(distdir) && autoconf
+
+release-check: $(distdir)/configure
+
+release:
+	$(MAKE) -f $(srcdir)/Makefile.maint srcdir=$(srcdir) \
+	distdir=prc-tools-`grep '^Version:' $(srcdir)/prc-tools.spec | \
+			   sed 's/.*: //'` \
+	dist-tree release-check dist-tarball

@@ -23,6 +23,8 @@ all: $(subdirs)
 
 # These configure rules are used only when --enable-targets is in effect.
 # (The "dummy" target prevent errors when @extra_target_configs_@ is empty.)
+# @extra_dependencies_@ provides a "dir: dir/config.status" dependency for
+# each target subdirectory listed in @extra_target_configs_@.
 
 configure_args = @configure_args@
 bfd_configure_args = @bfd_configure_args@
@@ -33,19 +35,11 @@ dummy @extra_target_configs@:
 	$(up_srcdir)$(srcdir)/configure --target=$$target --disable-generic \
 	  $(configure_args)
 
+@extra_dependencies@
+
 multi-bfd/config.status:
 	cd multi-bfd && $(up_srcdir)$(srcdir)/binutils/bfd/configure \
 	  $(bfd_configure_args) $(configure_args)
-
-# For each target subdirectory as listed in @extra_target_configs_@,
-# configure will supply (via @extra_dependencies_@) a dependency in the form
-#
-#	dir: dir/config.status
-#
-# It is commented out so that the unconfigured Makefile.in can still be
-# parsed as a makefile; it will be substituted by configure nonetheless.
-#
-# @extra_dependencies@
 
 multi-bfd: multi-bfd/config.status
 
@@ -127,53 +121,3 @@ clean:
 	for dir in $(subdirs); do \
 	  (cd $${dir} && $(MAKE) clean) || exit 1; \
 	done
-
-
-distdir = prc-tools
-nondistpat = ^(binutils|gcc|gcc295|gdb|make)$$
-
-# The source directory is likely to be a working development directory.
-# We need to do some tidying up before creating the distribution tarball:
-#
-#  * It may contain links to other huge (GCC etc) source trees.  We filter
-#    these out even before the first tar invocation to save time.
-#  * If the directory is checked out from CVS, it will be littered with
-#    "CVS" subdirectories which shouldn't go into the tarball.
-#  * If the directory is checked out from Perforce, many of the files will
-#    likely be read-only.  We want them to be read-write in the tarball.
-
-dist-tree:
-	-rm -rf $(distdir) $(distdir).tar $(distdir).tar.gz
-	mkdir $(distdir)
-	-chmod 777 $(distdir)
-	(cd $(srcdir) && tar cf - `ls | egrep -v '$(nondistpat)'`) \
-	| (cd $(distdir) && tar xf -)
-	-rm -rf `find $(distdir) -name CVS -print`
-	for dir in `find $(distdir) -type d -print`; do \
-	  (cd $${dir} && chmod a+rw *); \
-	done
-
-dist-tarball:
-	tar cf $(distdir).tar $(distdir)
-	gzip -9 $(distdir).tar
-	-rm -rf $(distdir)
-
-
-dist: dist-tree dist-tarball
-
-snapshot:
-	$(MAKE) -f $(srcdir)/Makefile.in srcdir=$(srcdir) \
-	distdir=prc-tools-`date +%Y%m%d` dist-tree dist-tarball
-
-$(distdir)/configure: $(distdir)/configure.in
-	cd $(distdir) && autoconf
-
-release-check: $(distdir)/configure
-
-release:
-	$(MAKE) -f $(srcdir)/Makefile.in srcdir=$(srcdir) \
-	distdir=prc-tools-`grep '^Version:' $(srcdir)/prc-tools.spec | \
-			   sed 's/.*: //'` \
-	dist-tree release-check dist-tarball
-
-.PHONY: dist-tree dist-tarball dist snapshot release-check release
