@@ -1,6 +1,6 @@
 /* binres.cpp: extract Palm OS resources from a bfd executable.
 
-   Copyright 1998, 1999, 2001, 2002 John Marshall.
+   Copyright 1998, 1999, 2001, 2002, 2003 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -176,8 +176,8 @@ make_code0 (size_t data_size) {
 
 
 /* The pref resource contains a SysAppPrefsType, as described in
-   System/SystemPrv.h.  However, probably most of these numbers are
-   ignored anyway.  */
+   Core/System/SystemMgr.h in recent Palm OS SDKs.  However, probably
+   most of these numbers are ignored anyway.  */
 
 static Datablock
 make_pref (unsigned long stack) {
