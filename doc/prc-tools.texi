@@ -1055,8 +1055,9 @@ and connect using the @samp{target} command.
 @itemx target pilot @var{port}
 Connects the GDB host environment to a Palm OS device via @var{port}, using
 the Palm debugger protocol.  The argument @var{port} may be a device such
-as @file{/dev/ttyS0} to connect to a real device over a serial line, or a
-socket such as @samp{localhost:2000} to connect to the Palm OS Emulator.
+as @file{/dev/ttyS0} (Unix) or @file{COM1} (Windows) to connect to a real
+device over a serial line, or a socket such as @samp{localhost:2000} to
+connect to the Palm OS Emulator.
 
 Using @code{pilot} is equivalent to @code{palmos}, and is provided for
 compatibility with earlier releases.  If @var{port} is omitted, GDB will
