@@ -13,7 +13,8 @@
 # This script is primarily for Cygwin, hence the PalmDev default
 : ${palmdev_prefix:=/PalmDev}
 
-for pkg_ver in `grep '^%setup.*-n' prc-tools.spec | cut -d' ' -f7`; do
+for pkg_ver in `grep '^Source[^0]:' prc-tools.spec |
+		sed -e 's:.*/::' -e 's/\.tar.*//'`; do
   pkg=`echo $pkg_ver | sed 's/-[^-]*//'`
   if [ ! -d $pkg ]; then
     decompression="" extension=""

@@ -62,20 +62,15 @@ If you want to install it elsewhere, you can do so via the prefix and/or
 relocation facilities of your RPM installation tool.
 
 %prep
-%setup -q -T -b 1 -n binutils-2.13.2.1
-%setup -q -T -b 2 -n gcc-2.95.3
-%setup -q -T -b 3 -n gcc-3.2.2
-%setup -q -T -b 4 -n gdb-5.3
-%setup -q -T -b 5 -n make-3.80
-%setup -q
+%setup -q -a 1 -a 2 -a 3 -a 4 -a 5
 
-cat *.palmos.diff | (cd .. && patch -p0)
+cat *.palmos.diff | patch -p0
 
-mv ../binutils-2.13.2.1 binutils
-mv ../gcc-2.95.3 gcc295
-mv ../gcc-3.2.2 gcc
-mv ../gdb-5.3 gdb
-mv ../make-3.80 make
+mv binutils-2.13.2.1 binutils
+mv gcc-2.95.3 gcc295
+mv gcc-3.2.2 gcc
+mv gdb-5.3 gdb
+mv make-3.80 make
 
 # The patch touches a file this depends on, and you need autoconf to remake
 # it.  There's no changes, so let's just touch it so people don't have to
