@@ -135,9 +135,9 @@ static struct option longopts[] = {
 
 typedef map<ResKey, string> ResourceProvenance;
 
-static database_kind db_kind;
 static ResourceDatabase db;
 static ResourceProvenance prov;
+static struct binary_file_info bininfo;
 
 
 void
@@ -189,64 +189,118 @@ slurp_file_as_datablock (const char* fname) {
   }
 
 
-struct parameter_state {
-  database_kind kind;
-  struct database_header db;
-  bool kind_present, version_present, modnum_present;
+/* The aim of this priority mechanism is to correctly initialise settings
+   from default values, the definition file, the old-style command line,
+   and command line options, with settings from the latter overriding the
+   former.  The following state is under the control of this mechanism:
 
-  parameter_state ();
+	db	name, type, creator, all 9 attributes, version, modnum
+	bininfo	maincode, emit_appl_extras, emit_data, stack_size  */
+		
+enum priority_level {
+  default_pri, def_default_pri, def_specific_pri, old_cli_pri, option_pri
   };
 
-parameter_state::parameter_state () {
-  init_database_header (&db);
-  kind_present = version_present = modnum_present = false;
+static map<const void*, priority_level> priority;
+
+template <class T> static bool
+superior (T& key, priority_level pri) {
+  if (pri >= priority[&key]) {
+    priority[&key] = pri;
+    return true;
+    }
+  else
+    return false;
   }
 
-void
-merge_state (const parameter_state& s) {
-  if (s.kind_present)  db_kind = s.kind;
+static bool
+set_db_kind (database_kind kind, priority_level pri) {
+  ResKey maincode;
+  bool emit_appl_extras, emit_data;
 
-  if (s.db.name[0] != '\0')  strncpy (db.name, s.db.name, 32);
-  if (s.db.type[0] != '\0')  strncpy (db.type, s.db.type, 4);
-  if (s.db.creator[0] != '\0')  strncpy (db.creator, s.db.creator, 4);
+  switch (kind) {
+  case DK_APPLICATION:
+    maincode = ResKey ("code", 1);
+    emit_appl_extras = true;
+    emit_data = true;
+    break;
 
-  db.readonly |= s.db.readonly;
-  db.appinfo_dirty |= s.db.appinfo_dirty;
-  db.backup |= s.db.backup;
-  db.ok_to_install_newer |= s.db.ok_to_install_newer;
-  db.reset_after_install |= s.db.reset_after_install;
-  db.copy_prevention |= s.db.copy_prevention;
-  db.stream |= s.db.stream;
-  db.hidden |= s.db.hidden;
-  db.launchable_data |= s.db.launchable_data;
+  case DK_GLIB:
+    maincode = ResKey ("GLib", 0);
+    emit_appl_extras = false;
+    emit_data = true;
+    break;
 
-  if (s.version_present)  db.version = s.db.version;
-  if (s.modnum_present)  db.modnum = s.db.modnum;
+  case DK_SYSLIB:
+    maincode = ResKey ("libr", 0);
+    emit_appl_extras = false;
+    emit_data = false;
+    break;
 
-  if (palmostime_of_tm (&s.db.created))  db.created = s.db.created;
-  if (palmostime_of_tm (&s.db.modified))  db.modified = s.db.modified;
-  if (palmostime_of_tm (&s.db.backedup))  db.backedup = s.db.backedup;
+  case DK_HACK:
+    maincode = ResKey ("code", 1000);
+    emit_appl_extras = false;
+    emit_data = false;
+    break;
+
+  case DK_GENERIC:
+  default:
+    maincode = ResKey ("code", 0);
+    emit_appl_extras = false;
+    emit_data = false;
+    break;
+    }
+
+  if (superior (bininfo.emit_appl_extras, pri))
+    bininfo.emit_appl_extras = emit_appl_extras;
+  if (superior (bininfo.emit_data, pri))
+    bininfo.emit_data = emit_data;
+  if (superior (bininfo.maincode, pri)) {
+    bininfo.maincode = maincode;
+    return true;
+    }
+  else
+    return false;
   }
-
-
-static struct binary_file_info bininfo;
-
 
 // I'm not sure I really understand how to do this, but we'll try:
 extern "C" {
 
 static void
 db_header (database_kind kind, const struct database_header* h) {
-  parameter_state s;
+  if (!set_db_kind (kind, def_default_pri))
+    einfo (E_NOFILE, "`-l' and `-L' options conflict with definition file");
 
-  s.kind = kind;
-  s.db = *h;
-  // Since the .def file is always merged onto the built-in defaults, which
-  // never have a version or modnum, pretending these are always present is
-  // a good enough approximation.
-  s.kind_present = s.version_present = s.modnum_present = true;
+  if (superior (db.name, def_default_pri))
+    strncpy (db.name, h->name, 32);
+  if (superior (db.type, def_default_pri))
+    strncpy (db.type, h->type, 4);
+  if (superior (db.creator, def_default_pri))
+    strncpy (db.creator, h->creator, 4);
 
-  merge_state (s);
+  if (superior (db.readonly, def_default_pri))
+    db.readonly = h->readonly;
+  if (superior (db.appinfo_dirty, def_default_pri))
+    db.appinfo_dirty = h->appinfo_dirty;
+  if (superior (db.backup, def_default_pri))
+    db.backup = h->backup;
+  if (superior (db.ok_to_install_newer, def_default_pri))
+    db.ok_to_install_newer = h->ok_to_install_newer;
+  if (superior (db.reset_after_install, def_default_pri))
+    db.reset_after_install = h->reset_after_install;
+  if (superior (db.copy_prevention, def_default_pri))
+    db.copy_prevention = h->copy_prevention;
+  if (superior (db.stream, def_default_pri))
+    db.stream = h->stream;
+  if (superior (db.hidden, def_default_pri))
+    db.hidden = h->hidden;
+  if (superior (db.launchable_data, def_default_pri))
+    db.launchable_data = h->launchable_data;
+
+  if (superior (db.version, def_default_pri))
+    db.version = h->version;
+  if (superior (db.modnum, def_default_pri))
+    db.modnum = h->modnum;
   }
 
 static void
@@ -261,7 +315,8 @@ multicode_section (const char* secname) {
 
 static void
 stack (unsigned long stack_size) {
-  bininfo.stack_size = stack_size;
+  if (superior (bininfo.stack_size, def_specific_pri))
+    bininfo.stack_size = stack_size;
   }
 
 static void
@@ -296,11 +351,10 @@ main (int argc, char** argv) {
   bool work_desired = true;
 
   char* output_fname = NULL;
-  parameter_state opts;
 
   progname = argv[0];
 
-  db_kind = DK_APPLICATION;
+  set_db_kind (DK_APPLICATION, default_pri);
   init_database_header (&db);
   strncpy (db.type, "appl", 4);
 
@@ -315,15 +369,13 @@ main (int argc, char** argv) {
       break;
 
     case 'l':
-      strncpy (opts.db.type, "GLib", 4);
-      opts.kind = DK_GLIB;
-      opts.kind_present = true;
+      if (superior (db.type, option_pri))  strncpy (db.type, "GLib", 4);
+      set_db_kind (DK_GLIB, option_pri);
       break;
 
     case 'L':
-      strncpy (opts.db.type, "libr", 4);
-      opts.kind = DK_SYSLIB;
-      opts.kind_present = true;
+      if (superior (db.type, option_pri))  strncpy (db.type, "libr", 4);
+      set_db_kind (DK_SYSLIB, option_pri);
       break;
 
     case 'a':
@@ -335,25 +387,25 @@ main (int argc, char** argv) {
       break;
 
     case 't':
-      strncpy (opts.db.type, optarg, 4);
+      if (superior (db.type, option_pri))  strncpy (db.type, optarg, 4);
       break;
 
     case 'c':
-      strncpy (opts.db.creator, optarg, 4);
+      if (superior (db.creator, option_pri))  strncpy (db.creator, optarg, 4);
       break;
 
     case 'n':
-      strncpy (opts.db.name, optarg, 32);
+      if (superior (db.name, option_pri))  strncpy (db.name, optarg, 32);
       break;
 
     case 'm':
-      opts.db.modnum = strtoul (optarg, NULL, 0);
-      opts.modnum_present = true;
+      if (superior (db.modnum, option_pri))
+	db.modnum = strtoul (optarg, NULL, 0);
       break;
 
     case 'v':
-      opts.db.version = strtoul (optarg, NULL, 0);
-      opts.version_present = true;
+      if (superior (db.version, option_pri))
+	db.version = strtoul (optarg, NULL, 0);
       break;
 
     case 'z':
@@ -361,39 +413,41 @@ main (int argc, char** argv) {
       break;
 
     case OPTION_READONLY:
-      opts.db.readonly = true;
+      if (superior (db.readonly, option_pri))  db.readonly = true;
       break;
 
     case OPTION_APPINFO_DIRTY:
-      opts.db.appinfo_dirty = true;
+      if (superior (db.appinfo_dirty, option_pri))  db.appinfo_dirty = true;
       break;
 
     case OPTION_BACKUP:
-      opts.db.backup = true;
+      if (superior (db.backup, option_pri))  db.backup = true;
       break;
 
     case OPTION_OK_TO_INSTALL_NEWER:
-      opts.db.ok_to_install_newer = true;
+      if (superior (db.ok_to_install_newer, option_pri))
+	db.ok_to_install_newer = true;
       break;
 
     case OPTION_RESET_AFTER_INSTALL:
-      opts.db.reset_after_install = true;
+      if (superior (db.reset_after_install, option_pri))
+	db.reset_after_install = true;
       break;
 
     case OPTION_COPY_PREVENTION:
-      opts.db.copy_prevention = true;
+      if (superior (db.copy_prevention, option_pri))  db.copy_prevention = true;
       break;
 
     case OPTION_STREAM:
-      opts.db.stream = true;
+      if (superior (db.stream, option_pri))  db.stream = true;
       break;
 
     case OPTION_HIDDEN:
-      opts.db.hidden = true;
+      if (superior (db.hidden, option_pri))  db.hidden = true;
       break;
 
     case OPTION_LAUNCHABLE_DATA:
-      opts.db.launchable_data = true;
+      if (superior (db.launchable_data, option_pri))  db.launchable_data = true;
       break;
 
     case OPTION_HELP:
@@ -414,20 +468,24 @@ main (int argc, char** argv) {
     usage();
     return EXIT_FAILURE;
     }
-  
+
   enum file_type first = file_type (argv[optind]);
 
   if (first == FT_PRC && !output_fname) {  // Old-style arguments
     if (argc - optind >= 3) {
-      parameter_state s;
       output_fname = argv[optind++];
-      strncpy (s.db.name, argv[optind++], 32);
-      strncpy (s.db.creator, argv[optind++], 4);
-      merge_state (s);
 
-      if (opts.db.creator[0] != '\0' || opts.db.name[0] != '\0')
-	einfo (E_NOFILE,
-	       "`-o', `-n', '-c' options conflict with old-style arguments");
+      if (superior (db.name, old_cli_pri))
+	strncpy (db.name, argv[optind], 32);
+      else
+	einfo (E_NOFILE, "`-n' option conflicts with old-style arguments");
+      optind++;
+
+      if (superior (db.creator, old_cli_pri))
+	strncpy (db.creator, argv[optind], 4);
+      else
+	einfo (E_NOFILE, "`-c' option conflicts with old-style arguments");
+      optind++;
       }
     else {
       usage();
@@ -450,47 +508,10 @@ main (int argc, char** argv) {
     def_funcs.trap = trap;
     def_funcs.version_resource = version_resource;
     read_def_file (argv[optind++], &def_funcs);
-
-    if (opts.kind_present)
-      einfo (E_NOFILE, "`-l' and `-L' options conflict with definition file");
     }
-
-  merge_state (opts);
 
   if (nerrors)
     return EXIT_FAILURE;
-
-  switch (db_kind) {
-  case DK_APPLICATION:
-    bininfo.maincode = ResKey ("code", 1);
-    bininfo.emit_appl_extras = true;
-    bininfo.emit_data = true;
-    break;
-
-  case DK_GLIB:
-    bininfo.maincode = ResKey ("GLib", 0);
-    bininfo.emit_appl_extras = false;
-    bininfo.emit_data = true;
-    break;
-
-  case DK_SYSLIB:
-    bininfo.maincode = ResKey ("libr", 0);
-    bininfo.emit_appl_extras = false;
-    bininfo.emit_data = false;
-    break;
-
-  case DK_HACK:
-    bininfo.maincode = ResKey ("code", 1000);
-    bininfo.emit_appl_extras = false;
-    bininfo.emit_data = false;
-    break;
-
-  case DK_GENERIC:
-    bininfo.maincode = ResKey ("code", 0);
-    bininfo.emit_appl_extras = false;
-    bininfo.emit_data = false;
-    break;
-    }
 
   for (int i = optind; i < argc; i++)
     switch (file_type (argv[i])) {
