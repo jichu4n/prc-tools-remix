@@ -7,8 +7,6 @@
    the Free Software Foundation; either version 2, or (at your option)
    any later version.  */
 
-#include "config.h"
-
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>

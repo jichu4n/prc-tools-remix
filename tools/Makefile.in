@@ -14,6 +14,7 @@ CC = @CC@
 CFLAGS = @CFLAGS@
 CXX = @CXX@
 CXXFLAGS = @CXXFLAGS@
+CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 
 prefix = @prefix@
@@ -33,12 +34,15 @@ YACC = @YACC@
 INCDIRS = -I. -I$(srcdir) -I$(srcdir)/../binutils/include -I../binutils/bfd
 LIBDIRS = -L. -L../binutils/bfd -L../binutils/libiberty
 
-CONFIG_DEFINES = -DEXEC_PREFIX=\"$(exec_prefix)\" \
-		 -DSTANDARD_EXEC_PREFIX=\"$(libdir)/gcc-lib\"
-
-ALL_CFLAGS = $(CONFIG_DEFINES) $(INCDIRS) $(CFLAGS) $(CPPFLAGS)
-ALL_CXXFLAGS = $(CONFIG_DEFINES) $(INCDIRS) $(CXXFLAGS) $(CPPFLAGS)
+ALL_CFLAGS = $(INCDIRS) $(CPPFLAGS) $(CFLAGS)
+ALL_CXXFLAGS = $(INCDIRS) $(CPPFLAGS) $(CXXFLAGS)
 ALL_LDFLAGS = $(LIBDIRS) $(LDFLAGS)
+
+UTILS_DEFINES = -DPRC_TOOLS_VERSION=\"@prc_tools_version@\"
+
+PALMDEV_PREP_DEFINES = -DSTANDARD_EXEC_PREFIX=\"$(libdir)/gcc-lib\" \
+  -DTARGET_ALIAS=\"$(target_alias)\" -DPALMDEV_PREFIX=\"@palmdev_prefix@\"
+
 
 PFD = libpfd.a
 
@@ -114,20 +118,24 @@ obj-res.o: obj-res.cpp binres.hpp pfd.hpp pfdheader.h utils.h
 multigen.o: multigen.c multicode-s.str multicode-ld.str utils.h def.h
 stubgen.o: stubgen.c glib-jumps-s.str glib-stubs-c.str syslib-dispatch-s.str \
 	   utils.h def.h pfdheader.h
-palmdev-prep.o: palmdev-prep.c config.h utils.h
 binres.o: binres.cpp binres.hpp pfd.hpp pfdheader.h pfdio.hpp utils.h
-utils.o: utils.c config.h utils.h
 dirutils.o: dirutils.c utils.h
 
+utils.o: utils.c utils.h
+	$(CC) $(ALL_CFLAGS) $(UTILS_DEFINES) -c $(srcdir)/utils.c
+
+palmdev-prep.o: palmdev-prep.c utils.h
+	$(CC) $(ALL_CFLAGS) $(PALMDEV_PREP_DEFINES) -c $(srcdir)/palmdev-prep.c
+
 def.yy.o: def.yy.c def.tab.h utils.h pfdheader.h
-def.tab.o: def.tab.c config.h utils.h def.h pfdheader.h
+def.tab.o: def.tab.c utils.h def.h pfdheader.h
 def.tab.h: def.tab.c
 
 def.yy.c: def.l def.tab.h utils.h pfdheader.h
 	$(LEX) -is $(srcdir)/def.l \
 	  && mv lex.yy.c def.yy.c
 
-def.tab.c: def.y config.h utils.h def.h pfdheader.h
+def.tab.c: def.y utils.h def.h pfdheader.h
 	$(YACC) -dv $(srcdir)/def.y \
 	  && mv y.tab.c def.tab.c && mv y.tab.h def.tab.h \
 	  && mv y.output def.output

@@ -11,7 +11,6 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.13)
 AC_INIT(prc-tools.spec)
-AC_CONFIG_HEADER(tools/config.h)
 
 AC_CONFIG_SUBDIRS(binutils gdb gcc make)
 
@@ -27,7 +26,6 @@ yes|no)	AC_MSG_ERROR(bad value ${withval} given for palmdev prefix) ;;
 esac])
 
 AC_SUBST(palmdev_prefix)
-AC_DEFINE_UNQUOTED(PALMDEV_PREFIX, "${palmdev_prefix}")
 
 
 build_sdk='$(BOOTSTRAP_SDKFLAGS)'
@@ -80,8 +78,6 @@ else
   prc_tools_version=unknown
 fi
 AC_MSG_RESULT($prc_tools_version)
-
-AC_DEFINE_UNQUOTED(PRC_TOOLS_VERSION, "${prc_tools_version}")
-AC_DEFINE_UNQUOTED(TARGET_ALIAS, "${target_alias}")
+AC_SUBST(prc_tools_version)
 
 AC_OUTPUT(Makefile crt/Makefile doc/Makefile include/Makefile libc/Makefile libm/Makefile tools/Makefile)
