@@ -7,10 +7,10 @@
 #include <ErrorMgr.h>
 #include "NewTypes.h"
 
-#if SDK_VERSION >= 35
+#if SDK_VERSION >= 35 && !defined BOOTSTRAP_SDK
 
 #include <FloatMgr.h>
-#define TRAP(sel)  FLOAT_EM_TRAP(sysFloat##sel)
+#define FTRAP(sel)  FLOAT_EM_TRAP(sysFloat##sel)
 
 #else
 
@@ -19,7 +19,7 @@
 
 #define Str(X)  #X
 
-#define TRAP(sel) \
+#define FTRAP(sel) \
   __attribute__ ((callseq ("moveq #" Str(sel) ",%%d2; trap #15; dc.w 0xA306")))
 
 #define Em_f_itof	 4
@@ -70,30 +70,30 @@ typedef unsigned int UDItype __attribute__ ((mode (DI)));
      news://news.massena.com/01bc20ff$0671c580$21fc6bcc@david  */
 
 
-SFtype	f_itof		(SItype)		TRAP(Em_f_itof);
-SFtype	f_lltof		(DItype)		TRAP(Em_f_lltof);
-void	d_itod_aux	(DFtype *, SItype)	TRAP(Em_d_itod);
-void	d_lltod_aux	(DFtype *, DItype)	TRAP(Em_d_lltod);
-void	f_ftod_aux	(DFtype *, SFtype)	TRAP(Em_f_ftod);
-SFtype	d_dtof		(DFtype)		TRAP(Em_d_dtof);
-USItype	f_ftou		(SFtype)		TRAP(Em_f_ftou);
-SItype	f_ftoi		(SFtype)		TRAP(Em_f_ftoi);
-void	f_ftoull_aux	(UDItype *, SFtype)	TRAP(Em_f_ftoull);
-void	f_ftoll_aux	(DItype *, SFtype)	TRAP(Em_f_ftoll);
-USItype	d_dtou		(DFtype)		TRAP(Em_d_dtou);
-SItype	d_dtoi		(DFtype)		TRAP(Em_d_dtoi);
-void	d_dtoull_aux	(UDItype *, DFtype)	TRAP(Em_d_dtoull);
-void	d_dtoll_aux	(DItype *, DFtype)	TRAP(Em_d_dtoll);
-SFtype	f_neg		(SFtype)		TRAP(Em_f_neg);
-SFtype	f_add		(SFtype, SFtype)	TRAP(Em_f_add);
-SFtype	f_mul		(SFtype, SFtype)	TRAP(Em_f_mul);
-SFtype	f_sub		(SFtype, SFtype)	TRAP(Em_f_sub);
-SFtype	f_div		(SFtype, SFtype)	TRAP(Em_f_div);
-void	d_neg_aux	(DFtype *, DFtype)	TRAP(Em_d_neg);
-void	d_add_aux	(DFtype *, DFtype, DFtype) TRAP(Em_d_add);
-void	d_mul_aux	(DFtype *, DFtype, DFtype) TRAP(Em_d_mul);
-void	d_sub_aux	(DFtype *, DFtype, DFtype) TRAP(Em_d_sub);
-void	d_div_aux	(DFtype *, DFtype, DFtype) TRAP(Em_d_div);
+SFtype	f_itof		(SItype)			FTRAP(Em_f_itof);
+SFtype	f_lltof		(DItype)			FTRAP(Em_f_lltof);
+void	d_itod_aux	(DFtype *, SItype)		FTRAP(Em_d_itod);
+void	d_lltod_aux	(DFtype *, DItype)		FTRAP(Em_d_lltod);
+void	f_ftod_aux	(DFtype *, SFtype)		FTRAP(Em_f_ftod);
+SFtype	d_dtof		(DFtype)			FTRAP(Em_d_dtof);
+USItype	f_ftou		(SFtype)			FTRAP(Em_f_ftou);
+SItype	f_ftoi		(SFtype)			FTRAP(Em_f_ftoi);
+void	f_ftoull_aux	(UDItype *, SFtype)		FTRAP(Em_f_ftoull);
+void	f_ftoll_aux	(DItype *, SFtype)		FTRAP(Em_f_ftoll);
+USItype	d_dtou		(DFtype)			FTRAP(Em_d_dtou);
+SItype	d_dtoi		(DFtype)			FTRAP(Em_d_dtoi);
+void	d_dtoull_aux	(UDItype *, DFtype)		FTRAP(Em_d_dtoull);
+void	d_dtoll_aux	(DItype *, DFtype)		FTRAP(Em_d_dtoll);
+SFtype	f_neg		(SFtype)			FTRAP(Em_f_neg);
+SFtype	f_add		(SFtype, SFtype)		FTRAP(Em_f_add);
+SFtype	f_mul		(SFtype, SFtype)		FTRAP(Em_f_mul);
+SFtype	f_sub		(SFtype, SFtype)		FTRAP(Em_f_sub);
+SFtype	f_div		(SFtype, SFtype)		FTRAP(Em_f_div);
+void	d_neg_aux	(DFtype *, DFtype)		FTRAP(Em_d_neg);
+void	d_add_aux	(DFtype *, DFtype, DFtype)	FTRAP(Em_d_add);
+void	d_mul_aux	(DFtype *, DFtype, DFtype)	FTRAP(Em_d_mul);
+void	d_sub_aux	(DFtype *, DFtype, DFtype)	FTRAP(Em_d_sub);
+void	d_div_aux	(DFtype *, DFtype, DFtype)	FTRAP(Em_d_div);
 
 
 #ifdef L__floatsisf
