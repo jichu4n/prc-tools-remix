@@ -73,7 +73,7 @@ file argument and appending `.prc'.
 @c man end
 
 @c man begin OPTIONS
-@table @code
+@table @gcctabopt
 @item -o @var{file}
 @itemx --output @var{file}
 Write the .prc output to @var{file}.  It is an error to use this

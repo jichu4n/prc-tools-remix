@@ -26,6 +26,18 @@
 This file documents the use of PRC-Tools, version @value{version}.
 @end ifinfo
 
+@c We use @gcctabopt for lists of command options; this makes a difference for
+@c texi2pod.pl, which produces better output than it does with plain @code.
+@ifnothtml
+@alias gcctabopt=code
+@end ifnothtml
+@ifhtml
+@c texi2html does not understand @alias, so define it the long way for html
+@macro gcctabopt{body}
+@code{\body\}
+@end macro
+@end ifhtml
+
 @titlepage
 @title Using PRC-Tools
 @subtitle Compiling for Palm OS with GCC
@@ -117,7 +129,7 @@ few standard GCC features are not supported.
 GCC for Palm OS supports the following options, in addition to all the
 usual target-independent and M68K-specific options.
 
-@table @code
+@table @gcctabopt
 @item -mpcrel
 Activate Palm OS-specific code generation patterns.  This is turned on
 by default in the specs file; don't ever turn it off!
@@ -237,7 +249,7 @@ or Suppress Warnings, gcc, Using and Porting GCC}).
 
 The following GCC options are not currently supported on Palm OS:
 
-@table @code
+@table @gcctabopt
 @item -p
 @itemx -pg
 @itemx -a
@@ -760,7 +772,7 @@ Two suitable linker scripts, which can be used as is or copied and modified,
 are already provided, both allowing a @code{.text} section of up to
 approximately 64K:
 
-@table @code
+@table @gcctabopt
 @item -T text_64k
 Up to 64720 bytes, the maximum resource size supported by all versions of
 Palm OS to date.
@@ -1455,7 +1467,7 @@ file (@pxref{Definition files}).
 default writes the assembler stub file to @file{@var{deffile}-sections.s} and
 the linker script to @file{@var{deffile}-sections.ld}.
 
-@table @code
+@table @gcctabopt
 @item -b @var{base}
 @itemx --base @var{base}
 Write the assembly language output to @file{@var{base}.s} and the linker
@@ -1483,7 +1495,7 @@ relevant clause in your library's definition file (@pxref{Definition files}).
 @file{@var{deffile}-dispatch.s}, depending on the @var{project-kind}
 specified in @var{deffile}.
 
-@table @code
+@table @gcctabopt
 @item -b @var{base}
 @itemx --base @var{base}
 Write the GLib output to @file{@var{base}-stubs.c} and
@@ -1525,7 +1537,7 @@ But if you nonetheless choose to use it: @code{obj-res} reads from
 @file{@var{type}@var{nnnn}.@var{bfdfile}.grc}.  By default it generates
 resources for a Palm OS application.
 
-@table @code
+@table @gcctabopt
 @item -l
 Generate resources for a GLib shared library.
 
@@ -1583,7 +1595,7 @@ output, annotating each line that matches the syntax of a trap vector
 (i.e., the syntax as printed by @code{objdump}) with the name of the
 corresponding system function, if any.
 
-@table @code
+@table @gcctabopt
 @item -q
 @itemx --quiet
 @itemx --silent

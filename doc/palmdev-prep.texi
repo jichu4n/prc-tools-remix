@@ -65,7 +65,7 @@ to the particular SDK in use.
 @c man end
 
 @c man begin OPTIONS
-@table @code
+@table @gcctabopt
 @item -d @var{sdk}
 @itemx --default @var{sdk}
 When GCC is invoked without any @code{-palmos@var{N}} options, the SDK chosen
