@@ -17,21 +17,19 @@ case `./config.guess` in
   *)		palmdev_prefix=/opt/palmdev ;;
 esac
 
-for pkg_ver in `grep '^Source[^0]:' prc-tools.spec |
-		sed -e 's:.*/::' -e 's/\.tar.*//'`; do
-  pkg=`echo $pkg_ver | sed 's/-[^-]*//'`
-  if [ ! -d $pkg ]; then
-    decompression="" extension=""
-    [ -f $SOURCES/$pkg_ver.tar.bz2 ] && decompression=j extension=.bz2
-    [ -f $SOURCES/$pkg_ver.tar.gz  ] && decompression=z extension=.gz
-    tar xvf$decompression $SOURCES/$pkg_ver.tar$extension
-    [ -f $pkg_ver.palmos.diff ] && $PATCH -p0 < $pkg_ver.palmos.diff
-    mv $pkg_ver $pkg
-    # HACK  This is fragile and only works because 2.95.3 is unpacked before
-    # 3.2.  We've left the fragility to provide more motivation to lose 2.95.3.
-    [ "$pkg_ver" = "gcc-2.95.3" ] && mv $pkg gcc295
-  fi
+for tarball in `sed -n '/^Source[^0]:/s:.*/\(.*tar\).*:\1:p' prc-tools.spec`
+do
+  decompression="" extension=""
+  [ -f $SOURCES/$tarball.bz2 ] && decompression=j extension=.bz2
+  [ -f $SOURCES/$tarball.gz  ] && decompression=z extension=.gz
+  tar xf$decompression $SOURCES/$tarball$extension
 done
+  
+cat *.palmos.diff | $PATCH -p0
+
+mv gcc-2.95.3 gcc295
+# Rename each "package-x.y.z" directory to just "package"
+for dir in *-*[0-9]; do mv $dir `echo $dir | sed 's/-[^-]*$//'`; done
 
 touch "gcc295/gcc/cstamp-h.in"
 
