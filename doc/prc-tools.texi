@@ -1500,53 +1500,46 @@ option.  One or the other is likely to change.)
 
 @findex obj-res
 
-This section is a copy of the original @code{obj-res} man page.
-
-@subheading @sc{Name}
-
-obj-res --- convert an object/executable file in a format supported by GNU
-BFD to PalmOS compatible resource files
-
-@subheading @sc{Synopsis}
-
 @example
-obj-res [-lL] @var{object.file}
+obj-res [ -l ] [ -L @var{exportfile} ] [ -z @var{n} ] @var{bfdfile}
 @end example
 
-@subheading @sc{Description}
+The @code{obj-res} utility reads a file in a BFD supported object file format
+(most usually COFF) and generates the raw binary resource files necessary to
+make up a Palm OS executable in the current directory.  These files can be
+bound together into a Palm OS resource data file using @code{build-prc}.
 
-This manual page documents the utility @code{obj-res}.  @code{obj-res}
-reads a file in a BFD supported object file format (most usually COFF) and
-generates the files necessary to make up a PalmOS executable in the current
-directory.  These files can be bound together into a PalmOS executable using
-the @code{build-prc} utility.
+This utility is @strong{deprecated}.  It is provided only for use in existing
+legacy build scripts and makefiles.  In new projects it is more convenient to
+present the same object file directly to @code{build-prc}, thus enabling
+better error checking, avoiding a separate @code{obj-res} step, and avoiding
+the clutter of separate @file{.grc} files.
 
-@subheading @sc{Options}
+In particular, if you are using multiple code resources or the stand-alone
+code facilities then you @strong{must not} use @code{obj-res}.  Such projects
+require information that is thrown away by @code{obj-res}, and your build
+will fail or, worse, silently produce invalid results.
+
+But if you nonetheless choose to use it: @code{obj-res} reads from
+@var{bfdfile} and writes to a number of files with names of the form
+@file{@var{type}@var{nnnn}.@var{bfdfile}.grc}.  By default it generates
+resources for a Palm OS application.
 
 @table @code
 @item -l
-generate resources for a GNU style `GLib' shared library
+Generate resources for a GLib shared library.
 
-@item -L
-generate resources for a PalmOS version 2 shared library
+@item -L @var{exportfile}
+Generate resources for a Palm OS version 2 system shared library.
+
+Unlike previous versions of obj-res, this version cannot generate an
+offset table in @var{exportfile}.  You should use @code{build-prc}
+directly with a definition file instead.
+
+@item -z @var{n}
+Compress the data resource, @file{data0000.@var{bfdfile}.grc}, similarly to
+the corresponding @code{build-prc} option.
 @end table
-
-@subheading @sc{Usage}
-
-Pass the file name of the BFD compatible executable file on the command line.
-@code{obj-res} will generate the necessary resource files in the current
-directory ending in the extension @file{.grc}.
-
-@subheading @sc{Bugs}
-
-code #0 resources are generated with magic values for some fields that are
-unused by the current versions of PalmOS.
-
-Compression of the data #0 resource is simple minded.
-
-@subheading @sc{Author}
-
-@code{obj-res} was written by D.Jeff Dionne, relocation by Kresten Krab Thorup.
 
 
 @node palmdev-prep
