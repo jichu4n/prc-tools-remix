@@ -96,12 +96,11 @@ canonical_path (const char *path) {
    table accessed with find().  The KEY and BASE fields are only used by
    the latter.  */
 
-enum sub_kind { include, lib };
-
 struct root {
   struct root *next;
   const char *prefix;	/* Full path of the root directory.  */
-  const char *sub[2];	/* Names of the headers & libraries subdirectories.  */
+  const char *include;	/* Name of the headers subdirectory, if any.  */
+  const char *lib;	/* Name of the libraries subdirectory, if any.  */
   const char *key;	/* Canonical SDK key, in the case of a SDK root.  */
   const char *base;	/* Key of SDK upon which this SDK is based, if any.  */
   };
@@ -119,12 +118,12 @@ make_root (int base_allowed, const char *path_format, ...) {
 
   root->next = NULL;
   root->prefix = insert_string (store, path);
-  root->sub[include] = is_dir ("%s/include", path)? "include"
-		     : is_dir ("%s/Incs", path)? "Incs"
-		     : NULL;
-  root->sub[lib] = is_dir ("%s/lib", path)? "lib"
-		 : is_dir ("%s/GCC Libraries", path)? "GCC Libraries"
-		 : NULL;
+  root->include = is_dir ("%s/include", path)? "include"
+		: is_dir ("%s/Incs", path)? "Incs"
+		: NULL;
+  root->lib = is_dir ("%s/lib", path)? "lib"
+	    : is_dir ("%s/GCC Libraries", path)? "GCC Libraries"
+	    : NULL;
 
   root->base = NULL;
   strcat (path, "/base");
@@ -172,7 +171,7 @@ sdk_valid (const struct root *sdk) {
      or via a base SDK.  If it has a base, we merely assume that (somewhere
      down the line) the base is valid; if not, we'll get a warning for the
      most basic base.  */
-  return sdk->sub[include] || sdk->base;
+  return sdk->include || sdk->base;
   }
 
 void
@@ -185,13 +184,13 @@ print_report (const char *name, const struct root *root,
   else if (headers_required && ! sdk_valid (root))
     printf ("INVALID -- no headers");
   else {
-    if (root->sub[include])
-      printf ("headers in '%s'", root->sub[include]);
+    if (root->include)
+      printf ("headers in '%s'", root->include);
     else
       printf ("no headers");
 
-    if (root->sub[lib])
-      printf (", libraries in '%s'", root->sub[lib]);
+    if (root->lib)
+      printf (", libraries in '%s'", root->lib);
     else
       printf (", no libraries");
 
@@ -249,7 +248,7 @@ analyze_palmdev_tree (const char *prefix_as_given, int report) {
       printf ("  (none)\n");
 
     root = make_root (0, "%s", prefix);
-    if (root->sub[include] || root->sub[lib]) {
+    if (root->include || root->lib) {
       if (report) {
 	printf ("  and material in %s used regardless of SDK choice\n",
 		prefix_as_given);
@@ -288,9 +287,8 @@ write_option (FILE *f, const char *option, const char *path) {
 static void
 write_include_tree (FILE *f, const struct root *root,
 		    const struct spec_kind *kind UNUSED_PARAM) {
-  if (root->sub[include]) {
-    TREE *tree = opentree (DIRS_PREORDER,
-			   "%s/%s", root->prefix, root->sub[include]);
+  if (root->include) {
+    TREE *tree = opentree (DIRS_PREORDER, "%s/%s", root->prefix, root->include);
     const char *dir;
     while ((dir = readtree (tree)) != NULL)
       write_option (f, "-isystem ", dir);
@@ -301,12 +299,11 @@ write_include_tree (FILE *f, const struct root *root,
 static void
 write_lib_tree (FILE *f, const struct root *root,
 		const struct spec_kind *kind) {
-  if (root->sub[lib]) {
+  if (root->lib) {
     const char * const *targetdir;
     for (targetdir = kind->targetdirs; *targetdir; targetdir++) {
       TREE *tree = opentree (DIRS_PREORDER,
-			     "%s/%s/%s", root->prefix, root->sub[lib],
-			     *targetdir);
+			     "%s/%s/%s", root->prefix, root->lib, *targetdir);
       const char *dir;
 
       while ((dir = readtree (tree)) != NULL) {
@@ -650,7 +647,7 @@ main (int argc, char **argv) {
       for (sdk = default_sdk, done = 0;
 	   sdk && ! done;
 	   sdk = find (sdk_root_list, sdk->base)) {
-	TREE *tree = opentree (FILES, "%s/%s", sdk->prefix, sdk->sub[include]);
+	TREE *tree = opentree (FILES, "%s/%s", sdk->prefix, sdk->include);
 	const char *header_fname;
 	while ((header_fname = readtree (tree)) != NULL) {
 	  const char *base = lbasename (header_fname);
