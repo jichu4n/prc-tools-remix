@@ -360,6 +360,7 @@ facilitate building stand-alone code resources. @xref{Stand-alone code}.
 @itemize @w{}
 @item @code{STANDALONE_CODE_RESOURCE_ID (@var{res_id})}
 @item @code{STANDALONE_CODE_RESOURCE_TYPE_ID (@var{res_type}, @var{res_id})}
+@item @code{STANDALONE_CODE_RESOURCE_TYPESTR_ID (@var{res_type}, @var{res_id})}
 @item @code{HACKMASTER_TRAP (@var{vector})}
 @end itemize
 
@@ -1059,9 +1060,17 @@ by using the following macros, provided in @file{Standalone.h}:
 
 @table @code
 @item STANDALONE_CODE_RESOURCE_ID (@var{id})
-@itemx STANDALONE_CODE_RESOURCE_TYPE_ID (@var{type}, @var{id})
-Mark the executable as a stand-alone code resource, of type @var{type}
-(or a suitable default for the first form) and @sc{id} @var{id}.
+Mark the executable as a stand-alone code resource with the specified @var{id}
+and a suitable resource type depending on the resulting compiled executable's
+architecture: @samp{code} for 68000 or @samp{armc} for ARM.
+
+@item STANDALONE_CODE_RESOURCE_TYPE_ID (@var{type}, @var{id})
+@itemx STANDALONE_CODE_RESOURCE_TYPESTR_ID (@var{type}, @var{id})
+Mark the executable as a stand-alone code resource with the specified
+resource @var{type} and @var{id}.
+If you specify @var{type} with a multicharacter char constant (@samp{'TYPE'}),
+use the @code{@dots{}TYPE@dots{}} macro; if you use a string (@samp{"TYPE"}),
+use the @code{@dots{}TYPESTR@dots{}} version.
 
 @item HACKMASTER_TRAP (@var{vector})
 Mark the executable as a stand-alone code resource, and add a @code{TRAP}
