@@ -1757,8 +1757,8 @@ SDK.
 
 It also detects @file{include}, @file{Incs}, @file{lib}, and
 @file{GCC Libraries} directories immediately within each root directory
-specified, causing them to be searched @emph{after} all those corresponding to the
-particular SDK in use.
+specified, causing them to be searched @emph{after} all those corresponding
+to the particular SDK in use.
 
 @table @code
 @item -d @var{sdk}
