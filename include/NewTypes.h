@@ -18,17 +18,16 @@
 
 #ifndef SDK_VERSION
 
-/* Start by assuming that the minimum possible number of headers have been
-   #included.  On a pre-3.5 SDK, that means that <Common.h> is one of them.
-   Similarly, in a 3.5 or later SDK, <PalmTypes.h> must have been #included.
+/* #defines corresponding to new functionality in each SDK were added
+   to BuildRules.h (in pre-3.5 SDKs) or BuildDefines.h (3.5 and later).
+   We can use those #defines to identify each SDK.  */
 
-   All versions of <Common.h> unconditionally #include <BuildRules.h>.
-   All versions of <PalmTypes.h> unconditionally #include <BuildDefaults.h>,
-   and thence <BuildDefines.h>.
-
-   #defines corresponding to new functionality in each SDK were added to
-   <BuildRules.h> or <BuildDefines.h>.  We can use those #defines to
-   identify the SDK.  */
+#if !defined __BUILDRULES_H__ && !defined __BUILDDEFINES_H__
+/* But we can't just #include BuildRules.h or BuildDefines.h itself because
+   we don't know which of the two exists.  This header exists in all SDKs
+   and pulls in each desired file without adding too much else.  */
+#include <M68KHwr.h>
+#endif
 
 /* 5.0 R2 did introduce a CPU_ARM macro, but more uniquely it also added
    some screen density constants.  */
@@ -44,8 +43,8 @@
 #elif defined TRACE_OUTPUT_ON
 #define SDK_VERSION  40
 
-/* 3.5 uses <PalmTypes.h> instead of <Common.h>.  */
-#elif defined __PALMTYPES_H__
+/* 3.5 hinted at the conceivability of a Simulator running on Unix.  */
+#elif defined EMULATION_UNIX
 #define SDK_VERSION  35
 
 /* 3.1 added Japanese support.  */
@@ -68,6 +67,8 @@
 
 
 #if SDK_VERSION < 35
+#include <Common.h>  /* Ensure that the old names have been defined.  */
+
 typedef Byte UInt8;
 typedef SByte Int8;
 
