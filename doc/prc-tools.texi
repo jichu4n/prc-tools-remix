@@ -755,7 +755,7 @@ Others are up to your imagination.
 The maximum size of the main code section is specified in the linker
 script and enforced during linking (@pxref{Linker Scripts, Scripts,
 Linker Scripts, ld, Using ld}).  You can override the default script's
-32K size by using the @code{-T @var{script}} linker option.
+32K size by using a @code{-T @var{script}} linker option in your link command.
 Two suitable linker scripts, which can be used as is or copied and modified,
 are already provided, both allowing a @code{.text} section of up to
 approximately 64K:
