@@ -62,12 +62,12 @@ If you want to install it elsewhere, you can do so via the prefix and/or
 relocation facilities of your RPM installation tool.
 
 %prep
-%setup -n binutils-2.12.1 -T -b 1
-%setup -n gdb-5.0 -T -b 2
-%setup -n gcc-2.95.3 -T -b 3
-%setup -n make-3.79.1 -T -b 4
-%setup -n gcc-3.2 -T -b 5
-%setup
+%setup -q -T -b 1 -n binutils-2.12.1
+%setup -q -T -b 2 -n gdb-5.0
+%setup -q -T -b 3 -n gcc-2.95.3
+%setup -q -T -b 4 -n make-3.79.1
+%setup -q -T -b 5 -n gcc-3.2
+%setup -q
 
 cat *.palmos.diff | (cd .. && patch -p0)
 
