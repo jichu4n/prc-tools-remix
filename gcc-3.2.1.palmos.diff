@@ -99,8 +99,8 @@ diff -urN orig-gcc-3.2.1/gcc/config/arm/palmos.h gcc-3.2.1/gcc/config/arm/palmos
 +#define TARGET_VERSION  fputs (" (ARM/ELF Palm OS armlet)", stderr);
 diff -urN orig-gcc-3.2.1/gcc/config/palmos.h gcc-3.2.1/gcc/config/palmos.h
 --- orig-gcc-3.2.1/gcc/config/palmos.h	Thu Jan  1 00:00:00 1970
-+++ gcc-3.2.1/gcc/config/palmos.h	Thu Sep 12 06:02:55 2002
-@@ -0,0 +1,37 @@
++++ gcc-3.2.1/gcc/config/palmos.h	Tue Dec 17 22:58:32 2002
+@@ -0,0 +1,41 @@
 +/* Definitions for Palm OS.
 +   Copyright 2002 John Marshall.  (Until it is contributed.)
 +
@@ -134,6 +134,10 @@ diff -urN orig-gcc-3.2.1/gcc/config/palmos.h gcc-3.2.1/gcc/config/palmos.h
 +
 +/* Palm OS headers are C++-aware.  */
 +#define NO_IMPLICIT_EXTERN_C
++
++/* Palm OS programmers enjoy (ab)using all kinds of packing pragmas.  */
++#define HANDLE_SYSV_PRAGMA
++#define HANDLE_PRAGMA_PACK_PUSH_POP
 +
 +/* Add Palm OS-related predefines to any generic ones.  */
 +#undef CPP_PREDEFINES
