@@ -136,6 +136,7 @@ fi
 %{_bindir}/[b-z]*
 %{_exec_prefix}/m68k*
 %{_libdir}/gcc-lib/m68k*
+%{_datadir}/prc-tools
 # Native packages provide gcc.info* etc, so we limit ourselves to this one
 %doc %{_infodir}/prc-tools*
 # Similarly, the native packages have already provided equivalent manpages

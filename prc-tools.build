@@ -62,7 +62,7 @@ cp -p README COPYING $DESTDIR$docdir
 #policy
 : ${exec_prefix=$prefix}
 : ${bindir:=$exec_prefix/bin} ${libdir:=$exec_prefix/lib}
-: ${infodir:=$prefix/info}
+: ${infodir:=$prefix/info} ${datadir:=$prefix/share}
 
 strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/$target/bin/* \
   $DESTDIR$libdir/gcc-lib/$target/*/c*
@@ -75,6 +75,7 @@ strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/$target/bin/* \
     $bindir/*
     $libdir/gcc-lib/$target
     $exec_prefix/$target
+    $datadir/prc-tools
     $infodir/prc-tools*
     $docdir
   " | sed 's:^ */::'`)
