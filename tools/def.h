@@ -1,7 +1,7 @@
 /* def.h: header file for .def file parsing.
 
-   Copyright (c) 1998, 1999 Palm Computing, Inc. or its subsidiaries.
-   All rights reserved.
+   Copyright 2002 John Marshall.
+   Portions copyright 1998, 1999 Palm, Inc. or its subsidiaries.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,14 @@
 
 #ifndef DEF_H
 #define DEF_H
+
+enum database_kind {
+  DK_APPLICATION,
+  DK_GLIB,
+  DK_SYSLIB,
+  DK_HACK,
+  DK_GENERIC
+  };
 
 struct database_header;
 

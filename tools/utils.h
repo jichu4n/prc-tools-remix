@@ -106,15 +106,6 @@ void *memmem (const void *buf, size_t buflen, const void *key, size_t keylen);
 #endif
 
 
-enum database_kind {
-  DK_APPLICATION,
-  DK_GLIB,
-  DK_SYSLIB,
-  DK_HACK,
-  DK_GENERIC
-  };
-
-
 struct string_store;
 
 struct string_store *new_string_store ();

@@ -33,9 +33,10 @@
 %{
 #include <string.h>
 
-#include "utils.h"
+#include "def.h"
 #include "def.tab.h"
 #include "pfdheader.h"
+#include "utils.h"
 
 static int lineno;
 static void (*warnf) (const char *message);
