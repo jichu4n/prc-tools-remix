@@ -144,6 +144,7 @@ def:
 
 trap_def:
 	  TRAP '{' trap_list '}'
+	;
 
 trap_list:
 	  /* empty */		{ $$ = 1000; }
