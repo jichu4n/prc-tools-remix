@@ -221,6 +221,9 @@ read_def_file (const char *fname, const struct def_callbacks *callbacks) {
 
   lexer_init (print_warning);
   init_database_header (&db);
+  /* init_database_header() initialises everything to 0, but the default
+     version for a newly created resource database should be 1.  */
+  db.version = 1;
 
   if ((yyin = fopen (parser_fname, "r")) != NULL) {
     yyparse ();
