@@ -49,6 +49,9 @@ maintainers (without any of the remaining nasty hacks!).
     everything under "lib" directories
   - Add "base" file handling, to facilitate use of SDK updates
   - write_specs with target="none" should mean don't write any link_* specs
+  - Perhaps preserve the default SDK when reruning without a -d option,
+    instead of resetting to the highest SDK (remember the current setting by
+    writing an extra little state file, not by trying to parse a spec file)
 
 * Use @command for commands, @option for options throughout prc-tools.texi.
 
