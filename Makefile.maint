@@ -1,4 +1,4 @@
-# Maintainer makefile for prc-tools.
+# Maintainer makefile for prc-tools.  (Requires GNU Make.)
 #
 # Copyright 2002, 2003 John Marshall.
 #
@@ -6,6 +6,11 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
+
+# './configure' gets rewritten as 'configure', which doesn't match the rule
+# below's '%/configure'.  An absolute path on the other hand does match.
+
+all: $(shell pwd)/configure
 
 # The source directory is likely to be a working development directory.
 # We need to do some tidying up before creating the distribution tarball:
@@ -18,10 +23,9 @@
 #    likely be read-only.  We want them to be read-write in the tarball.
 
 srcdir = .
-distdir = prc-tools
-nondistpat = ^(binutils|gcc|gcc295|gdb|make)$$
+nondistpat = ^(binutils|gcc|gcc295|gdb|make|prc-tools-.*)$$
 
-.PHONY: dist-tree dist-tarball dist snapshot release-check release
+.PHONY: all dist-tree dist-tarball release snapshot
 
 dist-tree:
 	-rm -rf $(distdir) $(distdir).tar $(distdir).tar.gz
@@ -40,19 +44,22 @@ dist-tarball:
 	-rm -rf $(distdir)
 
 
-dist: dist-tree dist-tarball
+%/configure: %/configure.in
+	cd $(@D) && autoconf
 
-snapshot:
-	$(MAKE) -f $(srcdir)/Makefile.maint srcdir=$(srcdir) \
-	distdir=prc-tools-`date +%Y%m%d` dist-tree dist-tarball
+# We always ensure 'configure' is present and up to date in a release tarball.
 
-$(distdir)/configure: $(distdir)/configure.in
-	cd $(distdir) && autoconf
+releasedir := prc-tools-$(shell grep '^Version:' $(srcdir)/prc-tools.spec | \
+				sed 's/.*: //')
+release: dist-tree $(releasedir)/configure dist-tarball
+release: distdir = $(releasedir)
 
-release-check: $(distdir)/configure
+# In a snapshot, if it exists we'll ensure it's up to date; otherwise, if it's
+# missing, we don't consider that an error, so won't attempt to run autoconf
+# and will just let it remain absent.
 
-release:
-	$(MAKE) -f $(srcdir)/Makefile.maint srcdir=$(srcdir) \
-	distdir=prc-tools-`grep '^Version:' $(srcdir)/prc-tools.spec | \
-			   sed 's/.*: //'` \
-	dist-tree release-check dist-tarball
+snapshotdir := prc-tools-$(shell date '+%Y%m%d')
+snapshot: dist-tree \
+	  $(if $(wildcard $(srcdir)/configure), $(snapshotdir)/configure) \
+	  dist-tarball
+snapshot: distdir = $(snapshotdir)
