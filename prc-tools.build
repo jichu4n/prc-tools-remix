@@ -50,7 +50,7 @@ make
 : ${DESTDIR:=`pwd`/buildroot}
 
 rm -rf $DESTDIR
-make install \
+make DESTDIR= install \
   prefix=$DESTDIR$prefix htmldir=$DESTDIR$docdir \
   ${mandir:+mandir=$DESTDIR$mandir} ${infodir:+infodir=$DESTDIR$infodir}
 
