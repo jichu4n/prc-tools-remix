@@ -104,8 +104,8 @@ ngdir = ../@first_enabled_target@
 
 html-binutils:
 	-@rm -f binutils[_.]*html ld[_.]*html as[_.]*html
-	[ -f $(srcdir)/../binutils/ld/configdoc.texi ] || \
-	[ -f $(ngdir)/binutils/ld/configdoc.texi ] || \
+	[ -f $(srcdir)/../binutils/binutils/doc/config.texi ] || \
+	[ -f $(ngdir)/binutils/binutils/doc/config.texi ] || \
 	  (cd $(ngdir)/binutils; $(MAKE) info)
 	$(MKHTML) -I $(ngdir)/binutils/binutils/doc \
 	  -I $(srcdir)/../binutils/binutils/doc \
