@@ -96,14 +96,22 @@ add_tree (void (*addf) (const char *), const char *dirname) {
 
 void
 add_trees (const char *sdk_version) {
-  char sdk[FILENAME_MAX], path[FILENAME_MAX];
+  char sdk[FILENAME_MAX], truncated_sdk[FILENAME_MAX];
+  char winning_sdk[FILENAME_MAX], path[FILENAME_MAX];
   char palmdev_path[] = PALMDEV_PATH;
-  char *key, *prefix, *winning_prefix;
+  char *key, *prefix;
 
   sprintf (sdk, "sdk%s%s",
 	   (*sdk_version && *sdk_version != '-')? "-" : "", sdk_version);
 
-  winning_prefix = NULL;
+  if (strcmp (sdk + strlen (sdk) - 2, ".0") == 0) {
+    strcpy (truncated_sdk, sdk);
+    truncated_sdk[strlen (truncated_sdk) - 2] = '\0';
+    }
+  else
+    *truncated_sdk = '\0';
+
+  *winning_sdk = '\0';
 
   for (key = palmdev_path; (prefix = strtok (key, ":")) != NULL; key = NULL) {
     sprintf (path, "%s/include", prefix);
@@ -112,29 +120,32 @@ add_trees (const char *sdk_version) {
     sprintf (path, "%s/lib/%s", prefix, TARGET);
     add_tree (add_L, path);
 
-    if (winning_prefix == NULL) {
+    if (! *winning_sdk) {
       sprintf (path, "%s/%s", prefix, sdk);
       if (is_dir (path))
-	winning_prefix = prefix;
+	strcpy (winning_sdk, path);
+      else if (*truncated_sdk) {
+	sprintf (path, "%s/%s", prefix, truncated_sdk);
+	if (is_dir (path))
+	  strcpy (winning_sdk, path);
+	}
       }
     }
 
-  if (winning_prefix) {
+  if (*winning_sdk) {
     int broken_sdk = 0;
     
-    sprintf (path, "%s/%s/include", winning_prefix, sdk);
+    sprintf (path, "%s/include", winning_sdk);
     if (!add_tree (add_isystem, path))
       broken_sdk = 1;
 
-    sprintf (path, "%s/%s/lib/%s", winning_prefix, sdk, TARGET);
+    sprintf (path, "%s/lib/%s", winning_sdk, TARGET);
     /* We would update BROKEN_SDK here too, except that pre-3.5 SDKs didn't
        have lib directories.  */
     add_tree (add_L, path);
 
-    if (broken_sdk) {
-      sprintf (path, "%s/%s", winning_prefix, sdk);
-      einfo (E_NOFILE|E_WARNING, "%s does not contain an sdk", path);
-      }
+    if (broken_sdk)
+      einfo (E_NOFILE|E_WARNING, "%s does not contain an SDK", winning_sdk);
     }
   else
     einfo (E_NOFILE|E_WARNING, "%s not found in %s", sdk, PALMDEV_PATH);

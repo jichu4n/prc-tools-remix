@@ -69,13 +69,14 @@ last modified on @value{update-date}.
 * Definition files::  Using a project definition file.
 * Debugging::         Enabling and using a debugger.
 
-* Post-linker tools:: The following are specific to Palm OS:
+* Post-linker and other tools::
 
 @detailmenu
 * build-prc::         Combine resources into a single .prc database.
 * multigen::          Generate support files for multiple code resources.
 * stubgen::             ...or for shared libraries.
 * obj-res::           Make resources from a bfd executable.
+* sdkfind::           Supply -I and -L options for searching Palm OS SDKs.
 @end detailmenu
 
 @c * Index::
@@ -123,9 +124,12 @@ attributes.  By default, global data are accessed via @sc{a5}, and
 This option implies @samp{-mextralogues}.
 
 @item -palmos@var{N}
-Select system header files and libraries for Palm OS SDK version @var{N},
-which may be `1', `2', `3', `3.0', `3.1', or `3.5'.  By default, the SDK
-selected by the @file{sdk} symlink in @file{/usr/local/palmdev} will be used.
+Select system header files and libraries for Palm OS SDK version @var{N}.
+By default, the SDK selected by the @file{sdk} symlink in the PalmDev directory
+(usually @file{/opt/palmdev} or @file{C:\PalmDev}) will be used.
+
+This option is not handled by GCC directly, but rather via the @code{sdkfind}
+utility (@pxref{sdkfind}).
 @end table
 
 There is also a @samp{-mno-@var{X}} option corresponding to each of the
@@ -160,7 +164,7 @@ This attribute is deprecated and will be removed from a future version of
 prc-tools.  New code should use callseq instead.
 
 You shouldn't use the @code{systrap} attribute directly; instead, you should
-use the @code{SYS_TRAP} macro defined in @file{System/SysTraps.h}.
+use the @code{SYS_TRAP} macro defined in @file{CoreTraps.h}.
 
 @item owngp
 When @samp{-mown-gp} is used, the @code{owngp} attribute causes the function
@@ -295,8 +299,6 @@ default specs file.
 
 @node Include files
 @section Include files
-
-Blah.  @@@@@@ Talk about header file directories here.
 
 @subsection NewTypes.h
 
@@ -1089,8 +1091,8 @@ At present, GDB won't work well with applications with multiple code resources.
 @end itemize
 
 
-@node Post-linker tools
-@chapter Post-linker tools
+@node Post-linker and other tools
+@chapter Post-linker and other tools
 
 On most platforms, you compile and link your programs, and the resulting
 executable is the program you run.  (The GNU linker produces an executable
@@ -1107,11 +1109,16 @@ need to use obj-res anymore, but it is still supported for backwards
 compatibility.)  There are also @code{multigen} and @code{stubgen},
 which generate various support files.
 
+Other miscellaneous tools include @code{sdkfind}, which is invoked
+automatically to set up appropriate include paths for the Palm OS SDK with
+which you wish to build.
+
 @menu
 * build-prc::
 * multigen::
 * stubgen::
 * obj-res::
+* sdkfind::
 @end menu
 
 
@@ -1361,6 +1368,82 @@ Compression of the data #0 resource is simple minded.
 @subheading @sc{Author}
 
 @code{obj-res} was written by D.Jeff Dionne, relocation by Kresten Krab Thorup.
+
+
+@node sdkfind
+@section sdkfind
+
+@findex sdkfind
+
+@smallexample
+sdkfind -print-search-dirs
+
+sdkfind [ -v ] [ -palmos@var{n} ] [ -nopalmos ] @dots{}
+@end smallexample
+
+The @code{sdkfind} utility expands @code{-palmos@var{n}} options into the
+corresponding GCC options (@code{-isystem} and @code{-L}) needed for the
+compiler to be able to use all the headers and libraries provided by the
+SDK.
+
+This utility is installed as a wrapper around @code{m68k-palmos-gcc} and the
+other compiler drivers.  Thus options such as @code{-palmos@var{n}} can be
+used with @code{m68k-palmos-gcc} just as if GCC itself understood them.
+Behind the scenes, @code{sdkfind} expands the options and then calls the
+real GCC compiler driver.
+
+It can also be used directly so that its effects can be observed, or if you
+wish to use it explicitly with the real compiler driver:
+
+@smallexample
+/path/to/m68k-palmos/real-bin/gcc @dots{} `m68k-palmos-sdkfind`
+@end smallexample
+
+@table @code
+@item -print-search-dirs
+Print the list of configured PalmDev installation directories.
+
+@item -palmos@var{n}
+Search for a @file{sdk-@var{n}} directory in the configured PalmDev
+installation directories.  Anything at all may be specified for @var{n};
+if @var{n} starts with a hyphen or is empty, the extra hyphen from @code{sdk-}
+will be suppressed.  As a special case, if @var{n} is of the form
+@code{@var{x}.0} both @file{sdk-@var{x}.0} and @file{sdk-@var{x}} will be
+searched for.
+
+First the configured PalmDev directories are examined in turn, and include
+path (@code{-isystem}) options are generated for each directory within an
+@file{include} subdirectory of a PalmDev directory.  Similarly library path
+(@code{-L}) options are generated for each directory within a
+@file{m68k-palmos-coff} subdirectory of a @file{lib} subdirectory of a
+PalmDev directory.
+
+Then the configured PalmDev directories are reexamined in turn, and the first
+one that directly contains a subdirectory named @file{sdk-@var{n}} is selected.
+(If none does, @code{sdkfind} prints a warning to that effect.)
+
+Include path (@code{-isystem}) options are generated for each directory
+within an @file{include} subdirectory in the selected @file{sdk-@var{n}}
+directory, and library path (@code{-L}) options are generated for each
+directory within @file{lib/m68k-palmos-coff} in the selected @file{sdk-@var{n}}
+directory.
+
+If the selected @file{sdk-@var{n}} directory does not contain a subdirectory
+named @file{include}, @code{sdkfind} prints a warning stating that the selected
+directory does not contain an SDK.
+
+@item -nopalmos
+If you do not use a @code{-palmos@var{n}} option, by default the @code{sdk}
+directory will be searched for, i.e., it is as if there were a @code{-palmos}
+option specified.
+
+Using @code{-nopalmos} suppresses this, thus preventing @code{sdkfind} from
+generating any @code{-isystem} or @code{-L} options.
+
+@item -v
+Print (on standard error output) the command, with options expanded, executed
+to run the compilation.
+@end table
 
 
 @ignore
