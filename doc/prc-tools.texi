@@ -89,6 +89,7 @@ and was last modified on @value{updatedfull}.
 * stubgen::             ...or for shared libraries.
 * obj-res::           Make resources from a bfd executable.
 * palmdev-prep::      Inform GCC of the locations of Palm OS SDKs.
+* trapfilt::          Decode Palm OS trap vectors.
 @end detailmenu
 
 @c * Index::
@@ -1399,7 +1400,8 @@ and @code{obj-res}, which converts a bfd executable into resources.
 (Build-prc can now read bfd executables directly, so there is no
 need to use obj-res anymore, but it is still supported for backwards
 compatibility.)  There are also @code{multigen} and @code{stubgen},
-which generate various support files.
+which generate various support files;
+and @code{trapfilt}, which decodes Palm OS trap vectors.
 
 Other miscellaneous tools include @code{palmdev-prep}, which informs GCC of
 the locations of Palm OS SDKs and the like.  You should run it whenever you
@@ -1411,6 +1413,7 @@ upgrade prc-tools or install new SDKs or modify existing ones.
 * stubgen::
 * obj-res::
 * palmdev-prep::
+* trapfilt::
 @end menu
 
 
@@ -1785,6 +1788,48 @@ you need to be a privileged user to write to it.
 
 
 @c FIXME: need a section about the structure of a PalmDev tree
+
+
+@node trapfilt
+@section trapfilt
+
+@findex trapfilt
+
+@example
+trapfilt [ -q | --quiet | --silent ] [ @var{vector}@dots{} ]
+@end example
+
+On the 68000, calls to Palm OS system API functions are compiled into a
+@code{trap} instruction followed by a @emph{trap vector}, which is a 16-bit
+number in a range starting at 0xA000.  The mapping between particular system
+functions and numeric trap vectors is given in the @file{CoreTraps.h} header
+in a Palm OS SDK (or @file{SysTraps.h} in older SDKs).
+
+A disassembly listing of a Palm OS program displays only the @code{trap}
+instructions and the raw trap vectors.  The @code{trapfilt} utility decodes
+trap vectors using the mapping given by the header from the default SDK
+selected with @code{palmdev-prep}.  Typically you use it in conjunction
+with a disassembly listing from @code{objdump}:
+
+@example
+m68k-palmos-objdump -d myapp | m68k-palmos-trapfilt
+@end example
+
+If any @var{vector} arguments are given, @code{trapfilt} decodes them and
+outputs the results on standard output.  Otherwise, when no such arguments
+are given, it acts as a filter: copying from standard input to standard
+output, annotating each line that matches the syntax of a trap vector
+(i.e., the syntax as printed by @code{objdump}) with the name of the
+corresponding system function, if any.
+
+@table @code
+@item -q
+@itemx --quiet
+@itemx --silent
+In non-filter mode, output only the system function name for each @var{vector}
+given.  The default output format in non-filter mode is similar to that used
+in filter mode.
+@end table
 
 
 @ignore

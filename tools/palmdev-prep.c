@@ -318,6 +318,71 @@ write_specs (FILE *f, const char *target, const struct root *default_sdk) {
   }
 
 
+/* Palm OS trap vectors (as expressed in CoreTraps.h) start at 0xa000 and
+   currently go up to about 0xa480.  So these limits are ample.  */
+
+#define TRAPNO_MIN  0xa000
+#define TRAPNO_MAX  0xafff
+
+void
+write_traps (FILE *f, char *s) {
+  char *slim;
+  const char *key, *trap[TRAPNO_MAX - TRAPNO_MIN + 1];
+  unsigned int i, value, value_min, value_max, n, maxkeylen;
+
+  for (i = TRAPNO_MIN; i <= TRAPNO_MAX; i++)
+    trap[i - TRAPNO_MIN] = NULL;
+
+  n = 0;
+  value_min = TRAPNO_MAX;
+  value_max = TRAPNO_MIN;
+  maxkeylen = 0;
+
+  /* Find occurences of "#<ws>define<ws>sysTrap<word><ws><number>".
+     Thus we're assuming that any comments occur *after* the <number>;
+     this is true of the existing SDK headers.  */
+
+  while ((s = strchr (s, '#')) != NULL) {
+    s++;
+    while (isspace (*s))  s++;
+    if (strncmp (s, "define", sizeof "define" - 1) != 0)
+      continue;
+
+    s += sizeof "define" - 1;
+    while (isspace (*s))  s++;
+    if (strncmp (s, "sysTrap", sizeof "sysTrap" - 1) != 0)
+      continue;
+
+    s += sizeof "sysTrap" - 1;
+
+    key = s;
+    while (! isspace (*s))  s++;
+    *s++ = '\0';
+
+    value = strtoul (s, &slim, 0);
+
+    if (strcmp (key, "Base") != 0 && strcmp (key, "LastTrapNumber") != 0
+	&& slim > s && value >= TRAPNO_MIN && value <= TRAPNO_MAX) {
+      trap[value - TRAPNO_MIN] = key;
+      n++;
+      if (value > value_max)  value_max = value;
+      if (value < value_min)  value_min = value;
+      if (maxkeylen < strlen (key))  maxkeylen = strlen (key);
+      }
+
+    s = slim;
+    }
+
+  fprintf (f,
+    "Total number of traps present, and minimum and maximum trap vectors:\n"
+    "* %u 0x%x 0x%x\n\n", n, value_min, value_max);
+
+  for (i = value_min; i <= value_max; i++)
+    if (trap[i - TRAPNO_MIN])
+      fprintf (f, "- %-*s  0x%x\n", maxkeylen, trap[i - TRAPNO_MIN], i);
+  }
+
+
 FILE *
 fopen_for_writing (const char *fname, const char **message) {
   FILE *f = fopen (fname, "w");
@@ -408,6 +473,8 @@ static struct option longopts[] = {
 
 int
 main (int argc, char **argv) {
+  static const char trapnumbers_fname[] = DATA_PREFIX"/trapnumbers";
+
   const char *default_sdk_name = NULL;
   const char *dump_target = NULL;
   int removing = 0, report = 1, verbose = 0;
@@ -460,6 +527,8 @@ main (int argc, char **argv) {
 
     while ((target = next_target (&dir)) != NULL)
       remove_file (verbose, specfilename (target));
+
+    remove_file (verbose, trapnumbers_fname);
     }
   else {
     struct root *default_sdk = NULL;
@@ -503,7 +572,7 @@ main (int argc, char **argv) {
       const char *message = "...done";
 
       if (report)
-	printf ("Writing SDK details to target specs files...\n");
+	printf ("Writing SDK details to configuration files...\n");
 
       for (ntargets = 0; (target = next_target (&dir)) != NULL; ntargets++) {
 	const char *fname = specfilename (target);
@@ -516,6 +585,39 @@ main (int argc, char **argv) {
 	  if (verbose)
 	    printf ("Wrote %s specs to '%s'\n", target, fname);
 	  }
+	}
+
+      if (default_sdk) {
+	TREE *tree = opentree (FILES, "%s/%s",
+			       default_sdk->prefix, default_sdk->sub[include]);
+	const char *header_fname;
+	remove_file (0, trapnumbers_fname);
+	while ((header_fname = readtree (tree)) != NULL) {
+	  const char *base = lbasename (header_fname);
+	  if (matches ("coretraps.h", base) || matches ("systraps.h", base)) {
+	    long header_size;
+	    char *header_text = slurp_file (header_fname, "r", &header_size);
+	    if (header_text) {
+	      FILE *f = fopen_for_writing (trapnumbers_fname, &message);
+	      if (f) {
+		fprintf (f, "Palm OS trap vectors from '%s'\n\n", header_fname);
+		write_traps (f, header_text);
+		fclose (f);
+
+		if (verbose)
+		  printf ("Parsed trap numbers in '%s'\n"
+			  "  and wrote them to '%s'\n",
+			  header_fname, trapnumbers_fname);
+		}
+
+	      free (header_text);
+	      }
+	    else
+	      warning ("can't open '%s': @P", header_fname);
+	    }
+	  }
+
+	closetree (tree);
 	}
 
       if (report)

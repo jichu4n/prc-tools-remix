@@ -20,6 +20,7 @@ LDFLAGS = @LDFLAGS@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
+datadir = @datadir@
 libdir = @libdir@
 m68k_target = @m68k_target@
 exeext = @EXEEXT@
@@ -42,17 +43,23 @@ ALL_CFLAGS = $(INCDIRS) $(CPPFLAGS) $(CFLAGS)
 ALL_CXXFLAGS = $(INCDIRS) $(CPPFLAGS) $(CXXFLAGS)
 ALL_LDFLAGS = $(LIBDIRS) $(LDFLAGS)
 
+DATADIR_DEFINE = -DDATA_PREFIX=\"$(datadir)/prc-tools\"
+
 UTILS_DEFINES = -DPRC_TOOLS_VERSION=\"@prc_tools_version@\"
 
 PALMDEV_PREP_DEFINES = \
-  -DSTANDARD_EXEC_PREFIX=\"$(libdir)/gcc-lib\" \
+  -DSTANDARD_EXEC_PREFIX=\"$(libdir)/gcc-lib\" $(DATADIR_DEFINE) \
   -DPALMDEV_PREFIX=\"@palmdev_prefix@\"
+
+TRAPFILT_DEFINES = $(DATADIR_DEFINE)
 
 
 PFD = libpfd.a
 
 GENERIC_PROGS = build-prc$(exeext) palmdev-prep$(exeext)
-M68K_PROGS = obj-res$(exeext) multigen$(exeext) stubgen$(exeext)
+
+M68K_PROGS = \
+	obj-res$(exeext) multigen$(exeext) stubgen$(exeext) trapfilt$(exeext)
 
 INSTALL_FILES = $(GENERIC_PROGS) $(M68K_PROGS)
 
@@ -100,6 +107,10 @@ palmdev_prep_objs = palmdev-prep.o utils.o dirutils.o
 palmdev-prep$(exeext): $(palmdev_prep_objs)
 	$(CC) $(ALL_LDFLAGS) -o $@ $(palmdev_prep_objs) -liberty
 
+trapfilt_objs = trapfilt.o utils.o
+trapfilt$(exeext): $(trapfilt_objs)
+	$(CC) $(ALL_LDFLAGS) -o $@ $(trapfilt_objs) -liberty
+
 build-prc.o: build-prc.cpp utils.h def.h binres.hpp \
 	     pfd.hpp pfdheader.h pfdio.hpp
 obj-res.o: obj-res.cpp binres.hpp pfd.hpp pfdheader.h utils.h
@@ -114,6 +125,9 @@ utils.o: utils.c utils.h
 
 palmdev-prep.o: palmdev-prep.c utils.h
 	$(CC) $(ALL_CFLAGS) $(PALMDEV_PREP_DEFINES) -c $(srcdir)/palmdev-prep.c
+
+trapfilt.o: trapfilt.c utils.h
+	$(CC) $(ALL_CFLAGS) $(TRAPFILT_DEFINES) -c $(srcdir)/trapfilt.c
 
 def.yy.o: def.yy.c def.tab.h utils.h pfdheader.h
 def.tab.o: def.tab.c utils.h def.h pfdheader.h
