@@ -19,7 +19,9 @@ LDFLAGS = @LDFLAGS@
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
+target = @target@
 target_alias = @target_alias@
+palmdev_prefix = @sharedstatedir@
 exeext = @EXEEXT@
 
 INSTALL = @INSTALL@
@@ -34,20 +36,43 @@ CXXLIBS = -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lm -lgcc -lc -lgcc
 BINUTILS_INCDIRS = -I$(srcdir)/../binutils/include -I../binutils/bfd
 BINUTILS_LIBDIRS = -L../binutils/bfd -L../binutils/libiberty
 
+EXTRA_CFLAGS = \
+  -DTARGET=\"$(target)\" \
+  -DTARGET_ALIAS=\"$(target_alias)\" \
+  -DEXEC_PREFIX=\"$(exec_prefix)\" \
+  -DPALMDEV_PREFIX=\"$(palmdev_prefix)\" \
+  -DEXEEXT=\"$(exeext)\"
+
 PFD = libpfd.a
 
-INSTALL_FILES = build-prc$(exeext) multigen$(exeext) stubgen$(exeext) \
-		obj-res$(exeext)
+GENERIC_PROGS = build-prc$(exeext)
+
+PREFIXED_PROGS = obj-res$(exeext) multigen$(exeext) stubgen$(exeext) \
+		 sdkfind$(exeext)
+
+INSTALL_FILES = $(GENERIC_PROGS) $(PREFIXED_PROGS)
 
 all: $(INSTALL_FILES)
 
 install: $(INSTALL_FILES)
 	$(INSTALL) -d $(exec_prefix)/bin
-	for f in $(INSTALL_FILES); do \
+	for f in $(GENERIC_PROGS); do \
 	  echo $${f}; \
-	  $(INSTALL) $${f} $(exec_prefix)/bin; \
+	  $(INSTALL) $${f} $(exec_prefix)/bin/$${f}; \
 	done
-	$(INSTALL) obj-res$(exeext) $(exec_prefix)/bin/$(target_alias)-obj-res$(exeext)
+	for f in $(PREFIXED_PROGS); do \
+	  echo $${f}; \
+	  $(INSTALL) $${f} $(exec_prefix)/bin/$(target_alias)-$${f}; \
+	done
+	# These ones shouldn't have been installed under the unprefixed
+	# names, but they were for a while.  We'll keep them a while longer
+	# for compatibility.
+	for f in obj-res$(exeext) multigen$(exeext) stubgen$(exeext); do \
+	  rm -f $(exec_prefix)/bin/$${f}; \
+	  (  (cd $(exec_prefix)/bin; ln $(target_alias)-$${f} $${f}) \
+	  || (cd $(exec_prefix)/bin; ln -s $(target_alias)-$${f} $${f}) \
+	  || $(INSTALL) $${f} $(exec_prefix)/bin/$${f}) >/dev/null 2>&1; \
+	done
 
 info:
 
@@ -56,7 +81,7 @@ install-info:
 .SUFFIXES: .cpp
 
 .c.o:
-	$(CC) $(CFLAGS) $(BINUTILS_INCDIRS) -I. -o $@ -c $<
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(BINUTILS_INCDIRS) -I. -o $@ -c $<
 # -I. is for def.tab.h when compiling def.yy.c below
 
 .cpp.o:
@@ -76,11 +101,17 @@ multigen$(exeext): multigen.o utils.o def.yy.o def.tab.o $(PFD)
 stubgen$(exeext): stubgen.o utils.o def.yy.o def.tab.o $(PFD)
 	$(CC) $(LDFLAGS) -o $@ $^ $(BINUTILS_LIBDIRS) -liberty -L. -lpfd
 
+sdkfind_objs = sdkfind.o utils.o
+sdkfind$(exeext): $(sdkfind_objs)
+	$(CC) $(LDFLAGS) -o sdkfind$(exeext) $(sdkfind_objs) \
+	$(BINUTILS_LIBDIRS) -liberty
+
 build-prc.o: build-prc.cpp utils.h def.h binres.hpp \
 	     pfd.hpp pfdheader.h pfdio.hpp
 obj-res.o: obj-res.cpp binres.hpp pfd.hpp pfdheader.h utils.h
 multigen.o: multigen.c multicode-s.str multicode-ld.str utils.h def.h
 stubgen.o: stubgen.c glib-jumps-s.str glib-stubs-c.str utils.h def.h
+sdkfind.o: sdkfind.c utils.h
 binres.o: binres.cpp binres.hpp pfd.hpp pfdheader.h pfdio.hpp utils.h
 utils.o: utils.c utils.h
 

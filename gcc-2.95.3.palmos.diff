@@ -40,7 +40,7 @@ diff -urN orig-gcc-2.95.3/configure.in gcc-2.95.3/configure.in
      # emacs is emacs 18, which does not work on Irix 5 (emacs19 does work)
 diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
 --- orig-gcc-2.95.3/gcc/Makefile.in	Thu Jan 25 06:02:58 2001
-+++ gcc-2.95.3/gcc/Makefile.in	Mon Mar 19 18:30:20 2001
++++ gcc-2.95.3/gcc/Makefile.in	Tue Mar 20 17:03:50 2001
 @@ -110,6 +110,8 @@
  	then echo $(objdir)/../texinfo/makeinfo/makeinfo ; \
  	else echo makeinfo ; fi`
@@ -68,12 +68,8 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
      fi; \
    fi`
  RANLIB_TEST_FOR_TARGET = \
-@@ -287,8 +289,12 @@
- # assertdir is overridden in cross-make.
- # (But this currently agrees with what is in cross-make.)
+@@ -289,6 +291,8 @@
  assertdir = $(gcc_tooldir)/include
-+# where the modifiable architecture-independent files go
-+sharedstatedir = @sharedstatedir@
  # where the info files go
  infodir = @infodir@
 +# where the html doc files go
@@ -81,7 +77,7 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
  # Where cpp should go besides $prefix/bin if necessary
  cpp_install_dir = @cpp_install_dir@
  # where the locale files go
-@@ -485,6 +491,7 @@
+@@ -485,6 +489,7 @@
  
  # Actual name to use when installing a cross-compiler.
  GCC_CROSS_NAME = `t='$(program_transform_cross_name)'; echo gcc | sed -e $$t`
@@ -89,7 +85,7 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
  PROTOIZE_CROSS_NAME = `t='$(program_transform_cross_name)'; echo protoize | sed -e $$t`
  UNPROTOIZE_CROSS_NAME = `t='$(program_transform_cross_name)'; echo unprotoize | sed -e $$t`
  
-@@ -770,7 +777,7 @@
+@@ -770,7 +775,7 @@
  # The following targets define the interface between us and the languages.
  #
  # all.build, all.cross, start.encap, rest.encap,
@@ -98,16 +94,7 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
  # install-normal, install-common, install-info, install-man,
  # uninstall, distdir,
  # mostlyclean, clean, distclean, extraclean, maintainer-clean,
-@@ -1408,6 +1415,8 @@
- # Language-independent files.
- 
- DRIVER_DEFINES = \
-+  -DPALMDEV_PREFIX=\"$(sharedstatedir)/\" \
-+  -DFULL_TARGET_MACHINE=\"$(target)\" \
-   -DSTANDARD_STARTFILE_PREFIX=\"$(libdir)/\" \
-   -DSTANDARD_EXEC_PREFIX=\"$(libdir)/gcc-lib/\" \
-   -DDEFAULT_TARGET_VERSION=\"$(version)\" \
-@@ -2291,6 +2300,17 @@
+@@ -2291,6 +2296,17 @@
  	texindex cpp.??
  	TEXINPUTS=${texidir}:$(srcdir):$$TEXINPUTS tex cpp.texi
  
@@ -125,7 +112,7 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
  
  INSTALL: $(srcdir)/install1.texi $(srcdir)/install.texi
  	cd $(srcdir); $(MAKEINFO) -D INSTALLONLY \
-@@ -2357,6 +2377,8 @@
+@@ -2357,6 +2373,8 @@
  	-rm -f libgcc1.null
  	-rm -f *.dvi
  	-rm -f */*.dvi
@@ -134,7 +121,7 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
  	-if [ -f md.pre-cpp ]; then \
  	  rm -f md ; \
  	fi
-@@ -2450,17 +2472,28 @@
+@@ -2450,17 +2468,28 @@
  
  # Handle cpp installation.
  install-cpp: cpp$(exeext)
@@ -171,7 +158,7 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
  	else true; fi
  
  # Install float.h for cross compiler.
-@@ -2492,6 +2525,7 @@
+@@ -2492,6 +2521,7 @@
  	-if [ -d $(gcc_tooldir) ] ; then true ; else mkdir $(gcc_tooldir) ; chmod a+rx $(gcc_tooldir) ; fi
  	-if [ -d $(assertdir) ] ; then true ; else mkdir $(assertdir) ; chmod a+rx $(assertdir) ; fi
  	-if [ -d $(infodir) ] ; then true ; else mkdir $(infodir) ; chmod a+rx $(infodir) ; fi
@@ -179,7 +166,7 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
  # We don't use mkdir -p to create the parents of man1dir,
  # because some systems don't support it.
  # Instead, we use this technique to create the immediate parent of man1dir.
-@@ -2589,6 +2623,14 @@
+@@ -2589,6 +2619,14 @@
  	else true; fi;
  	-chmod a-x $(infodir)/cpp.info* $(infodir)/gcc.info*
  
@@ -194,7 +181,7 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
  # Install the man pages.
  install-man: installdirs $(srcdir)/gcc.1 $(srcdir)/cccp.1 lang.install-man
  	-if [ -f gcc-cross$(exeext) ] ; then \
-@@ -2715,6 +2757,7 @@
+@@ -2715,6 +2753,7 @@
  	-rm -rf $(man1dir)/protoize$(manext)
  	-rm -rf $(man1dir)/unprotoize$(manext)
  	-rm -f $(infodir)/cpp.info* $(infodir)/gcc.info*
@@ -202,7 +189,7 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
  #
  # These targets are for the dejagnu testsuites. The file site.exp 
  # contains global variables that all the testsuites will use.
-@@ -2929,8 +2972,8 @@
+@@ -2929,8 +2968,8 @@
  	diff -rc2P -x c-parse.y -x c-parse.c -x c-parse.h -x c-gperf.h \
  	  -x cexp.c -x -x TAGS -x INSTALL \
  	  -x configure -x config.in \
@@ -4959,8 +4946,8 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68k.md gcc-2.95.3/gcc/config/m68k/m68
  ;; This is the first machine-dependent peephole optimization.
 diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h gcc-2.95.3/gcc/config/m68k/m68kpalmos.h
 --- orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Wed Dec 31 16:00:00 1969
-+++ gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Mon Mar 19 18:11:44 2001
-@@ -0,0 +1,345 @@
++++ gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Tue Mar 20 17:00:17 2001
+@@ -0,0 +1,313 @@
 +/* Definitions of target machine for GNU compiler.  "naked" 68020,
 +   COFF object files and debugging, version.
 +   Copyright (C) 1994 Free Software Foundation, Inc.
@@ -5142,8 +5129,6 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h gcc-2.95.3/gcc/config/m68
 +
 +#undef LINK_SPEC
 +#define LINK_SPEC "\
-+-L%(palmdev_prefix)lib/%(full_target_machine) \
-+-L%(palmdev_prefix)%(palm_sdk)/lib/%(full_target_machine) \
 +--embedded-relocs -N %{!static:-dy} %{!T:-T pilot.ld%s}"
 +
 +#undef STARTFILE_SPEC
@@ -5158,37 +5143,7 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h gcc-2.95.3/gcc/config/m68
 +
 +#undef CPP_SUBTARGET_SPEC
 +#define CPP_SUBTARGET_SPEC "\
-+%(palmdev_includes) %(palmdev_sdk_includes) -remap \
 +%{mown-gp:-D__OWNGP__ }%{mextralogues:-D__EXTRALOGUES__ }"
-+
-+/* Alas, "sdk%{palmos*:-%*}" doesn't work, because you end up with a space:
-+   ".../sdk%{palmos*:-%*}/include" -palmos3.5 -> ".../sdk-3.5 /include".  */
-+
-+#define PALM_SDK "\
-+sdk%{palmos1*:-1}%{palmos2*:-2}\
-+%{palmos3:-3}%{palmos3.0:-3}%{palmos3.1:-3.1}%{palmos3.5:-3.5}"
-+
-+/* Add Palm OS related but not Palm SDK related header directories here.  */
-+
-+#define PALMDEV_INCLUDES "\
-+-isystem %(palmdev_prefix)include"
-+
-+
-+#define PALMDEV_SDK_INCLUDES "\
-+-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/System \
-+-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/UI \
-+-isystem %(palmdev_prefix)%(palm_sdk)/include \
-+-isystem %(palmdev_prefix)%(palm_sdk)/include/Core \
-+-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/Hardware \
-+-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/System/Unix"
-+
-+#undef SUBTARGET_EXTRA_SPECS
-+#define SUBTARGET_EXTRA_SPECS						\
-+  { "palmdev_prefix", PALMDEV_PREFIX },					\
-+  { "full_target_machine", FULL_TARGET_MACHINE },			\
-+  { "palmdev_includes", PALMDEV_INCLUDES },				\
-+  { "palmdev_sdk_includes", PALMDEV_SDK_INCLUDES },			\
-+  { "palm_sdk", PALM_SDK },
 +
 +extern int palmos_valid_machine_decl_attribute ();
 +#define VALID_MACHINE_DECL_ATTRIBUTE(DECL, ATTRIBUTES, ID, ARGS)	\
