@@ -17,7 +17,7 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 palmdev_prefix = @sharedstatedir@
 infodir = @infodir@
-htmldir = $(palmdev_prefix)/doc/texi
+htmldir = $(palmdev_prefix)/doc
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -25,7 +25,15 @@ INSTALL_DATA = @INSTALL_DATA@
 MAKEINFO = makeinfo
 MAKEINFOFLAGS =
 
+# Use `chapter' to override to split by chapter
 SPLITTYPE = node
+# Use `' for these two to override and put all the info_*.html files in
+# the same directory as index.html
+TEXI_SUFFIX = /texi
+TEXI_PREFIX = texi/
+# Override index.html's framework
+INDEX_HTML_IN = $(srcdir)/index.html.in
+
 MAKEHTML = texi2html
 MAKEHTMLFLAGS = -DUSERMANUALONLY -glossary -menu -split_$(SPLITTYPE)
 
@@ -52,36 +60,32 @@ install-info: info
 
 html: index.html texidocs-list
 
-install-html: install-html-index install-html-docs
-
-install-html-index: index.html
+install-html: html
 	$(INSTALL) -d $(htmldir)
-	$(INSTALL_DATA) index.html $(palmdev_prefix)/doc
-
-install-html-docs: texidocs-list
-	$(INSTALL) -d $(htmldir)
+	$(INSTALL_DATA) index.html $(htmldir)/index.html
+	$(INSTALL) -d $(htmldir)$(TEXI_SUFFIX)
 	for file in `cat texidocs-list`; do \
 	  d=`echo $${file} | sed -e 's:/[^/]*$$::'`; \
 	  pkg=`echo $${file} | sed -e 's:^.*/::' -e 's:_.*$$::'`; \
 	  echo $${pkg}; \
-	  rm -f $(htmldir)/$${pkg}[_.]*html; \
+	  rm -f $(htmldir)$(TEXI_SUFFIX)/$${pkg}[_.]*html; \
 	  for f in `cd $${d} && echo $${pkg}[_.]*html`; do \
-	    $(INSTALL_DATA) $${d}/$${f} $(htmldir); \
+	    $(INSTALL_DATA) $${d}/$${f} $(htmldir)$(TEXI_SUFFIX)/$${f}; \
 	  done; \
 	done
 
 
-index.html: index.html.in texidocs-list
-	(sed -n -e '1,/@texidocs@/p' $(srcdir)/index.html.in; \
+index.html: $(INDEX_HTML_IN) texidocs-list
+	(sed -n -e '1,/@texidocs@/p' $(INDEX_HTML_IN); \
 	 for file in `cat texidocs-list`; do \
 	   pkg=`echo $${file} | sed -e 's:^.*/::' -e 's:_.*$$::'`; \
 	   title=`grep '<[hH]1>' $${file} | sed -e 's/<[/hH1]*>//g'`; \
 	   echo "<tr>"; \
-	   echo "<td><b><a href=\"texi/$${pkg}_toc.html\">$${pkg}</a></b></td>"; \
+	   echo "<td><b><a href=\"$(TEXI_PREFIX)$${pkg}_toc.html\">$${pkg}</a></b></td>"; \
 	   echo "<td>$${title}</td>"; \
 	   echo "</tr>"; \
 	 done; \
-	 sed -n -e '/@texidocs@/,$$p' $(srcdir)/index.html.in) | \
+	 sed -n -e '/@texidocs@/,$$p' $(INDEX_HTML_IN)) | \
 	sed -e '/@texidocs@/d' > index.html
 
 
