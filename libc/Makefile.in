@@ -37,7 +37,7 @@ CFLAGS = -Wall -O2 -fno-builtin -DPRINT_FLOATS \
   -I$(srcdir)/include -I$(srcdir)/../include $(SDKFLAGS) $(MULTIFLAGS)
 
 INCDIR = $(srcdir)/include
-INSTALL_HFILES = $(INCDIR)/ctype.h $(INCDIR)/errno.h $(INCDIR)/malloc.h \
+INSTALL_HFILES = $(INCDIR)/errno.h $(INCDIR)/malloc.h \
 		 $(INCDIR)/setjmp.h $(INCDIR)/stdio.h $(INCDIR)/string.h \
 		 $(INCDIR)/sys/types.h
 
@@ -47,7 +47,7 @@ INSTALL_HEADERS_m68k = stdlib.h
 INSTALL_LIBS_m68k    = libc.a mown-gp/libc.a libg.a mown-gp/libg.a libstdc++.a
 
 LIBC_OBJS_m68k = \
-	conio.o vsprintf.o printf.o ctype.o setjmp.o \
+	conio.o vsprintf.o printf.o setjmp.o \
 	bcopy.o memmove.o strchr.o strncat.o strspn.o \
 	memscan.o strcmp.o strncmp.o strstr.o \
 	memset.o strcpy.o strncpy.o strtok.o \
