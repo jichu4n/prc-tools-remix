@@ -1,6 +1,6 @@
 /* pfdheader.c: simple database header utility functions.
 
-   Copyright (c) 1999 Palm Computing, Inc. or its subsidiaries.
+   Copyright (c) 1999, 2001 Palm Computing, Inc. or its subsidiaries.
    All rights reserved.
 
    This is free software; you can redistribute it and/or modify
@@ -22,6 +22,7 @@ init_database_header (struct database_header *h) {
   h->ok_to_install_newer = h->reset_after_install = 0;
   h->copy_prevention = h->stream = 0;
   h->hidden = h->launchable_data = 0;
+  h->recyclable = h->bundle = 0;
 
   h->version = h->modnum = h->uidseed = 0;
 

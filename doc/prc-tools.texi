@@ -904,6 +904,8 @@ and may be followed by any number of the following, in any order:
 @itemx stream
 @itemx hidden
 @itemx launchable-data
+@itemx recyclable
+@itemx bundle
 Set the corresponding database header attribute, adding to any attributes
 specified as options to build-prc.  These may also be spelt with the
 hyphens replaced by underscores or omitted altogether (@samp{readonly},

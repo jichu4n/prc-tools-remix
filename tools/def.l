@@ -161,6 +161,8 @@ copy{_}prevention	return COPY_PREVENTION;
 stream			return STREAM;
 hidden			return HIDDEN;
 launchable{_}data	return LAUNCHABLE_DATA;
+recyclable		return RECYCLABLE;
+bundle			return BUNDLE;
 
 	/* Other words ("identifiers", but for us they're unquoted strings): */
 

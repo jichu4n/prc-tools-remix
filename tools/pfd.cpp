@@ -1,6 +1,6 @@
 /* pfd.cpp: read/write PRC and PDB files.
 
-   Copyright (c) 1999 Palm Computing, Inc. or its subsidiaries.
+   Copyright (c) 1999, 2001 Palm Computing, Inc. or its subsidiaries.
    All rights reserved.
 
    This is free software; you can redistribute it and/or modify
@@ -90,6 +90,8 @@ static const unsigned int copy_prevention_mask	   = 0x0040;
 static const unsigned int stream_mask		   = 0x0080;
 static const unsigned int hidden_mask		   = 0x0100;
 static const unsigned int launchable_data_mask	   = 0x0200;
+static const unsigned int recyclable_mask	   = 0x0400;
+static const unsigned int bundle_mask		   = 0x0800;
 
 // We consider a database header to include everything up to the "next
 // directory offset" (which is always 0), but not the entry count, which
@@ -144,6 +146,8 @@ PalmOSDatabase::read_header (const Datablock& block, long info, long infolim) {
   stream		= (attributes & stream_mask) != 0;
   hidden		= (attributes & hidden_mask) != 0;
   launchable_data	= (attributes & launchable_data_mask) != 0;
+  recyclable		= (attributes & recyclable_mask) != 0;
+  bundle		= (attributes & bundle_mask) != 0;
 
   version = get_word (s);
   tm_of_palmostime (&created, get_long (s));
@@ -197,6 +201,8 @@ PalmOSDatabase::write (FILE* f) const {
   if (stream)			attributes |= stream_mask;
   if (hidden)			attributes |= hidden_mask;
   if (launchable_data)		attributes |= launchable_data_mask;
+  if (recyclable)		attributes |= recyclable_mask;
+  if (bundle)			attributes |= bundle_mask;
 
   unsigned char header[header_size];
   unsigned char* s = header;

@@ -17,7 +17,7 @@ struct database_header {
 
   int readonly, appinfo_dirty, backup, ok_to_install_newer,
       reset_after_install, copy_prevention, stream, hidden,
-      launchable_data;
+      launchable_data, recyclable, bundle;
 
   /* These really are unsigned longs, though uidseed must be < 2^24.  */
 

@@ -68,7 +68,7 @@ static unsigned long lookup_trapno (const char *name);
 %token	MULTIPLE CODE DATA TRAP EXPORT STACK
 %token	VERSION MODNO
 %token	READONLY APPINFO_DIRTY BACKUP OK_TO_INSTALL_NEWER RESET_AFTER_INSTALL
-%token	COPY_PREVENTION STREAM HIDDEN LAUNCHABLE_DATA
+%token	COPY_PREVENTION STREAM HIDDEN LAUNCHABLE_DATA RECYCLABLE BUNDLE
 
 %token	<uint>	UINT
 %token	<str>	STR FNAME
@@ -124,6 +124,8 @@ header_item:
 	| STREAM		{ db.stream = 1; }
 	| HIDDEN		{ db.hidden = 1; }
 	| LAUNCHABLE_DATA	{ db.launchable_data = 1; }
+	| RECYCLABLE		{ db.recyclable = 1; }
+	| BUNDLE		{ db.bundle = 1; }
 	| DATA			{ call->data (1); }
 	| STACK '=' UINT	{ call->stack ($3); }
 	;

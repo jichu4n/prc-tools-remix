@@ -76,7 +76,9 @@ and may specify 'f=#' to renumber and 'f(type[#[-#]][,...])' to select\n"); */
 	 NULL);
   propt ("--reset-after-install, --copyprevention, --copy-prevention,", NULL);
 
-  propt ("--stream, --hidden, --launchabledata, --launchable-data",
+  propt ("--stream, --hidden, --launchabledata, --launchable-data,",
+	 NULL);
+  propt ("--recyclable, --bundle",
 	 "Set database attributes");
   propt ("-z N, --compress-data N",
 	 "Set data resource compression method (0--2)");
@@ -93,6 +95,8 @@ enum {
   OPTION_STREAM,
   OPTION_HIDDEN,
   OPTION_LAUNCHABLE_DATA,
+  OPTION_RECYCLABLE,
+  OPTION_BUNDLE,
   OPTION_HELP,
   OPTION_VERSION
   };
@@ -126,6 +130,8 @@ static struct option longopts[] = {
   { "hidden", no_argument, NULL, OPTION_HIDDEN },
   { "launchabledata", no_argument, NULL, OPTION_LAUNCHABLE_DATA },
   { "launchable-data", no_argument, NULL, OPTION_LAUNCHABLE_DATA },
+  { "recyclable", no_argument, NULL, OPTION_RECYCLABLE },
+  { "bundle", no_argument, NULL, OPTION_BUNDLE },
 
   { "help", no_argument, NULL, OPTION_HELP },
   { "version", no_argument, NULL, OPTION_VERSION },
@@ -302,6 +308,10 @@ db_header (database_kind kind, const struct database_header* h) {
     db.hidden = h->hidden;
   if (superior (db.launchable_data, def_default_pri))
     db.launchable_data = h->launchable_data;
+  if (superior (db.recyclable, def_default_pri))
+    db.recyclable = h->recyclable;
+  if (superior (db.bundle, def_default_pri))
+    db.bundle = h->bundle;
 
   if (superior (db.version, def_default_pri))
     db.version = h->version;
@@ -460,6 +470,14 @@ main (int argc, char** argv) {
 
     case OPTION_LAUNCHABLE_DATA:
       if (superior (db.launchable_data, option_pri))  db.launchable_data = true;
+      break;
+
+    case OPTION_RECYCLABLE:
+      if (superior (db.recyclable, option_pri))  db.recyclable = true;
+      break;
+
+    case OPTION_BUNDLE:
+      if (superior (db.bundle, option_pri))  db.bundle = true;
       break;
 
     case OPTION_HELP:
