@@ -134,15 +134,18 @@ install-palmdev:
 
 distdir = prc-tools-@prc_tools_version@
 
-distfoo:
+$(srcdir)/configure: $(srcdir)/configure.in
+	@echo dist error: configure is older than configure.in && exit 1
+
+dist: $(srcdir)/configure
 	-rm -rf $(distdir)
 	mkdir $(distdir)
 	-chmod 777 $(distdir)
 	(cd $(srcdir) \
 	 && ls | grep -v $(distdir) | egrep -v '(binutils|gcc|gdb|make)$$' \
-	 | egrep -v '(test|dist)$$' \
 	 | tar cf - -T -) \
 	| (cd $(distdir) && tar xf -)
+	-find $(distdir) -name CVS -print | sed 's/^/rm -rf /' | $(SHELL)
 	-chmod -R a+rw $(distdir)
 	-rm -f $(distdir).tar $(distdir).tar.gz
 	tar cf $(distdir).tar $(distdir)
