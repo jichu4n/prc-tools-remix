@@ -29,6 +29,15 @@ static int skip_atoi(const char **s)
 	return i;
 }
 
+static size_t strnlen(const char * s, size_t count)
+{
+  const char *sc;
+  
+  for (sc = s; count-- && *sc != '\0'; ++sc)
+    /* nothing */;
+  return sc - s;
+}
+
 #define ZEROPAD	1		/* pad with zero */
 #define SIGN	2		/* unsigned/signed long */
 #define PLUS	4		/* show plus */
