@@ -23,40 +23,73 @@ tooldir = $(exec_prefix)/$(target_alias)
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
+LN_S = @LN_S@
 
 host_subdirs = $(configured_subdirs) doc tools
 target_subdirs = crt libc libm include
 
-# This target will only work if you are willing to do all your building as
-# a user who can write to your install directory, i.e., if you build as root
-# or if you're on an unprotected file system like Windows.
+# FIXME: Do we need more stamping or something to be -j friendly?
+all: all-host all-gcc all-target
 
-all-install: all-host install-host all-gcc install-gcc install-wrappers \
-             all-target install-target
+BUILT_AS = binutils/gas/as-new$(exeext)
+BUILT_LD = binutils/ld/ld-new$(exeext)
+BUILT_AR = binutils/binutils/ar$(exeext)
+BUILT_RANLIB = binutils/binutils/ranlib$(exeext)
+BUILT_GCC = gcc/gcc/xgcc$(exeext)
+
+minitooldir = $(target_alias)
 
 all-host:
+	-rm -rf $(minitooldir)
 	for dir in `echo $(host_subdirs) | sed -e 's/gcc//' -e 's/make//'`; do \
 	  if [ -f ./$${dir}/Makefile ]; then \
 	    if (cd $${dir} && $(MAKE) all info); then true; else exit 1; fi; \
 	  fi; \
 	done
+	if [ -f ./binutils/Makefile ]; then \
+	  mkdir $(minitooldir) && mkdir $(minitooldir)/bin; \
+	  cd $(minitooldir)/bin; \
+	  [ -x ../../$(BUILT_AS) ] && $(LN_S) ../../$(BUILT_AS) as$(exeext); \
+	  [ -x ../../$(BUILT_LD) ] && $(LN_S) ../../$(BUILT_LD) ld$(exeext); \
+	fi
 
 all-gcc:
+	r=`pwd`; \
+	ar1="XFOO="; ranlib1="XFOO="; bt1="XFOO="; \
+	[ -x ./$(BUILT_AR) ] && ar1="AR_FOR_TARGET=$$r/$(BUILT_AR)"; \
+	[ -x ./$(BUILT_RANLIB) ] \
+	    && ranlib1="RANLIB_FOR_TARGET=$$r/$(BUILT_RANLIB)"; \
+	[ -d ./$(minitooldir) ] && bt1="build_tooldir=$$r/$(minitooldir)"; \
 	if [ -f ./gcc/Makefile ]; then \
-	  if (cd gcc && $(MAKE)); then true; else exit 1; fi; \
+	  if (cd gcc; $(MAKE) "$${ar1}" "$${ranlib1}" "$${bt1}" all); \
+	      then true; else exit 1; fi; \
 	fi
 
 all-target:
+	r=`pwd`; \
+	ar1="XFOO="; ranlib1="XFOO="; cc1="XFOO="; \
+	[ -x ./$(BUILT_AR) ] && ar1="AR=$$r/$(BUILT_AR)"; \
+	[ -x ./$(BUILT_RANLIB) ] && ranlib1="RANLIB=$$r/$(BUILT_RANLIB)"; \
+	if [ -x ./$(BUILT_GCC) ]; then \
+	  cc1="CC=$$r/$(BUILT_GCC) -B$$r/gcc/gcc/"; \
+	  [ -d ./$(minitooldir) ] && cc1="$${cc1} -B$$r/$(minitooldir)/bin/"; \
+	fi; \
 	for dir in $(target_subdirs); do \
 	  if [ -f ./$${dir}/Makefile ]; then \
-	    if (cd $${dir} && $(MAKE) all); then true; else exit 1; fi; \
+	    if (cd $${dir}; $(MAKE) "$${ar1}" "$${ranlib1}" "$${cc1}" all); \
+	        then true; else exit 1; fi; \
 	  fi; \
 	done
 
+# FIXME: delenda est install-wrappers!!
+install: install-host install-gcc install-target install-wrappers
+
+# FIXME: these three want unifying too -- will fix install properly soon
+# FIXME: install-info removed until this is fixed properly
 install-host:
 	for dir in `echo $(host_subdirs) | sed -e 's/gcc//' -e 's/make//'`; do \
 	  if [ -f ./$${dir}/Makefile ]; then \
-	    if (cd $${dir} && $(MAKE) install install-info); then true; else exit 1; fi; \
+	    if (cd $${dir} && $(MAKE) install); then true; else exit 1; fi; \
 	  fi; \
 	done
 
@@ -77,7 +110,7 @@ DRIVER_PROGS = cpp$(exeext) gcc$(exeext) g++$(exeext) c++$(exeext)
 
 install-wrappers:
 	$(INSTALL) -d $(tooldir)/real-bin
-	if $(target_alias)-gcc -print-search-dirs | grep ^palmdev: >/dev/null; \
+	if $(bindir)/$(target_alias)-gcc -print-search-dirs | grep ^palmdev: >/dev/null; \
 	then \
 	  echo "**"; \
 	  echo "** $(target_alias)-<driver> wrappers already installed"; \
@@ -123,6 +156,7 @@ clean:
 	    if (cd $${dir} && $(MAKE) clean); then true; else exit 1; fi; \
 	  fi; \
 	done
+	-rm -rf $(minitooldir)
 
 
 distdir = prc-tools-@prc_tools_version@

@@ -230,41 +230,41 @@ directories are searched.
 
 <h2>Building and installing</h2>
 
-If you're using an unprotected file system like Windows, or if you are
-willing to do all your building as a user who can write to your install
-directory (i.e., root), you can build and install in one fell swoop:
+You can build and install prc-tools just as you would any other package:
 <blockquote><pre>
-~/build# make all-install
+~/build$ make
+~/build$ make install
 </pre></blockquote>
 
-<p>
-Otherwise, you'll need to make each of the dependencies of
-<code>all-install</code> explicitly, since the various builds and installs
-are interleaved:
-<blockquote><pre>
-~/build$ make all-host
-~/build$ su
-~/build# make install-host
-~/build# ^D
-~/build$ make all-gcc
-~/build$ su
-~/build# make install-gcc
-~/build# make install-wrappers
-~/build# ^D
-~/build$ make all-target
-~/build$ su
-~/build# make install-target
-</pre></blockquote>
-(This is less ridiculous if you happen to be building only <em>part</em> of
-the tool chain!)
+You may need to change user (e.g. to <b>root</b>) if you are installing to
+directories to which your usual user doesn't have write access.
 
 <p>
-The multistage process is needed because GCC requires binutils to be installed
-before it can be built (or we could use the
-<a href="http://www.objsw.com/CrossGCC/FAQ-4.html#ss4.2">unified binutils/gcc
-tree</a> trick, but that would cause other problems for us); and in turn
-the run-time support code such as that in the <code>crt</code> subdirectory
-needs GCC to be installed before it can be built.
+In the past, building prc-tools was a tedious multistage process of
+<ul>
+<li> building and installing binutils;
+<li> building and installing GCC;
+<li> building the Palm OS runtime code.
+</ul>
+This multistage process was needed because GCC required an installed Palm OS
+binutils before it could be built, and in turn the run-time support code
+(such as that in the <code>crt</code>) subdirectory needed both binutils
+and GCC to be installed before it could be built.
+
+<p>
+The top-level prc-tools Makefile now tells the GCC build process to use an
+uninstalled binutils from <code>~/build/binutils</code>, and tells the target
+run-time build process to use an uninstalled GCC from <code>~/build/gcc</code>
+and the same uninstalled binutils.  Thus later stages of the build use the
+tools you have just built from the places in which you have built them,
+instead of requiring the previous intertwined build/install process.
+
+<p>
+If you use one of the lower level makefiles directly, or if you have omitted
+the <code>binutils</code> or <code>gcc</code> directories from your source
+tree, the build processes will fall back to using the respective installed
+utilities from your <code>PATH</code>.  The build will fail unless you have
+previously installed such utilities.
 
 <p>
 There are further details in the GCC distribution's

@@ -30,6 +30,8 @@ MAKEHTMLFLAGS = -D USERMANUALONLY -split node
 
 all: prc-tools.info
 
+info:
+
 install: all
 	$(INSTALL) -d $(infodir)
 	rm -f $(infodir)/prc-tools.info*
