@@ -26,7 +26,7 @@
 
 
 const char *progname = "sdkfind";
-const char progversion[] = "1.0";
+const char progversion[] = "1.1";
 
 
 char **args = NULL, **arglim = NULL, **argmax = NULL;
@@ -96,34 +96,48 @@ add_tree (void (*addf) (const char *), const char *dirname) {
 
 void
 add_trees (const char *sdk_version) {
-  char sdk[FILENAME_MAX];
-  char path[FILENAME_MAX];
-
-  int broken_sdk = 0;
+  char sdk[FILENAME_MAX], path[FILENAME_MAX];
+  char palmdev_path[] = PALMDEV_PATH;
+  char *key, *prefix, *winning_prefix;
 
   sprintf (sdk, "sdk%s%s",
 	   (*sdk_version && *sdk_version != '-')? "-" : "", sdk_version);
 
-  sprintf (path, "%s/include", PALMDEV_PREFIX);
-  add_tree (add_isystem, path);
+  winning_prefix = NULL;
 
-  sprintf (path, "%s/%s/include", PALMDEV_PREFIX, sdk);
-  if (!add_tree (add_isystem, path))
-    broken_sdk = 1;
+  for (key = palmdev_path; (prefix = strtok (key, ":")) != NULL; key = NULL) {
+    sprintf (path, "%s/include", prefix);
+    add_tree (add_isystem, path);
 
-  sprintf (path, "%s/lib/%s", PALMDEV_PREFIX, TARGET);
-  add_tree (add_L, path);
+    sprintf (path, "%s/lib/%s", prefix, TARGET);
+    add_tree (add_L, path);
 
-  sprintf (path, "%s/%s/lib/%s", PALMDEV_PREFIX, sdk, TARGET);
-  /* We would update BROKEN_SDK here too, except that pre-3.5 SDKs didn't
-     have lib directories.  */
-  add_tree (add_L, path);
+    if (winning_prefix == NULL) {
+      sprintf (path, "%s/%s", prefix, sdk);
+      if (is_dir (path))
+	winning_prefix = prefix;
+      }
+    }
 
-  sprintf (path, "%s/%s", PALMDEV_PREFIX, sdk);
-  if (!is_dir (path))
-    einfo (E_NOFILE|E_WARNING, "%s does not exist", path);
-  else if (broken_sdk)
-    einfo (E_NOFILE|E_WARNING, "%s does not contain an sdk", path);
+  if (winning_prefix) {
+    int broken_sdk = 0;
+    
+    sprintf (path, "%s/%s/include", winning_prefix, sdk);
+    if (!add_tree (add_isystem, path))
+      broken_sdk = 1;
+
+    sprintf (path, "%s/%s/lib/%s", winning_prefix, sdk, TARGET);
+    /* We would update BROKEN_SDK here too, except that pre-3.5 SDKs didn't
+       have lib directories.  */
+    add_tree (add_L, path);
+
+    if (broken_sdk) {
+      sprintf (path, "%s/%s", winning_prefix, sdk);
+      einfo (E_NOFILE|E_WARNING, "%s does not contain an sdk", path);
+      }
+    }
+  else
+    einfo (E_NOFILE|E_WARNING, "%s not found in %s", sdk, PALMDEV_PATH);
   }
 
 
@@ -179,8 +193,17 @@ main (int argc, char **argv) {
 
   add (NULL);
 
-  if (print_search_dirs_seen)
-    printf ("palmdev: %s/\n", PALMDEV_PREFIX);
+  if (print_search_dirs_seen) {
+    char palmdev_path[] = PALMDEV_PATH;
+    char *key, *prefix;
+
+    /* Print the path entries with a trailing /, the same format as the
+       output of  gcc -print-search-dirs .  */
+    printf ("palmdev:");
+    for (key = palmdev_path; (prefix = strtok (key, ":")) != NULL; key = NULL)
+      printf ("%c%s/", key? ' ' : ':', prefix);
+    printf ("\n");
+    }
 
   if (strcmp (subcmd, progname) == 0)
     dump (stdout, args + 1);
