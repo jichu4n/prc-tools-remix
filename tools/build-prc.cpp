@@ -1,7 +1,7 @@
 /* build-prc.cpp: build a .prc from a pile of files.
 
-   Copyright (c) 1998-2001 Palm Computing, Inc. or its subsidiaries.
-   All rights reserved.
+   Copyright 2002 John Marshall.
+   Portions copyright 1998-2001 Palm, Inc. or its subsidiaries.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,18 +45,14 @@
 #include "pfdio.hpp"
 
 void
-usage() {
-  printf ("\
-Usage: Old-style: %s [options] outfile.prc 'App Name' apid file...\n",
-	  progname);
-  printf ("       New-style: %s [options] file...\n", progname);
-  // Commented out options are intended but not yet implemented
-  printf ("\
-Files may be .bin/.grc, .prc/.ro, .def (new-style only), or linked executables\n");
-  /* printf ("\
-Files may be .bin, .grc, .prc, .def (new-style only), or linked executables,\n\
-and may specify 'f=#' to renumber and 'f(type[#[-#]][,...])' to select\n"); */
+usage () {
+  printf ("Usage: Old-style: %s [options] outfile.prc dbname crid file...\n"
+	  "       New-style: %s [options] file...\n", progname, progname);
 
+  printf ("Files may be .bin/.grc, .prc/.ro, "
+	  ".def (new-style only), or linked executables\n");
+
+  // Commented out options are intended but not yet implemented
   printf ("Options:\n");
   propt ("-o FILE, --output FILE",
 	 "Set output .prc file name (new-style only)");
@@ -80,7 +76,7 @@ and may specify 'f=#' to renumber and 'f(type[#[-#]][,...])' to select\n"); */
   propt ("--recyclable, --bundle",
 	 "Set database attributes");
   propt ("-z N, --compress-data N",
-	 "Set data resource compression method (0--2)");
+	 "Set data resource compression method (0--7)");
   // propt ("-x, --provenance", "Output resource cross-reference");
   }
 
