@@ -95,7 +95,7 @@ static const unsigned int launchable_data_mask	   = 0x0200;
 // directory offset" (which is always 0), but not the entry count, which
 // is more usefully considered part of the directory.
 
-static const long directory_offset = 76;
+static const long header_size = 76;
 
 PalmOSDatabase::PalmOSDatabase (bool res0) : gap (2), resource (res0) {
   memset (gap.writable_contents(), 0, gap.size());
@@ -180,10 +180,10 @@ PalmOSDatabase::write (FILE* f) const {
   if (hidden)			attributes |= hidden_mask;
   if (launchable_data)		attributes |= launchable_data_mask;
 
-  unsigned char header[78];
+  unsigned char header[header_size];
   unsigned char* s = header;
 
-  unsigned long offset = sizeof header + ((resource)? 10 : 8) * dbsize();
+  unsigned long offset = header_size + directory_size();
 
   memcpy (s, name, 32), s += 32;
   put_word (s, attributes);
@@ -201,14 +201,13 @@ PalmOSDatabase::write (FILE* f) const {
   memcpy (s, creator, 4), s += 4;
   put_long (s, uidseed);
   put_long (s, 0);
-  put_word (s, dbsize());  // BP DOLATER shouldn't this be # records, not total Datablock size?
 
   return fwrite (header, 1, sizeof header, f) == sizeof header
       && write_directory (f, offset)
       && write_datablock (f, gap)
       && write_datablock (f, appinfo)
       && write_datablock (f, sortinfo)
-      && write_data (f, offset);
+      && write_data (f);
   }
 
 
@@ -219,14 +218,14 @@ ResourceDatabase::ResourceDatabase() : PalmOSDatabase (true) {
 long
 ResourceDatabase::find_info (const Datablock& block) {
   // The info blocks start after the header and all the directory entries:
-  const unsigned char* s = block.contents() + directory_offset;
+  const unsigned char* s = block.contents() + header_size;
   unsigned int nrecs = get_word (s);
   return s - block.contents() + 10 * nrecs;
   }
 
 long
 ResourceDatabase::find_infolim (const Datablock& block) {
-  const unsigned char* s = block.contents() + directory_offset;
+  const unsigned char* s = block.contents() + header_size;
   unsigned int nrecs = get_word (s);
   // ...and end at the offset of the first resource:
   if (nrecs > 0) {
@@ -242,7 +241,7 @@ ResourceDatabase::ResourceDatabase (const Datablock& block)
   long infolim = find_infolim (block);
   long entrylim = block.size();
 
-  const unsigned char* dir = block.contents() + directory_offset;
+  const unsigned char* dir = block.contents() + header_size;
   unsigned int nrecs = get_word (dir);
 
   for (const unsigned char *d = dir + 10 * (nrecs-1); d >= dir; d -= 10) {
@@ -263,8 +262,19 @@ ResourceDatabase::ResourceDatabase (const Datablock& block)
 ResourceDatabase::~ResourceDatabase() {
   }
 
+unsigned long
+ResourceDatabase::directory_size() const {
+  return 2 + 10 * size();
+  }
+
 bool
 ResourceDatabase::write_directory (FILE* f, unsigned long& offset) const {
+  { unsigned char buffer[2];
+    unsigned char* s = buffer;
+    put_word (s, size());
+    if (fwrite (buffer, 1, sizeof buffer, f) != sizeof buffer)  return false;
+    }
+  
   for (ResourceMap::const_iterator it = begin(); it != end(); ++it) {
     unsigned char buffer[10];
     unsigned char* s = buffer;
@@ -279,11 +289,9 @@ ResourceDatabase::write_directory (FILE* f, unsigned long& offset) const {
   }
 
 bool
-ResourceDatabase::write_data (FILE* f, unsigned long& offset) const {
-  for (ResourceMap::const_iterator it = begin(); it != end(); ++it) {
+ResourceDatabase::write_data (FILE* f) const {
+  for (ResourceMap::const_iterator it = begin(); it != end(); ++it)
     if (!write_datablock (f, (*it).second))  return false;
-    offset += (*it).second.size();
-    }
 
   return true;
   }
@@ -304,14 +312,14 @@ RecordDatabase::RecordDatabase() : PalmOSDatabase (false) {
 long
 RecordDatabase::find_info (const Datablock& block) {
   // The info blocks start after the header and all the directory entries:
-  const unsigned char* s = block.contents() + directory_offset;
+  const unsigned char* s = block.contents() + header_size;
   unsigned int nrecs = get_word (s);
   return s - block.contents() + 8 * nrecs;
   }
 
 long
 RecordDatabase::find_infolim (const Datablock& block) {
-  const unsigned char* s = block.contents() + directory_offset;
+  const unsigned char* s = block.contents() + header_size;
   unsigned int nrecs = get_word (s);
   // ...and end at the offset of the first resource:
   if (nrecs > 0)
@@ -325,7 +333,7 @@ RecordDatabase::RecordDatabase(const Datablock& block)
   long infolim = find_infolim (block);
   long entrylim = block.size();
 
-  const unsigned char* dir = block.contents() + directory_offset;
+  const unsigned char* dir = block.contents() + header_size;
   unsigned int nrecs = get_word (dir);
 
   for (const unsigned char *d = dir + 8 * (nrecs-1); d >= dir; d -= 8) {
@@ -354,8 +362,19 @@ RecordDatabase::RecordDatabase(const Datablock& block)
 RecordDatabase::~RecordDatabase() {
   }
 
+unsigned long
+RecordDatabase::directory_size() const {
+  return 2 + 8 * size();
+  }
+
 bool
 RecordDatabase::write_directory (FILE* f, unsigned long& offset) const {
+  { unsigned char buffer[2];
+    unsigned char* s = buffer;
+    put_word (s, size());
+    if (fwrite (buffer, 1, sizeof buffer, f) != sizeof buffer)  return false;
+    }
+
   for (RecordMap::const_iterator it = begin(); it != end(); ++it) {
     unsigned char buffer[8];
     unsigned char* s = buffer;
@@ -378,11 +397,9 @@ RecordDatabase::write_directory (FILE* f, unsigned long& offset) const {
   }
 
 bool
-RecordDatabase::write_data (FILE* f, unsigned long& offset) const {
-  for (RecordMap::const_iterator it = begin(); it != end(); ++it) {
+RecordDatabase::write_data (FILE* f) const {
+  for (RecordMap::const_iterator it = begin(); it != end(); ++it)
     if (!write_datablock (f, (*it).second))  return false;
-    offset += (*it).second.size();
-    }
 
   return true;
   }

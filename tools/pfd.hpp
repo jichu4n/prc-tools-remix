@@ -88,9 +88,9 @@ protected:
   PalmOSDatabase (bool res0, const Datablock& block, long info, long infolim);
 
 private:
-  virtual unsigned int dbsize() const = 0;
+  virtual unsigned long directory_size() const = 0;
   virtual bool write_directory (FILE* f, unsigned long& off) const = 0;
-  virtual bool write_data (FILE* f, unsigned long& off) const = 0;
+  virtual bool write_data (FILE* f) const = 0;
 
   const bool resource;
   };
@@ -102,9 +102,9 @@ public:
   virtual ~ResourceDatabase();
 
 private:
-  virtual unsigned int dbsize() const { return size(); }
+  virtual unsigned long directory_size() const;
   virtual bool write_directory (FILE* f, unsigned long& off) const;
-  virtual bool write_data (FILE* f, unsigned long& off) const;
+  virtual bool write_data (FILE* f) const;
 
   static long find_info (const Datablock& block);
   static long find_infolim (const Datablock& block);
@@ -117,9 +117,9 @@ public:
   virtual ~RecordDatabase();
 
 private:
-  virtual unsigned int dbsize() const { return size(); }
+  virtual unsigned long directory_size() const;
   virtual bool write_directory (FILE* f, unsigned long& off) const;
-  virtual bool write_data (FILE* f, unsigned long& off) const;
+  virtual bool write_data (FILE* f) const;
 
   static long find_info (const Datablock& block);
   static long find_infolim (const Datablock& block);
