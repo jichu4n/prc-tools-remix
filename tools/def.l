@@ -125,6 +125,8 @@ glib			{ yylval.kind = DK_GLIB; return GLIB; }
 syslib			{ yylval.kind = DK_SYSLIB; return SYSLIB; }
 hack			{ yylval.kind = DK_HACK; return HACK; }
 
+database		return DATABASE;
+
 code			return CODE;
 data			return DATA;
 
