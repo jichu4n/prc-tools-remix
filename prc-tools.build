@@ -27,34 +27,30 @@ done
 
 touch "gcc/gcc/cstamp-h.in"
 
-[ -d build ] || mkdir build
-[ -d build/empty ] || mkdir build/empty
-
 #build
 : ${prefix:=/usr/local} ${docdir:=$prefix/doc/prc-tools}
 
-(cd build; ../configure \
+./configure \
   --enable-targets=m68k-palmos,arm-palmos \
   --enable-languages=c,c++ \
   --disable-nls \
-  --with-headers=`pwd`/empty \
   --with-palmdev-prefix=$palmdev_prefix \
   --enable-html-docs=$docdir \
   --prefix=$prefix \
-  ${mandir:+--mandir=$mandir} ${infodir:+--infodir=$infodir})
+  ${mandir:+--mandir=$mandir} ${infodir:+--infodir=$infodir}
 
 # HACK: For some reason, libiberty isn't being built.  Do it explicitly for now
-(cd build/gcc/libiberty; make)
+(cd gcc/libiberty; make)
 
-(cd build; make)
+make
 
 #install
 : ${DESTDIR:=`pwd`/buildroot}
 
 rm -rf $DESTDIR
-(cd build; make install \
+make install \
   prefix=$DESTDIR$prefix htmldir=$DESTDIR$docdir \
-  ${mandir:+mandir=$DESTDIR$mandir} ${infodir:+infodir=$DESTDIR$infodir})
+  ${mandir:+mandir=$DESTDIR$mandir} ${infodir:+infodir=$DESTDIR$infodir}
 
 mkdir -p $DESTDIR$docdir
 cp -p README COPYING $DESTDIR$docdir
