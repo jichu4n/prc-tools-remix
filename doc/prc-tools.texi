@@ -1154,7 +1154,8 @@ build-prc [ -o @var{file} | --output @var{file} ]
           [ --read-only ] [ --appinfo-dirty ] [ --backup ]
           [ --ok-to-install-newer ] [ --reset-after-install ]
           [ --copy-prevention ] [ --stream ] [ --hidden ]
-          [ --launchable-data ] [ -z @var{n} | --compress-data @var{n} ]
+          [ --launchable-data ] [ --recyclable ] [ --bundle ]
+	  [ -z @var{n} | --compress-data @var{n} ]
           @var{file}@dots{}
 @end smallexample
 
@@ -1253,6 +1254,8 @@ Set the database header version number to @var{num}.
 @itemx --stream
 @itemx --hidden
 @itemx --launchable-data
+@itemx --recyclable
+@itemx --bundle
 Set the corresponding database header attribute, adding to any attributes
 set in a definition file.  These options may also be spelt without the
 internal hyphens (@code{--readonly}, etc).
