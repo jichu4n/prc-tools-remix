@@ -26,8 +26,8 @@ RANLIB = $(target_alias)-ranlib
 # CFLAGS = -O5 -fomit-frame-pointer -fno-builtin -Wall -W
 CFLAGS = -O5 -fno-builtin -Wall -W -I$(srcdir)/../include
 
-#INSTALL_FILES = crt0.o gcrt0.o scrt0.o libcrt.a libscrt.a libnoexcept.a
-INSTALL_FILES = crt0.o gcrt0.o libcrt.a libnoexcept.a
+#INSTALL_FILES = crt0.o gcrt0.o scrt0.o libcrt.a libscrt.a libnoexcept.a libnfm.a
+INSTALL_FILES = crt0.o gcrt0.o libcrt.a libnoexcept.a libnfm.a
 
 CRTLIB_OBJS = \
   single_dreloc.o multi_dreloc.o multi_free.o reloc_chain.o \
@@ -88,6 +88,23 @@ libnoexcept.a: $(NOEXCEPTLIB_OBJS)
 $(NOEXCEPTLIB_OBJS): new12.cc
 	$(CC) $(CFLAGS) -fno-exceptions -fno-rtti -c -o $@ -DL`basename $@ .o` $(srcdir)/new12.cc
 
+
+NFMLIB_OBJS = \
+  floatsisf.o floatdisf.o floatsidf.o floatdidf.o \
+  extendsfdf2.o truncdfsf2.o \
+  fixunssfsi.o fixsfsi.o fixunssfdi.o fixsfdi.o \
+  fixunsdfsi.o fixdfsi.o fixunsdfdi.o fixdfdi.o \
+  cmp_sf.o cmp_df.o cmpmap.o \
+  negsf2.o addsf3.o mulsf3.o subsf3.o divsf3.o \
+  negdf2.o adddf3.o muldf3.o subdf3.o divdf3.o
+
+libnfm.a: $(NFMLIB_OBJS)
+	-rm -f libnfm.a
+	$(AR) cr libnfm.a $(NFMLIB_OBJS)
+	$(RANLIB) libnfm.a
+
+$(NFMLIB_OBJS): nfm.c
+	$(CC) $(CFLAGS) -c -o $@ -DL__`basename $@ .o` $(srcdir)/nfm.c
 
 clean:
 	-rm *.o *.a
