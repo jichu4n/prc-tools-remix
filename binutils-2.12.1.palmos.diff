@@ -151,7 +151,7 @@ diff -urN orig-binutils-2.12.1/bfd/Makefile.in binutils-2.12.1/bfd/Makefile.in
  riscix.lo: riscix.c $(INCDIR)/filenames.h libaout.h \
 diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
 --- orig-binutils-2.12.1/bfd/coff-m68k.c	Tue Sep 18 11:57:22 2001
-+++ binutils-2.12.1/bfd/coff-m68k.c	Wed Sep 18 13:15:09 2002
++++ binutils-2.12.1/bfd/coff-m68k.c	Mon Oct 28 11:07:15 2002
 @@ -67,6 +67,9 @@
  #define RELOC_SPECIAL_FN m68kcoff_common_addend_special_fn
  #endif
@@ -182,9 +182,9 @@ diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
  m68k_howto2rtype (internal)
       reloc_howto_type *internal;
  {
-+  /* FIXME: not sure if we need to handle this one.  */
++  /* FIXME Is there a better way to do this?  */
 +  if (internal->type == R_RELENDWORD)
-+    abort ();
++    return R_RELENDWORD;
 +
    if (internal->pc_relative)
      {
