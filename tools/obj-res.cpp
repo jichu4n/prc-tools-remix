@@ -1,6 +1,6 @@
 /* obj-res.cpp: extract resources from a bfd executable.
 
-   Copyright (c) 1998, 1999 by John Marshall.
+   Copyright (c) 1998, 1999, 2001 by John Marshall.
    <jmarshall@acm.org>
 
    This is free software; you can redistribute it and/or modify
@@ -89,7 +89,7 @@ main (int argc, char** argv) {
     case 'L':
       info.maincode = ResKey ("libr", 0);
       info.emit_appl_extras = false;
-      einfo (E_NOFILE|E_WARNING, "offset table not supported by this version");
+      warning ("offset table not supported by this version");
       break;
 
     case 'v':
@@ -145,11 +145,11 @@ main (int argc, char** argv) {
       if (f) {
 	size_t len = (*it).second.size ();
 	if (fwrite ((*it).second.contents (), 1, len, f) != len)
-	  einfo (E_NOFILE | E_PERROR, "error writing to `%s'", fname);
+	  error ("error writing to '%s': @P", fname);
 	fclose (f);
 	}
       else
-	einfo (E_NOFILE | E_PERROR, "can't write to `%s'", fname);
+	error ("can't write to '%s': @P", fname);
       }
     }
 

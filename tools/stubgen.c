@@ -23,9 +23,9 @@ void
 usage() {
   printf ("\
 Usage: %s [options] deffile\n\
-Creates GLib support files (`<base>-jumps.s' and `<base>-stubs.c') or\n\
-a SysLib support file (`<base>-dispatch.s') from an export clause in\n\
-<deffile>; <base> is `<deffile>' by default.\n\
+Creates GLib support files ('<base>-jumps.s' and '<base>-stubs.c') or\n\
+a SysLib support file ('<base>-dispatch.s') from an export clause in\n\
+<deffile>; <base> is '<deffile>' by default.\n\
 Options:\n", progname);
   propt ("-b FILE, --base FILE", "Set output filename base prefix");
   }
@@ -157,7 +157,7 @@ main (int argc, char **argv) {
     char *outfname, *eos;
 
     if (first_function_entry == NULL)
-      einfo (E_FILE | E_WARNING, "no functions exported");
+      warning ("[%s] no functions exported", deffname);
 
     if (outfbase) {
       strcpy (buffer, outfbase);
@@ -184,7 +184,7 @@ main (int argc, char **argv) {
       break;
 
     default:
-      einfo (E_FILE, "project is not a shared library");
+      error ("[%s] project is not a shared library", deffname);
       break;
       }
     }

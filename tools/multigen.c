@@ -1,7 +1,7 @@
 /* multigen.c: generate a multiple section stub file and linker script from
    a .def file.
 
-   Copyright (c) 1999-2000 Palm Computing, Inc. or its subsidiaries.
+   Copyright (c) 1999-2001 Palm Computing, Inc. or its subsidiaries.
    All rights reserved.
 
    This is free software; you can redistribute it and/or modify
@@ -23,8 +23,8 @@ void
 usage() {
   printf ("\
 Usage: %s [options] deffile\n\
-Creates assembly stub file `<base>.s' and linker script `<base>.ld' from\n\
-multiple code clause in <deffile>; <base> is `<deffile>-sections' by default.\n\
+Creates assembly stub file '<base>.s' and linker script '<base>.ld' from\n\
+multiple code clause in <deffile>; <base> is '<deffile>-sections' by default.\n\
 Options:\n", progname);
   propt ("-b FILE, --base FILE", "Set output filename base prefix");
   }
@@ -147,7 +147,7 @@ main (int argc, char **argv) {
     char *outfname, *eos;
 
     if (first_section_entry == NULL)
-      einfo (E_FILE | E_WARNING, "no multiple code sections specified");
+      warning ("[%s] no multiple code sections specified", deffname);
 
     if (outfbase) {
       strcpy (buffer, outfbase);

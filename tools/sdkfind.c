@@ -145,10 +145,10 @@ add_trees (const char *sdk_version) {
     add_tree (add_L, path);
 
     if (broken_sdk)
-      einfo (E_NOFILE|E_WARNING, "%s does not contain an SDK", winning_sdk);
+      warning ("%s does not contain an SDK", winning_sdk);
     }
   else
-    einfo (E_NOFILE|E_WARNING, "'%s' not found in %s", sdk, PALMDEV_PATH);
+    warning ("'%s' not found in %s", sdk, PALMDEV_PATH);
   }
 
 
@@ -242,7 +242,7 @@ main (int argc, char **argv) {
 	retcode = WEXITSTATUS (status);
       }
     else
-      einfo (E_NOFILE|E_PERROR, errmsg_fmt, errmsg_arg);
+      error (errmsg_fmt, errmsg_arg);
     }
 
   free_string_store (store);

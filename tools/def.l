@@ -1,6 +1,6 @@
 /* def.l: lexical analyser for .def files.
 
-   Copyright (c) 1998, 1999 by John Marshall.
+   Copyright (c) 1998, 1999, 2001 by John Marshall.
    <jmarshall@acm.org>
 
    This is free software; you can redistribute it and/or modify
@@ -32,11 +32,16 @@
 %option nounput
 
 %{
+#include <string.h>
+
 #include "utils.h"
 #include "def.tab.h"
 #include "pfdheader.h"
 
-static char *sdup(const char *s);
+static int lineno;
+static void (*warnf) (const char *message);
+
+static char *sdup (const char *s);
 %}
 
 %x comment
@@ -75,18 +80,17 @@ ALNUM	[^ \t\n!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
 
 <sstr>\'		|
 <dstr>\"		{ BEGIN(INITIAL); *strp = '\0';
-			  yylval.str = sdup(str_buffer); return STR; }
+			  yylval.str = sdup (str_buffer); return STR; }
 
 <sstr,dstr>\\\n		lineno++;
-<sstr,dstr>\n		{ einfo(E_FILELINE | E_WARNING,
-				"string constant terminated by end of line");
+<sstr,dstr>\n		{ warnf ("string constant terminated by end of line");
 			  lineno++;
 			  BEGIN(INITIAL); *strp = '\0';
-			  yylval.str = sdup(str_buffer); return STR; }
+			  yylval.str = sdup (str_buffer); return STR; }
 
-<sstr,dstr>\\[0-7]{1,3}	*strp++ = (char)strtol(&yytext[1], NULL, 8);
+<sstr,dstr>\\[0-7]{1,3}	*strp++ = (char) strtol (&yytext[1], NULL, 8);
 
-<sstr,dstr>\\x{HD}{HD}	*strp++ = (char)strtol(&yytext[2], NULL, 16);
+<sstr,dstr>\\x{HD}{HD}	*strp++ = (char) strtol (&yytext[2], NULL, 16);
 
 <sstr,dstr>\\n		*strp++ = '\n';
 <sstr,dstr>\\t		*strp++ = '\t';
@@ -98,7 +102,7 @@ ALNUM	[^ \t\n!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
 
 <sstr,dstr>\\		|
 <sstr>[^\\\n\']+	|
-<dstr>[^\\\n\"]+	{ strcpy(strp, yytext); strp += yyleng; }
+<dstr>[^\\\n\"]+	{ strcpy (strp, yytext); strp += yyleng; }
 
 	/* Filenames: */
 
@@ -107,8 +111,7 @@ ALNUM	[^ \t\n!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
 <fstr>\>		{ BEGIN(INITIAL); *strp = '\0';
 			  yylval.str = sdup (str_buffer); return FNAME; }
 
-<fstr>\n		{ einfo (E_FILELINE | E_WARNING,
-				 "filename terminated by end of line");
+<fstr>\n		{ warnf ("filename terminated by end of line");
 			  lineno++;
 			  BEGIN(INITIAL); *strp = '\0';
 			  yylval.str = sdup (str_buffer); return FNAME; }
@@ -161,7 +164,7 @@ launchable{_}data	return LAUNCHABLE_DATA;
 
 	/* Other words ("identifiers", but for us they're unquoted strings): */
 
-{ALNUM}+		{ yylval.str = sdup(yytext); return STR; }
+{ALNUM}+		{ yylval.str = sdup (yytext); return STR; }
 
 	/* Punctuation: */
 
@@ -170,13 +173,24 @@ launchable{_}data	return LAUNCHABLE_DATA;
 %%
 
 int
-yywrap() {
+yywrap () {
   return 1;
+  }
+
+void
+lexer_init (void (*warnf0) (const char *)) {
+  warnf = warnf0;
+  lineno = 1;
+  }
+
+int
+lexer_lineno () {
+  return lineno;
   }
 
 extern struct string_store *lexer_store;
 
 static char *
-sdup(const char *s) {
-  return insert_string(lexer_store, s);
+sdup (const char *s) {
+  return insert_string (lexer_store, s);
   }

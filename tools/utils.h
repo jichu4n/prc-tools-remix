@@ -1,6 +1,6 @@
 /* utils.h: various utilities.
 
-   Copyright (c) 1998, 1999 by John Marshall.
+   Copyright (c) 1998, 1999, 2001 by John Marshall.
    <jmarshall@acm.org>
 
    This is free software; you can redistribute it and/or modify
@@ -11,8 +11,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <stddef.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,22 +18,9 @@ extern "C" {
 /* This one must be defined by the main program.  */
 extern const char progversion[];
 
-extern const char *progname, *filename;
-extern int lineno;
+extern const char *progname;
 
 extern int nerrors, nwarnings;
-
-enum {
-  /* Use exactly one of these: */
-  E_NOFILE = 0,		/* "progname: " */
-  E_FILE = 1,		/* "filename: " */
-  E_FILELINE = 2,	/* "filename:lineno: " */
-  E_FILEWHERE = 3,	/* "filename:%s: " -- set %s with ewhere() */
-
-  /* Add in any of these with `|': */
-  E_WARNING = 0x10,
-  E_PERROR = 0x20
-  };
 
 #ifdef __GNUC__
 #define PRINTF_FUNC(fmt, first)  __attribute__ ((format (printf, fmt, first)))
@@ -43,8 +28,24 @@ enum {
 #define PRINTF_FUNC(fmt, first)
 #endif
 
-void ewhere (const char *format, ...) PRINTF_FUNC (1, 2);
-void einfo (int type, const char *format, ...) PRINTF_FUNC (2, 3);
+/* These functions increment either NERRORS or NWARNINGS respectively, and
+   print a formatted error message to STDERR.  An initial part of FORMAT
+   enclosed in "["..."]" denotes a filename and other location information
+   and is formatted specially.  If there is no "["..."]" part, PROGNAME is
+   printed instead.  If FORMAT ends with "@P", those two characters are
+   replaced by the output of perror().  Examples:
+
+	error ("my bad")
+		<progname>: my bad\n
+
+	warning ("[%s:%d] strange specifiers", "foo.c", 15)
+		foo.c:15: warning: strange specifiers\n
+
+	error ("[%s] can't open %s: @P", "foo.c", "blah.h")
+		foo.c: can't open blah.h: <perror("") output>\n  */
+
+void error   (const char *format, ...) PRINTF_FUNC (1, 2);
+void warning (const char *format, ...) PRINTF_FUNC (1, 2);
 
 #undef PRINTF_FUNC
 
@@ -62,7 +63,7 @@ enum file_type {
 
 enum file_type file_type (const char *fname);
 
-/* If NEWEXT is non-NULL, strips off any extension (a final `.' and all
+/* If NEWEXT is non-NULL, strips off any extension (a final '.' and all
    following characters) from FNAME and appends NEWEXT.  Returns a pointer to
    the start of the filename part (i.e., without any directories) of FNAME.  */
 char *basename_with_changed_extension (char *fname, const char *newext);

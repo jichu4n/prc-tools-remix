@@ -1,6 +1,6 @@
 /* binres.cpp: extract Palm OS resources from a bfd executable.
 
-   Copyright (c) 1998, 1999 by John Marshall.
+   Copyright (c) 1998, 1999, 2001 by John Marshall.
    <jmarshall@acm.org>
 
    This is free software; you can redistribute it and/or modify
@@ -64,8 +64,9 @@ make_code (bfd* abfd, asection* sec) {
   Datablock res (size);
 
   if (!bfd_get_section_contents (abfd, sec, res.writable_contents (), 0, size))
-    einfo (E_FILE, "can't read `%s' section", bfd_section_name (abfd, sec));
-  
+    error ("[%s] can't read '%s' section",
+	   bfd_get_filename (abfd), bfd_section_name (abfd, sec));
+
   return res;
   }
 
@@ -80,10 +81,8 @@ make_main_code (bfd* abfd, asection* sec, bool /*appl*/) {
   unsigned int entry =
       (bfd_get_start_address (abfd) - bfd_section_vma (abfd, sec));
 
-  if (entry > 32766) {	// ???
-    ewhere ("0x%x", entry);
-    einfo (E_FILEWHERE, "entry point too distant");
-    }
+  if (entry > 32766)
+    error ("[%s] entry point 0x%x too distant", bfd_get_filename (abfd), entry);
   else if (entry > 126) {
     res = res (-4, res.size () + 4);
     unsigned char* s = res.writable_contents ();
@@ -120,7 +119,7 @@ make_main_code (bfd* abfd, asection* sec, bool /*appl*/) {
 /* The code #0 resource: as Jeff said "Truth be known, I think it's
    mostly bogus".  Ted Ts'o has a likely-looking theory that it's an
    unadulterated Macintosh code #0 jump table.  I'm not sure why we
-   want one of these in Palm OS land :-).  The `(?)'s mark what these
+   want one of these in Palm OS land :-).  The "(?)"s mark what these
    fields mean if it is indeed a Macintosh resource.
 
    The early Macintoshes used this jump table to handle multiple code
@@ -191,7 +190,7 @@ make_rloc_and_chains (int nchains, const resource_info* res_from_sec,
   if (reloc_size > 0) {
     reloc = static_cast<bfd_byte*>(xmalloc (reloc_size));
     if (!bfd_get_section_contents (abfd, reloc_sec, reloc, 0, reloc_size)) {
-      einfo (E_FILE, "can't read `.reloc' section");
+      error ("[%s] can't read '.reloc' section", bfd_get_filename (abfd));
       reloc_size = 0;  // Short circuit the for loop
       }
     }
@@ -221,22 +220,21 @@ make_rloc_and_chains (int nchains, const resource_info* res_from_sec,
     sprintf (symbuffer, "[%d?]", (int) symsecndx);
     symsecname = (symsec)? bfd_section_name (abfd, symsec) : symbuffer;
 
-    ewhere ("%s+0x%04lx", relsecname, reloffset);
-
     if (!relsec || res_from_sec[relsecndx].chain != 0) {
-      einfo (E_FILEWHERE | E_WARNING,
-	     "reloc in non-data section `%s'", relsecname);
+      warning ("[%s:%s+0x%04lx] reloc in non-data section '%s'",
+	       bfd_get_filename (abfd), relsecname, reloffset, relsecname);
       continue;
       }
 
     if (reloffset > data_size - RELOC_SIZE) {
-      einfo (E_FILEWHERE | E_WARNING, "reloc location out of range");
+      warning ("[%s:%s+0x%04lx] reloc location out of range",
+	       bfd_get_filename (abfd), relsecname, reloffset);
       continue;
       }
 
     if (!symsec || res_from_sec[symsecndx].chain == -1) {
-      einfo (E_FILEWHERE | E_WARNING,
-	     "reloc relative to strange section `%s'", symsecname);
+      warning ("[%s:%s+0x%04lx] reloc relative to strange section '%s'",
+	       bfd_get_filename (abfd), relsecname, reloffset, symsecname);
       continue;
       }
 
@@ -255,7 +253,8 @@ make_rloc_and_chains (int nchains, const resource_info* res_from_sec,
       break;
 
     default:
-      einfo (E_FILEWHERE | E_WARNING, "unknown reloc type 0x%x", type);
+      warning ("[%s:%s+0x%04lx] unknown reloc type 0x%x",
+	       bfd_get_filename (abfd), relsecname, reloffset, type);
       continue;
       }
     }
@@ -492,11 +491,9 @@ process_binary_file (const char* fname, const binary_file_info& info,
   ResourceDatabase db;
 
   bfd* abfd = bfd_openr (fname, NULL);
-  filename = fname;
 
   if (!abfd || !bfd_check_format (abfd, bfd_object)) {
-    einfo (E_NOFILE, "can't open `%s': %s",
-	   fname, bfd_errmsg (bfd_get_error ()));
+    error ("can't open '%s': %s", fname, bfd_errmsg (bfd_get_error ()));
     return db;
     }
 
@@ -543,15 +540,14 @@ process_binary_file (const char* fname, const binary_file_info& info,
       db[(*it).second] = make_code (abfd, sec);
       }
     else
-      einfo (E_FILE, "unknown code section `%s'", (*it).first);
+      error ("[%s] unknown code section '%s'", fname, (*it).first);
     }
 
   for (asection* sec = abfd->sections; sec; sec = sec->next)
     if (bfd_get_section_flags (abfd, sec) & SEC_CODE)
-      if (res_from_sec[sec->index].chain == -1) {
-	ewhere ("%s", bfd_section_name (abfd, sec));
-        einfo (E_FILEWHERE | E_WARNING, "spurious code section ignored");
-	}
+      if (res_from_sec[sec->index].chain == -1)
+	warning ("[%s:%s] spurious code section ignored",
+		 fname, bfd_section_name (abfd, sec));
 
   if (info.emit_data) {
     bfd_byte* data = static_cast<bfd_byte*>(xmalloc (data_size));
@@ -570,12 +566,12 @@ process_binary_file (const char* fname, const binary_file_info& info,
 					  info.data_compression, stats);
       }
     else
-      einfo (E_FILE, "can't read `.data' section");
+      error ("[%s] can't read '.data' section", fname);
 
     free (data);
     }
   else if (total_data_size > 0)
-    einfo (E_FILE | E_WARNING, "global data ignored");
+    warning ("[%s] global data ignored", fname);
 
   stats->data_size = data_size;
 

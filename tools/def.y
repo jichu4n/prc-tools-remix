@@ -1,6 +1,6 @@
 /* def.y: parser for .def files.
 
-   Copyright (c) 1999 Palm Computing, Inc. or its subsidiaries.
+   Copyright (c) 1999, 2001 Palm Computing, Inc. or its subsidiaries.
    All rights reserved.
 
    This is free software; you can redistribute it and/or modify
@@ -45,9 +45,13 @@
 
 static const struct def_callbacks *call;
 static struct database_header db;
+static const char *parser_fname;
 
 extern int yylex ();
 extern FILE *yyin;
+
+extern void lexer_init (void (*warning_func) (const char *));
+extern int lexer_lineno ();
 
 void yyerror (char *s);
 
@@ -171,8 +175,9 @@ str_or_file:
 	| FNAME		{ long len;
 			  char *text = slurp_file ($1, "r", &len);
 			  if (text) { chomp (text); $$ = text; }
-			  else { einfo (E_FILELINE | E_PERROR,
-				        "can't read `%s'", $1); $$ = $1; } }
+			  else { error ("[%s:%d] can't read '%s': @P",
+					parser_fname, lexer_lineno (), $1);
+				 $$ = $1; } }
 	;
 
 multiple_code_def:
@@ -196,8 +201,13 @@ export_list:
 %%
 
 void
-yyerror (char *s) {
-  einfo (E_FILELINE, "%s", s);
+yyerror (char *message) {
+  error ("[%s:%d] %s", parser_fname, lexer_lineno (), message);
+  }
+
+static void
+print_warning (const char *message) {
+  warning ("[%s:%d] %s", parser_fname, lexer_lineno (), message);
   }
 
 
@@ -219,7 +229,7 @@ lookup_trapno (const char *name) {
   if (trapno_text == NULL && !trapfile_missing) {
     long length;
     if ((trapno_text = slurp_file (TRAPNO_FNAME, "r", &length)) == NULL) {
-      einfo (E_NOFILE | E_PERROR, "can't open config file `%s'", TRAPNO_FNAME);
+      error ("can't open config file '%s': @P", TRAPNO_FNAME);
       trapfile_missing = 1;
       }
     }
@@ -233,7 +243,7 @@ lookup_trapno (const char *name) {
     if (record[-1] == '<' && record[namelen] == '>')
       return strtoul (&record[namelen+1], NULL, 0);
 
-  einfo (E_FILELINE, "unknown systrap `%s'", name);
+  error ("[%s:%d] unknown systrap '%s'", parser_fname, lexer_lineno (), name);
   return 0;
   }
 
@@ -253,17 +263,17 @@ read_def_file (const char *fname, const struct def_callbacks *callbacks) {
     }
 
   call = callbacks;
-  filename = fname;
-  lineno = 1;
+  parser_fname = fname;
 
+  lexer_init (print_warning);
   init_database_header (&db);
 
-  if ((yyin = fopen (filename, "r")) != NULL) {
+  if ((yyin = fopen (parser_fname, "r")) != NULL) {
     yyparse ();
     fclose (yyin);
     }
   else
-    einfo (E_NOFILE | E_PERROR, "can't open def file `%s'", fname);
+    error ("can't open def file '%s': @P", parser_fname);
   }
 
 static void default_i (int i UNUSED_PARAM) {}

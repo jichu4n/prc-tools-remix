@@ -72,7 +72,7 @@ run_preprocessor (char *fname_i, char *fname_c, int argc, char **argv) {
   free (args);
 
   if (pid < 0) {
-    einfo (E_NOFILE|E_PERROR, errmsg_fmt, errmsg_arg);
+    error (errmsg_fmt, errmsg_arg);
     return EXIT_FAILURE;
     }
 
@@ -123,7 +123,7 @@ enum { NEW, I, C, BASE };
 int
 process (char fname[][FILENAME_MAX], FILE *f[], int argc, char **argv) {
   if ((f[NEW] = fopen (fname[NEW], "w")) == NULL) {
-    einfo (E_NOFILE|E_PERROR, "can't create %s", fname[NEW]);
+    error ("can't create '%s': @P", fname[NEW]);
     return EXIT_FAILURE;
     }
 
@@ -137,7 +137,7 @@ process (char fname[][FILENAME_MAX], FILE *f[], int argc, char **argv) {
   putc ('\n', f[NEW]);
 
   if ((f[C] = fopen (fname[C], "w")) == NULL) {
-    einfo (E_NOFILE|E_PERROR, "can't create %s", fname[C]);
+    error ("can't create '%s': @P", fname[C]);
     return EXIT_FAILURE;
     }
 
@@ -154,7 +154,7 @@ process (char fname[][FILENAME_MAX], FILE *f[], int argc, char **argv) {
     return rc;
 
   if ((f[I] = fopen (fname[I], "r")) == NULL) {
-    einfo (E_NOFILE|E_PERROR, "can't open %s", fname[I]);
+    error ("can't open '%s': @P", fname[I]);
     return EXIT_FAILURE;
     }
 

@@ -76,7 +76,7 @@ main (int argc, char **argv) {
     fclose (f);
     }
   else {
-    einfo (E_NOFILE | E_PERROR, "%s", systrap_fname);
+    error ("%s: @P", systrap_fname);
     mintrap = maxtrap = 0;
     trapname = NULL;
     }
@@ -91,7 +91,7 @@ main (int argc, char **argv) {
 	fclose (f);
 	}
       else
-	einfo (E_NOFILE | E_PERROR, "%s", argv[i]);
+	error ("%s: @P", argv[i]);
       }
 
   free (trapname);

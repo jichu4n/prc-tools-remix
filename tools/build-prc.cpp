@@ -1,6 +1,6 @@
 /* build-prc.cpp: build a .prc from a pile of files.
 
-   Copyright (c) 1998-2000 Palm Computing, Inc. or its subsidiaries.
+   Copyright (c) 1998-2001 Palm Computing, Inc. or its subsidiaries.
    All rights reserved.
 
    This is free software; you can redistribute it and/or modify
@@ -56,7 +56,7 @@ Usage: Old-style: %s [options] outfile.prc 'App Name' apid file...\n",
 Files may be .bin/.grc, .prc/.ro, .def (new-style only), or linked executables\n");
   /* printf ("\
 Files may be .bin, .grc, .prc, .def (new-style only), or linked executables,\n\
-and may specify `f=#' to renumber and `f(type[#[-#]][,...])' to select\n"); */
+and may specify 'f=#' to renumber and 'f(type[#[-#]][,...])' to select\n"); */
 
   printf ("Options:\n");
   propt ("-o FILE, --output FILE",
@@ -147,13 +147,18 @@ add_resource (const char* origin, const ResKey& key, const Datablock& data) {
     db[key] = data;
     prov[key] = origin;
     }
-  else {
-    filename = origin;
-    einfo (E_FILE | E_WARNING, "resource %.4s #%u already obtained from `%s'",
-	   key.type, key.id, (*prev_supplier).second.c_str());
-    }
+  else
+    warning ("[%s] resource %.4s #%u already obtained from '%s'",
+	     origin, key.type, key.id, (*prev_supplier).second.c_str());
   }
 
+
+struct error_with_fname {
+  const char* format;
+  const char* fname;
+  error_with_fname (const char* format0, const char* fname0)
+    : format (format0), fname (fname0) {}
+  };
 
 Datablock
 slurp_file_as_datablock (const char* fname) {
@@ -162,15 +167,14 @@ slurp_file_as_datablock (const char* fname) {
   if (f) {
     long length = file_length (f);
     Datablock block (length);
-    if (fread (block.writable_contents(), 1, length, f) != size_t(length))
-      einfo (E_NOFILE | E_PERROR, "error reading `%s'", fname);
+    size_t length_read = fread (block.writable_contents(), 1, length, f);
     fclose (f);
+    if (length_read != size_t(length))
+      throw error_with_fname ("error reading '%s': @P", fname);
     return block;
     }
-  else {
-    einfo (E_NOFILE | E_PERROR, "can't open `%s'", fname);
-    throw "";
-    }
+  else
+    throw error_with_fname ("can't open '%s': @P", fname);
 #else
   long length;
   void* buffer = slurp_file (fname, "rb", &length);
@@ -181,10 +185,8 @@ slurp_file_as_datablock (const char* fname) {
     free (buffer);
     return block;
     }
-  else {
-    einfo (E_NOFILE | E_PERROR, "can't read raw file `%s'", fname);
-    throw "";
-    }
+  else
+    throw error_with_fname ("can't read raw file '%s': @P", fname);
 #endif
   }
 
@@ -266,10 +268,14 @@ set_db_kind (database_kind kind, priority_level pri) {
 // I'm not sure I really understand how to do this, but we'll try:
 extern "C" {
 
+// Some of these functions need the .def file's name passed down to them so
+// that they can update the provenance structure.
+static const char* deffname;
+
 static void
 db_header (database_kind kind, const struct database_header* h) {
   if (!set_db_kind (kind, def_default_pri))
-    einfo (E_NOFILE, "`-l' and `-L' options conflict with definition file");
+    error ("'-l' and '-L' options conflict with definition file");
 
   if (superior (db.name, def_default_pri))
     strncpy (db.name, h->name, 32);
@@ -310,7 +316,7 @@ multicode_section (const char* secname) {
   if (bininfo.extracode.find (secname) == bininfo.extracode.end())
     bininfo.extracode[secname] = ResKey ("code", id);
   else
-    einfo (E_FILE, "section `%s' duplicated", secname);
+    error ("[%s] section '%s' duplicated", deffname, secname);
   }
 
 static void
@@ -330,7 +336,7 @@ trap (unsigned int resid, unsigned int vector, const char* fname) {
   Datablock res (2);
   unsigned char* s = res.writable_contents();
   put_word (s, vector);
-  add_resource (filename, ResKey ("trap", resid), res);
+  add_resource (deffname, ResKey ("trap", resid), res);
 
   if (fname) {
 
@@ -345,8 +351,7 @@ version_resource (unsigned long resid, const char* text) {
   long size = strlen (text) + 1;
   Datablock block (size);
   memcpy (block.writable_contents(), text, size);
-  add_resource (filename, // the filename of the .def file
-		ResKey ("tver", resid), block);
+  add_resource (deffname, ResKey ("tver", resid), block);
   }
 
 }
@@ -467,8 +472,8 @@ main (int argc, char** argv) {
       work_desired = false;
       break;
       }
-    } catch (const char*& message) {
-      if (*message)  einfo (E_FILE, "%s", message);
+    } catch (const error_with_fname& err) {
+      error (err.format, err.fname);
       }
 
   if (!work_desired)
@@ -483,13 +488,13 @@ main (int argc, char** argv) {
       if (superior (db.name, old_cli_pri))
 	strncpy (db.name, argv[optind], 32);
       else
-	einfo (E_NOFILE, "`-n' option conflicts with old-style arguments");
+	error ("'-n' option conflicts with old-style arguments");
       optind++;
 
       if (superior (db.creator, old_cli_pri))
 	strncpy (db.creator, argv[optind], 4);
       else
-	einfo (E_NOFILE, "`-c' option conflicts with old-style arguments");
+	error ("'-c' option conflicts with old-style arguments");
       optind++;
       }
     else {
@@ -523,7 +528,8 @@ main (int argc, char** argv) {
     def_funcs.stack = stack;
     def_funcs.trap = trap;
     def_funcs.version_resource = version_resource;
-    read_def_file (argv[optind++], &def_funcs);
+    deffname = argv[optind++];
+    read_def_file (deffname, &def_funcs);
     }
 
   if (nerrors)
@@ -533,8 +539,7 @@ main (int argc, char** argv) {
     try {
     switch (file_type (argv[i])) {
     case FT_DEF:
-      einfo (E_NOFILE,
-	     (first == FT_DEF)? "only one definition file may be used"
+      error ((first == FT_DEF)? "only one definition file may be used"
 			      : "the definition file must come first");
       break;
 
@@ -551,10 +556,9 @@ main (int argc, char** argv) {
       if (strlen (key) < 8) {
 	while (strlen (key) < 4)  strcat (key, "x");
 	while (strlen (key) < 8)  strcat (key, "0");
-	filename = argv[i];
-	einfo (E_FILE | E_WARNING,
-	       "raw filename doesn't start with `typeNNNN'; treated as `%s'",
-	       key);
+	warning
+	  ("[%s] raw filename doesn't start with 'typeNNNN'; treated as '%s'",
+	   argv[i], key);
 	}
       else
 	key[8] = '\0';  /* Ensure strtoul() doesn't get any extra digits.  */
@@ -583,21 +587,21 @@ main (int argc, char** argv) {
       break;
 
     case FT_UNKNOWN:
-      filename = argv[i];
-      einfo (E_FILE | E_WARNING, "ignoring unrecognized file type");
+      warning ("[%s] ignoring unrecognized file type", argv[i]);
       break;
       }
     } catch (const char*& message) {
-      if (*message)  einfo (E_FILE, "%s", message);
+      error ("[%s] %s", argv[i], message);
+      }
+      catch (const error_with_fname& err) {
+      error (err.format, err.fname);
       }
 
   if (nerrors == 0) {
     if (db.name[0] == '\0')
-      einfo (E_NOFILE | E_WARNING,
-	     "creating `%s' without a name", output_fname);
+      warning ("creating '%s' without a name", output_fname);
     if (db.creator[0] == '\0')
-      einfo (E_NOFILE | E_WARNING,
-	     "creating `%s' without a creator id", output_fname);
+      warning ("creating '%s' without a creator id", output_fname);
 
     FILE* f = fopen (output_fname, "wb");
     if (f) {
@@ -607,13 +611,13 @@ main (int argc, char** argv) {
       if (db.write (f))
 	fclose (f);
       else {
-	einfo (E_NOFILE | E_PERROR, "error writing to `%s'", output_fname);
+	error ("error writing to '%s': @P", output_fname);
 	fclose (f);
 	remove (output_fname);
 	}
       }
     else
-      einfo (E_NOFILE | E_PERROR, "can't write to `%s'", output_fname);
+      error ("can't write to '%s': @P", output_fname);
     }
 
   return (nerrors == 0)? EXIT_SUCCESS : EXIT_FAILURE;

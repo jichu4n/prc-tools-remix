@@ -1,6 +1,6 @@
 /* utils.c: various utilities.
 
-   Copyright (c) 1998, 1999 by John Marshall.
+   Copyright (c) 1998, 1999, 2001 by John Marshall.
    <jmarshall@acm.org>
 
    This is free software; you can redistribute it and/or modify
@@ -19,62 +19,82 @@
 
 #include "utils.h"
 
-const char *progname, *filename;
-int lineno;
+const char *progname;
 
 int nerrors = 0;
 int nwarnings = 0;
 
-static char where[200];
+static void
+print_diagnostic (const char *format, const char *warnstr, va_list *args,
+		  int saved_errno) {
+  static char *fmt = NULL;
+  static size_t fmt_len = 0;
 
-void
-ewhere (const char *format, ...) {
-  va_list args;
-  va_start (args, format);
-  vsprintf (where, format, args);
-  va_end (args);
-  }
+  int use_perror;
+  size_t needed_len = strlen (format) + strlen (warnstr) + 20;
 
-void
-einfo (int type, const char *format, ...) {
-  va_list args;
-  int save_errno = errno;
-
-  switch (type & 0x0f) {
-  case E_NOFILE:
-    fprintf (stderr, "%s: ", progname);
-    break;
-  case E_FILE:
-    fprintf (stderr, "%s: ", filename);
-    break;
-  case E_FILELINE:
-    ewhere ("%d", lineno);
-    /* fall-through */
-  case E_FILEWHERE:
-    fprintf (stderr, "%s:%s: ", filename, where);
-    break;
+  if (needed_len > fmt_len) {
+    free (fmt);
+    fmt_len = needed_len;
+    fmt = xmalloc (fmt_len);
     }
 
-  if (type & E_WARNING) {
-    fprintf (stderr, "warning: ");
-    nwarnings++;
+  if (format[0] == '[') {
+    int ket_pos;
+
+    format++;
+    ket_pos = strcspn (format, "]");
+
+    strcpy (fmt, format);
+    fmt[ket_pos] = '\0';
+    strcat (fmt, ": ");
+    format += ket_pos + 1;
+    while (*format == ' ')  format++;
+    }
+  else {
+    fprintf (stderr, "%s: ", progname);
+    strcpy (fmt, "");
+    }
+
+  strcat (fmt, warnstr);
+  strcat (fmt, format);
+
+  if (strlen (fmt) >= 2 && strcmp (fmt + strlen (fmt) - 2, "@P") == 0) {
+    fmt[strlen (fmt) - 2] = '\0';
+    use_perror = 1;
     }
   else
-    nerrors++;
+    use_perror = 0;
 
-  va_start (args, format);
-  vfprintf (stderr, format, args);
-  va_end (args);
+  vfprintf (stderr, fmt, *args);
 
-  if (type & E_PERROR) {
-    errno = save_errno;
-    fprintf (stderr, ": ");
+  if (use_perror) {
+    errno = saved_errno;
     perror ("");
     }
   else
-    fprintf (stderr, "\n");
+    putc ('\n', stderr);
   }
 
+void
+error (const char *format, ...) {
+  int saved_errno = errno;
+  va_list args;
+  va_start (args, format);
+  print_diagnostic (format, "", &args, saved_errno);
+  va_end (args);
+  nerrors++;
+  }
+
+void
+warning (const char *format, ...) {
+  int saved_errno = errno;
+  va_list args;
+  va_start (args, format);
+  print_diagnostic (format, "warning: ", &args, saved_errno);
+  va_end (args);
+  nwarnings++;
+  }
 
 int propt_tab = 30;
 
@@ -124,7 +144,7 @@ file_type (const char *fname) {
   }
 
 
-/* If NEWEXT is non-NULL, strips off any extension (a final `.' and all
+/* If NEWEXT is non-NULL, strips off any extension (a final '.' and all
    following characters) from FNAME and appends NEWEXT.  Returns a pointer to
    the start of the filename part (i.e., without any directories) of FNAME.  */
 char *
@@ -185,23 +205,23 @@ copy_file (const char *outfname, const char *infname, const char *mode) {
   sprintf (writemode, "w%.16s", mode);
 
   if ((inf = fopen (infname, readmode)) == NULL) {
-    einfo (E_NOFILE | E_PERROR, "can't open `%s'", infname);
+    error ("can't open '%s': @P", infname);
     return 0;
     }
 
   if ((outf = fopen (outfname, writemode)) == NULL) {
     fclose (inf);
-    einfo (E_NOFILE | E_PERROR, "can't create `%s'", outfname);
+    error ("can't create '%s': @P", outfname);
     return 0;
     }
 
   while (!err && (n = fread (buffer, 1, sizeof buffer, inf)) > 0)
     err = (fwrite (buffer, 1, n, outf) != n);
 
-  if (err)  einfo (E_NOFILE | E_PERROR, "error writing to `%s'", outfname);
+  if (err)  error ("error writing to '%s': @P", outfname);
 
   err = ferror (inf);
-  if (err)  einfo (E_NOFILE | E_PERROR, "error reading file");
+  if (err)  error ("error reading file: @P");
 
   fclose (outf);
   fclose (inf);
@@ -217,7 +237,7 @@ generate_file_from_template (const char *fname, const char *const *tmpl,
   const char *const *str;
 
   if (f == NULL) {
-    einfo (E_NOFILE | E_PERROR, "can't create `%s'", fname);
+    error ("can't create '%s': @P", fname);
     return;
     }
 
@@ -232,7 +252,7 @@ generate_file_from_template (const char *fname, const char *const *tmpl,
       fprintf (f, "%s", *str);
 
   if (fclose (f) != 0) {
-    einfo (E_NOFILE | E_PERROR, "can't close `%s'", fname);
+    error ("can't close '%s': @P", fname);
     remove (fname);
     }
   }

@@ -8,7 +8,7 @@ struct database_header {
      and compared like this:
 	strncpy (db.type, "appl", 4);
 	if (strncmp (db.type, "DATA", 4) == 0) { ... }
-	printf ("type: `%.4s'", db.type);
+	printf ("type: '%.4s'", db.type);
      Add "sizeof db.type" and "%.*s" to taste...  */
 
   char name[32], type[4], creator[4];
