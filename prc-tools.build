@@ -51,9 +51,9 @@ touch "gcc/gcc/cstamp-h.in"
 #install
 : ${DESTDIR:=`pwd`/buildroot}
 
-rm -rf $DESTDIR $DESTDIR-htmldocs
+rm -rf $DESTDIR
 (cd build; make install \
-  prefix=$DESTDIR$prefix htmldir=$DESTDIR-htmldocs$docdir \
+  prefix=$DESTDIR$prefix htmldir=$DESTDIR$docdir \
   ${mandir:+mandir=$DESTDIR$mandir} ${infodir:+infodir=$DESTDIR$infodir})
 
 mkdir -p $DESTDIR$docdir
@@ -77,13 +77,14 @@ strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/$target/bin/* \
     $exec_prefix/$target
     $datadir/prc-tools
     $infodir/prc-tools*
-    $docdir
+    $docdir/COPYING
+    $docdir/README
   " | sed 's:^ */::'`)
 bzip2 $PKGBASE$PKGTAIL.tar
 
-(cd $DESTDIR-htmldocs; tar cvf $PKGBASE-htmldocs$PKGTAIL.tar *)
-bzip2 $PKGBASE-htmldocs$PKGTAIL.tar
+(cd $DESTDIR; tar cvf $PKGBASE-htmldocs$PKGTAIL.tar [^CR]*)
+bzip2 $PKGBASE$PKGTAIL.tar
 
 if /bin/sh -c 'zip -h' >/dev/null 2>&1; then
-  (cd $DESTDIR-htmldocs$docdir; zip -l9r $PKGBASE-htmldocs$PKGSHORTTAIL.zip *)
+  (cd $DESTDIR$docdir; zip -l9r $PKGBASE-htmldocs$PKGSHORTTAIL.zip [^CR]*)
 fi
