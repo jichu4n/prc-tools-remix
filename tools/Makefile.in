@@ -20,6 +20,7 @@ LDFLAGS = @LDFLAGS@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
+libdir = @libdir@
 target = @target@
 target_alias = @target_alias@
 palmdev_prefix = @palmdev_prefix@
@@ -38,9 +39,8 @@ CXXLIBS = @static_cxxlibs@
 INCDIRS = -I. -I$(srcdir) -I$(srcdir)/../binutils/include -I../binutils/bfd
 LIBDIRS = -L. -L../binutils/bfd -L../binutils/libiberty
 
-# This ought to be in config.h.in, but that doesn't work because configure
-# sets $exec_prefix too late.
-CONFIG_DEFINES = -DEXEC_PREFIX=\"$(exec_prefix)\"
+CONFIG_DEFINES = -DEXEC_PREFIX=\"$(exec_prefix)\" \
+		 -DSTANDARD_EXEC_PREFIX=\"$(libdir)/gcc-lib\"
 
 ALL_CFLAGS = $(CONFIG_DEFINES) $(INCDIRS) $(CFLAGS) $(CPPFLAGS)
 ALL_CXXFLAGS = $(CONFIG_DEFINES) $(INCDIRS) $(CXXFLAGS) $(CPPFLAGS)
@@ -48,7 +48,7 @@ ALL_LDFLAGS = $(LIBDIRS) $(LDFLAGS)
 
 PFD = libpfd.a
 
-GENERIC_PROGS = build-prc$(exeext)
+GENERIC_PROGS = build-prc$(exeext) palmdev-prep$(exeext)
 
 PREFIXED_PROGS = obj-res$(exeext) multigen$(exeext) stubgen$(exeext) \
 		 sdkfind$(exeext)
@@ -117,6 +117,10 @@ sdkfind_objs = sdkfind.o utils.o dirutils.o
 sdkfind$(exeext): $(sdkfind_objs)
 	$(CC) $(ALL_LDFLAGS) -o $@ $(sdkfind_objs) -liberty
 
+palmdev_prep_objs = palmdev-prep.o utils.o dirutils.o
+palmdev-prep$(exeext): $(palmdev_prep_objs)
+	$(CC) $(ALL_LDFLAGS) -o $@ $(palmdev_prep_objs) -liberty
+
 build-prc.o: build-prc.cpp utils.h def.h binres.hpp \
 	     pfd.hpp pfdheader.h pfdio.hpp
 obj-res.o: obj-res.cpp binres.hpp pfd.hpp pfdheader.h utils.h
@@ -124,6 +128,7 @@ multigen.o: multigen.c multicode-s.str multicode-ld.str utils.h def.h
 stubgen.o: stubgen.c glib-jumps-s.str glib-stubs-c.str syslib-dispatch-s.str \
 	   utils.h def.h
 sdkfind.o: sdkfind.c utils.h
+palmdev-prep.o: palmdev-prep.c config.h utils.h
 binres.o: binres.cpp binres.hpp pfd.hpp pfdheader.h pfdio.hpp utils.h
 utils.o: utils.c config.h utils.h
 dirutils.o: dirutils.c utils.h
