@@ -79,7 +79,6 @@ mv ../make-3.79.1 make
 touch gcc/gcc/cstamp-h.in
 
 mkdir build
-mkdir build/empty
 mkdir build/static-libs
 
 %build
@@ -92,12 +91,9 @@ ln -s `${CXX:-g++} -print-file-name=libstdc++.a` static-libs/libstdc++.a
 # The m68k target used to be 'm68k-palmos-coff'.  Some people may want to
 # leave it thus to avoid changing their makefiles a little bit.
 
-# The --with-headers bit is a nasty hack to try to make fixinc happy on
-# Solaris and simultaneously stop it from doing anything.
 LDFLAGS=-L`pwd`/static-libs ../configure \
   --enable-targets=m68k-palmos,arm-palmos \
   --enable-languages=c,c++ \
-  --with-headers=`pwd`/empty \
   --with-palmdev-prefix=%{palmdev_prefix} \
   --enable-html-docs=%{palmdev_prefix}/doc \
   --prefix=%{_prefix} --exec-prefix=%{_exec_prefix} \
