@@ -138,6 +138,6 @@ html-subtargets:
 
 clean:
 	-rm -f prc-tools.info*
-	-rm -f *.aux *.log *.toc *.fn *.vr *.cp *.pg *.ky *.tp *.fns
+	-rm -f *.aux *.log *.toc *.fn *.vr *.cp *.pg *.ky *.tp *.cps *.fns
 	-rm -f prc-tools.dvi prc-tools.ps
 	-rm -f html-subtargets *.html
