@@ -87,13 +87,13 @@ make_main_code (bfd* abfd, asection* sec, bool appl) {
     res = res (-4, res.size () + 4);
     unsigned char* s = res.writable_contents ();
     put_word (s, 0x6000);	// bra.w OFF
-    put_word (s, entry);	// OFF = entry
+    put_word (s, 2 + entry);	// OFF = sizeof(insn)-2 + entry
     }
   else if (entry > 0) {
     res = res (-2, res.size () + 2);
     unsigned char* s = res.writable_contents ();
     put_byte (s, 0x60);		// bra.s OFF
-    put_byte (s, entry);	// OFF = entry
+    put_byte (s, entry);	// OFF = sizeof(insn)-2 + entry
     }
 
 #if 0
