@@ -948,11 +948,18 @@ section names are any longer than this, they will be truncated, leading
 to trouble.
 
 @item
-Add a multiple code clause to your definition file (or write a definition
-file and use it in your build-prc line if you're not already using one).
+Add a multiple code clause to your definition file:
 
 @example
 multiple code @{ "editfns" @}
+@end example
+
+Or, if you're not already using a definition file, write one including such
+a clause and use it in your build-prc command:
+
+@example
+myapp.prc: myapp.def myapp @dots{}
+        build-prc @dots{} myapp.def myapp @dots{}
 @end example
 
 @item

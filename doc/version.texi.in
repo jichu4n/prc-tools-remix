@@ -2,6 +2,6 @@
 @c @configure_input@
 
 @set updatedmonth September 2002
-@set updatedfull  5 @value{updatedmonth}
+@set updatedfull  13 @value{updatedmonth}
 
 @set version @prc_tools_version@
