@@ -22,7 +22,7 @@ all: $(subdirs)
 .PHONY: all install clean
 
 # These configure rules are used only when --enable-targets is in effect.
-# (The "dummy" target prevent errors when @extra_targs@ is empty.)
+# (The "dummy" target prevent errors when @extra_target_configs_@ is empty.)
 
 configure_args = @configure_args@
 
@@ -32,12 +32,13 @@ dummy @extra_target_configs@:
 	$(up_srcdir)$(srcdir)/configure --target=$$target --disable-generic \
 	  $(configure_args)
 
-# For each extra_subdir, configure will supply a dependency of the form
+# For each target subdirectory as listed in @extra_target_configs_@,
+# configure will supply (via @extra_dependencies_@) a dependency in the form
 #
-#	extra_subdir: extra_subdir/config.status
+#	dir: dir/config.status
 #
-# via @extra_deps@ below.  It is commented out so that the unconfigured
-# Makefile.in can still be parsed; it will still be substituted by configure.
+# It is commented out so that the unconfigured Makefile.in can still be
+# parsed as a makefile; it will be substituted by configure nonetheless.
 #
 # @extra_dependencies@
 
