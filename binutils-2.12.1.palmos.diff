@@ -151,8 +151,18 @@ diff -urN orig-binutils-2.12.1/bfd/Makefile.in binutils-2.12.1/bfd/Makefile.in
  riscix.lo: riscix.c $(INCDIR)/filenames.h libaout.h \
 diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
 --- orig-binutils-2.12.1/bfd/coff-m68k.c	Tue Sep 18 11:57:22 2001
-+++ binutils-2.12.1/bfd/coff-m68k.c	Wed May 15 17:51:52 2002
-@@ -107,6 +107,7 @@
++++ binutils-2.12.1/bfd/coff-m68k.c	Wed Sep 18 13:15:09 2002
+@@ -67,6 +67,9 @@
+ #define RELOC_SPECIAL_FN m68kcoff_common_addend_special_fn
+ #endif
+ 
++static boolean coff_m68k_bfd_print_private_bfd_data
++  PARAMS ((bfd *, PTR));
++
+ static boolean m68k_coff_is_local_label_name PARAMS ((bfd *, const char *));
+ 
+ /* On the delta, a symbol starting with L% is local.  We won't see
+@@ -107,6 +110,7 @@
      HOWTO (R_PCRWORD,	       0,  1, 	16, true,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP16",   true, 0x0000ffff,0x0000ffff, false),
      HOWTO (R_PCRLONG,	       0,  2, 	32, true,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP32",   true, 0xffffffff,0xffffffff, false),
      HOWTO (R_RELLONG_NEG,      0, -2, 	32, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "-32",	true, 0xffffffff,0xffffffff, false),
@@ -160,7 +170,7 @@ diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
    };
  #endif /* not ONLY_DECLARE_RELOCS */
  
-@@ -149,6 +150,7 @@
+@@ -149,6 +153,7 @@
      case R_PCRWORD:	internal->howto = m68kcoff_howto_table + 4; break;
      case R_PCRLONG:	internal->howto = m68kcoff_howto_table + 5; break;
      case R_RELLONG_NEG:	internal->howto = m68kcoff_howto_table + 6; break;
@@ -168,7 +178,7 @@ diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
      }
  }
  
-@@ -156,6 +158,10 @@
+@@ -156,6 +161,10 @@
  m68k_howto2rtype (internal)
       reloc_howto_type *internal;
  {
@@ -179,7 +189,7 @@ diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
    if (internal->pc_relative)
      {
        switch (internal->bitsize)
-@@ -193,6 +199,7 @@
+@@ -193,6 +202,7 @@
      case BFD_RELOC_16_PCREL:	return m68kcoff_howto_table + 4;
      case BFD_RELOC_32_PCREL:	return m68kcoff_howto_table + 5;
        /* FIXME: There doesn't seem to be a code for R_RELLONG_NEG.  */
@@ -187,13 +197,17 @@ diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
      }
    /*NOTREACHED*/
  }
-@@ -207,6 +214,42 @@
+@@ -207,6 +217,46 @@
  
  #define coff_bfd_reloc_type_lookup m68k_reloc_type_lookup
  
 +#ifndef coff_rtype_to_howto
 +/* If this is not yet defined, one of the following definitions will be
 +   used.  Both need this helper function.  */
++
++static bfd_vma m68kcoff_global_data_size
++  PARAMS ((bfd *, asection *, struct internal_reloc *,
++	   struct coff_link_hash_entry *));
 +
 +static bfd_vma
 +m68kcoff_global_data_size (abfd, sec, rel, h)
@@ -230,7 +244,7 @@ diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
  #ifndef COFF_COMMON_ADDEND
  #ifndef coff_rtype_to_howto
  
-@@ -219,10 +262,10 @@
+@@ -219,10 +269,10 @@
  
  static reloc_howto_type *
  m68kcoff_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
@@ -243,7 +257,7 @@ diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
       struct internal_syment *sym ATTRIBUTE_UNUSED;
       bfd_vma *addendp;
  {
-@@ -236,6 +279,9 @@
+@@ -236,6 +286,9 @@
    if (howto->pc_relative)
      *addendp += sec->vma;
  
@@ -253,7 +267,7 @@ diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
    return howto;
  }
  
-@@ -379,7 +425,7 @@
+@@ -379,7 +432,7 @@
  
  static reloc_howto_type *
  m68kcoff_common_addend_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
@@ -262,7 +276,7 @@ diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
       asection *sec;
       struct internal_reloc *rel;
       struct coff_link_hash_entry *h;
-@@ -396,6 +442,9 @@
+@@ -396,6 +449,9 @@
    if (howto->pc_relative)
      *addendp += sec->vma;
  
@@ -272,7 +286,7 @@ diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
    if (sym != NULL && sym->n_scnum == 0 && sym->n_value != 0)
      {
        /* This is a common symbol.  The section contents include the
-@@ -505,21 +554,194 @@
+@@ -505,21 +561,194 @@
  	    targetsec = NULL;
  	}
  
@@ -387,7 +401,7 @@ diff -urN orig-binutils-2.12.1/bfd/coff-m68k.c binutils-2.12.1/bfd/coff-m68k.c
 +
 +      fprintf (f, "%s+0x", relsecname);
 +      fprintf_vma (f, reloffset);
-+      fprintf (f, "%*s", 9 - strlen (relsecname), "");
++      fprintf (f, "%*s", (int) (9 - strlen (relsecname)), "");
 +
 +      howto = (relsec)? bfd_reloc_type_lookup (abfd, type) : NULL;
 +      if (howto == NULL)
