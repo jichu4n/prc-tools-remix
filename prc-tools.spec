@@ -97,6 +97,7 @@ ln -s `${CXX:-g++} -print-file-name=libstdc++.a` static-libs/libstdc++.a
 LDFLAGS=-L`pwd`/static-libs ./configure \
   --enable-targets=m68k-palmos,arm-palmos \
   --enable-languages=c,c++ \
+  --disable-cpp \
   --with-palmdev-prefix=%{palmdev_prefix} \
   --enable-html-docs=%{palmdev_prefix}/doc \
   --prefix=%{_prefix} --exec-prefix=%{_exec_prefix} \
