@@ -495,6 +495,14 @@ make_data (const bfd_byte* raw_data, size_t data_size, size_t total_data_size,
   return res (0, datap - data);
   }
 
+static void
+check_got_is_empty (bfd* abfd, const char* secname) {
+  asection* sec = bfd_get_section_by_name (abfd, secname);
+  if (sec && bfd_section_size (abfd, sec) > 0)
+    warning ("[%s(%s)] non-empty GOT-related section ignored",
+	     bfd_get_filename (abfd), secname);
+  }
+
 static const char*
 arch_code_resource_type (bfd* abfd) {
   switch (bfd_get_arch (abfd)) {
@@ -648,6 +656,9 @@ process_binary_file (const char* fname, binary_file_info& normal_info) {
     }
   else if (total_data_size > 0)
     warning ("[%s] global data ignored", fname);
+
+  check_got_is_empty (abfd, ".got");
+  check_got_is_empty (abfd, ".got.plt");
 
   delete [] res_from_sec;
   bfd_close (abfd);
