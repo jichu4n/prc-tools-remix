@@ -9,15 +9,35 @@
 
 srcdir = @srcdir@
 VPATH = @srcdir@
+up_srcdir = @up_srcdir@
 
 exeext = @EXEEXT@
 LN_S = @LN_S@
 
 subdirs = @all_extant_subdirs@
+extra_subdirs = @extra_subdirs@
+configure_args = @configure_args@
 
 all: $(subdirs)
 
 .PHONY: all install clean
+
+# These "dummy*" targets prevent errors when @extra_FOO@ etc are empty.
+
+dummy1 @extra_target_configs@:
+	target=`echo $@ | sed 's:/.*::'`; \
+	cd $$target && \
+	$(up_srcdir)$(srcdir)/configure --target=$$target --disable-generic \
+	$(configure_args)
+
+# For each extra_subdir, configure will supply a dependency of the form
+#	extra_subdir: extra_subdir/config.status
+#
+# via @extra_deps@ below.  It is commented out so that the unconfigured
+# Makefile.in can still be parsed; it will still be substituted by configure.
+#
+# @extra_dependencies@
+
 
 BUILT_AS = binutils/gas/as-new$(exeext)
 BUILT_LD = binutils/ld/ld-new$(exeext)
@@ -39,7 +59,7 @@ SDKFLAGS = -DBOOTSTRAP -I$${abssrcdir}/bootstrap \
 	   -specs=$${abssrcdir}/bootstrap/bootstrap-specs -palmos-none
 
 .PHONY: crt doc include libc libm tools
-.PHONY: binutils real-binutils gcc real-gcc gdb make
+.PHONY: binutils real-binutils gcc real-gcc gdb make $(extra_subdirs)
 
 binutils: binutils.stamp
 
@@ -51,7 +71,7 @@ real-binutils:
 real-gcc: @target_gcc_prereqs@
 	cwd=`pwd`; cd gcc && $(MAKE) $(target_gcc_flags) all
 
-gdb doc include tools:
+gdb doc include tools $(extra_subdirs):
 	cd $@ && $(MAKE) all
 
 make:

@@ -47,12 +47,35 @@ AC_SUBST(install_htmldocs_enabled)
 
 AC_CANONICAL_SYSTEM
 
+AC_ARG_ENABLE(targets,
+[  --enable-targets=...    build several targets (instead of one --target)],
+[case "${enableval}" in
+yes|no)	AC_MSG_ERROR(--enable-targets must explicitly list the targets) ;;
+esac])
+
 AC_ARG_ENABLE(generic,
 [  --disable-generic       omit tools etc that are not target-specific])
+
+# Use "cd subdir; $(up_srcdir)$(srcdir)/..." to find $srcdir correctly
+# regardless of whether we were configured relatively or absolutely.
+case $srcdir in
+  /*) up_srcdir= ;;
+  *)  up_srcdir=../ ;;
+esac
+AC_SUBST(up_srcdir)
 
 config_subdirs=
 output_files="Makefile"
 all_subdirs=
+extra_subdirs=
+configure_args=
+extra_dependencies=/dev/null
+extra_target_configs=
+
+AC_SUBST(extra_subdirs)
+AC_SUBST(configure_args)
+AC_SUBST_FILE(extra_dependencies)
+AC_SUBST(extra_target_configs)
 
 target_gcc_prereqs=
 target_gcc_flags=
@@ -64,9 +87,43 @@ AC_SUBST(target_gcc_flags)
 AC_SUBST(targetlib_prereqs)
 AC_SUBST(targetlib_flags)
 
-if false; then
-  # FIXME handle "top level configury"
-  :
+if test -n "$enable_targets"; then
+  # Collect up the arguments that were given to configure, except for
+  # --enable-targets, which we're going to break apart.
+  for arg
+  do
+    case "$arg" in
+      --enable-targets*) ;;
+      *" "*|*"	"*|*[\[\]\~\#\$\^\&\*\(\)\{\}\\\|\;\<\>\?]*)
+	 configure_args="$configure_args '$arg'" ;;
+      *) configure_args="$configure_args $arg" ;;
+    esac
+  done
+
+  case "$configure_args" in
+    *cache-file*) ;;
+    *) configure_args="$configure_args --cache-file=`pwd`/config.cache" ;;
+  esac
+
+  extra_dependencies=Makefile.extradeps
+  > $extra_dependencies
+
+  for targ in `echo $enable_targets | sed 's/,/ /g'`; do
+    test -d $targ || mkdir $targ
+    extra_target_configs="$extra_target_configs $targ/config.status"
+    extra_subdirs="$extra_subdirs $targ"
+    all_subdirs="$all_subdirs $targ"
+    (echo; echo "$targ: $targ/config.status") >> $extra_dependencies
+  done
+
+  # FIXME  Extend this so that the generic subdirs (mainly "tools") work
+  # in a multitarget world -- which is, of course, the whole point.
+  # For now, just disable generic.
+  enable_generic=no
+  if test x$enable_generic != xno; then
+    # FIXME
+    :
+  fi
 else
   case "$target_cpu" in
   m68k)	config_subdirs="$config_subdirs binutils gcc gdb"
