@@ -1,6 +1,6 @@
 # Makefile for rebuilding the prc-tools bootstrap Palm OS headers.
 #
-# Copyright 2001 John Marshall.
+# Copyright 2001, 2003 John Marshall.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -48,6 +48,8 @@ CC = m68k-palmos-gcc
 POSE = pose
 
 all: genbootstrap.prc
+
+.PHONY: all headers clean
 
 genbootstrap.prc: genbootstrap
 	build-prc -n GenBootstrap -c GENB genbootstrap

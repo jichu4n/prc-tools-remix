@@ -45,8 +45,6 @@
 
 * Use @command for commands, @option for options throughout prc-tools.texi.
 
-* Use .PHONY properly in all our makefiles.
-
 * Find a less hackish way to suppress [un]protoize and gcov.
 
 * Add a post-install script to the Cygwin build to do install-info.

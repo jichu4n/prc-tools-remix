@@ -70,7 +70,7 @@ SDKFLAGS = -DBOOTSTRAP -I$${abssrcdir}/bootstrap \
 	   -specs=$${abssrcdir}/bootstrap/bootstrap-specs -palmos-none
 
 .PHONY: crt doc include libc libm tools
-.PHONY: binutils real-binutils @gccdir@ real-gcc gdb make $(extra_subdirs)
+.PHONY: binutils real-binutils gcc real-gcc gdb make $(extra_subdirs)
 
 binutils: binutils.stamp
 

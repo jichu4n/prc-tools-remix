@@ -73,6 +73,8 @@ install: $(INSTALL_FILES) $(INSTALL_HFILES)
 #	chmod 644 $(PREFIX)/m68k-palmos-coff/include/mathf.h
 #	ln -sf $(PREFIX)/m68k-palmos-coff/include/mathf.h $(PREFIX)/m68k-palmos-coff/include/math.h
 
+.PHONY: all install clean distclean
+
 mtst: mtst.o drand.o libmf.a
 	$(CC) -o mtst mtst.o drand.o libmf.a -lmd
 

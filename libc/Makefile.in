@@ -112,6 +112,8 @@ install: all install-legacy
 	  $(INSTALL_DATA) $$f $(DESTDIR)$(tooldir)/lib/$$f; \
 	done
 
+.PHONY: all install-legacy install clean
+
 
 bootstrap_h = ../bootstrap/bootstrap.h ../include/NewTypes.h
 
@@ -167,6 +169,8 @@ mown-gp/Makefile: Makefile
 sub-multilibs: mown-gp/Makefile
 	cd mown-gp; $(MAKE) CC="$(CC)" AR="$(AR)" RANLIB="$(RANLIB)" \
 	  SDKFLAGS="$(SDKFLAGS)" MULTIFLAGS=-mown-gp all-multilibs
+
+.PHONY: all-multilibs sub-multilibs
 
 
 libg.a: $(LIBG_OBJS)

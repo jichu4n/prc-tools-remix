@@ -88,6 +88,7 @@ install: $(INSTALL_FILES)
 	  done; \
 	fi
 
+.PHONY: all install clean
 
 .SUFFIXES: .cpp
 
