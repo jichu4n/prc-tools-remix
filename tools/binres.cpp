@@ -475,13 +475,14 @@ make_data (const bfd_byte* raw_data, size_t data_size, size_t total_data_size,
   }
 
 
-static bool bfd_inited = false;
-
 ResourceDatabase
 process_binary_file (const char* fname, const binary_file_info& info,
 		     binary_file_stats* stats) {
+  static bool bfd_inited = false;
+
   if (!bfd_inited) {
     bfd_init ();
+    bfd_set_error_program_name (progname);
     bfd_inited = true;
     }
 
