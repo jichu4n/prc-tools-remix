@@ -51,7 +51,6 @@
 * Add a post-install script to the Cygwin build to do install-info.
 
 * Issues with the tiny libc implementation:
-  - _SP et al in ctype.h
   - strtol/strtoul should be in stdlib.h, not string.h
   - we don't have overloaded const / non-const versions of each function (C++)
   - u_int in sys/types.h

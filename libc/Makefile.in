@@ -51,6 +51,9 @@ LIBC_OBJS_m68k = \
 	bcopy.o memmove.o strchr.o strncat.o strspn.o \
 	memscan.o strcmp.o strncmp.o strstr.o \
 	memset.o strcpy.o strncpy.o strtok.o \
+	ctype.o isalnum.o isalpha.o isblank.o iscntrl.o isdigit.o isgraph.o \
+	islower.o isprint.o ispunct.o isspace.o isupper.o isxdigit.o \
+	tolower.o toupper.o \
 	malloc.o free.o realloc.o calloc.o \
 	abs.o labs.o llabs.o div.o ldiv.o lldiv.o \
 	memcmp.o strnlen.o strtol.o \
@@ -65,6 +68,9 @@ INSTALL_HEADERS_arm =
 INSTALL_LIBS_arm    = libc.a libstdc++.a
 
 LIBC_OBJS_arm = \
+	ctype.o isalnum.o isalpha.o isblank.o iscntrl.o isdigit.o isgraph.o \
+	islower.o isprint.o ispunct.o isspace.o isupper.o isxdigit.o \
+	tolower.o toupper.o \
 	abs.o labs.o llabs.o div.o ldiv.o lldiv.o \
 	memcpy.o memset.o
 
@@ -94,6 +100,11 @@ install: all install-legacy
 
 
 bootstrap_h = ../bootstrap/bootstrap.h ../include/NewTypes.h
+
+ctype.o isalnum.o isalpha.o isblank.o iscntrl.o isdigit.o isgraph.o \
+islower.o isprint.o ispunct.o isspace.o isupper.o isxdigit.o \
+tolower.o toupper.o: ctype.c ../include/ctype.h
+	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/ctype.c
 
 malloc.o free.o calloc.o realloc.o: malloc.c ../include/stdlib.h $(bootstrap_h)
 	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/malloc.c
