@@ -495,6 +495,8 @@ process_binary_file (const char* fname, const binary_file_info& info,
 
   if (!abfd || !bfd_check_format (abfd, bfd_object)) {
     error ("can't open '%s': %s", fname, bfd_errmsg (bfd_get_error ()));
+    if (abfd)
+      bfd_close (abfd);
     return db;
     }
 
