@@ -15,12 +15,12 @@
    because:  ENDIANNESS IS NOT THE ONLY PROBLEM!  */
 
 inline unsigned char
-get_byte (unsigned char*& s) {
+get_byte (const unsigned char*& s) {
   return *s++;
   }
 
 inline signed char
-get_sbyte (unsigned char*& s) {
+get_sbyte (const unsigned char*& s) {
   unsigned char u = get_byte (s);
   if (u >= 0x80) {
     signed char v = u & 0x7f;
@@ -31,14 +31,14 @@ get_sbyte (unsigned char*& s) {
   }
 
 inline unsigned int
-get_word (unsigned char*& s) {
+get_word (const unsigned char*& s) {
   unsigned int v = *s++;
   v = (v << 8) | *s++;
   return v;
   }
 
 inline signed int
-get_sword (unsigned char*& s) {
+get_sword (const unsigned char*& s) {
   unsigned int u = get_word (s);
   if (u >= 0x8000) {
     signed int v = u & 0x7fff;
@@ -49,7 +49,7 @@ get_sword (unsigned char*& s) {
   }
 
 inline unsigned long
-get_long (unsigned char*& s) {
+get_long (const unsigned char*& s) {
   unsigned int v = *s++;
   v = (v << 8) | *s++;
   v = (v << 8) | *s++;
@@ -58,7 +58,7 @@ get_long (unsigned char*& s) {
   }
 
 inline signed long
-get_slong (unsigned char*& s) {
+get_slong (const unsigned char*& s) {
   unsigned long u = get_long (s);
   if (u >= 0x80000000) {
     signed long v = u & 0x7fffffff;
