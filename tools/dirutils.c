@@ -61,6 +61,7 @@ is_dir_dirent (struct dirent *dent, const char *pathformat, ...) {
 struct directory_node {
   struct directory_node *next;
   char path[FILENAME_MAX];
+  int scanned;
   };
 
 struct directory_tree {
@@ -75,6 +76,7 @@ push (TREE *tree, const char *path) {
   struct directory_node *n = xmalloc (sizeof (struct directory_node));
 
   strcpy (n->path, path);
+  n->scanned = 0;
   n->next = tree->dirstack;
   tree->dirstack = n;
   }
@@ -106,12 +108,11 @@ opentree (int flags, const char *path_format, ...) {
 
 const char *
 readtree (TREE *tree) {
+  static char entryname[FILENAME_MAX];
   struct dirent *entry;
 
   while (1)
     if (tree->curdir && (entry = readdir (tree->curdir)) != NULL) {
-      static char entryname[FILENAME_MAX];
-
       sprintf (entryname, "%s/%s", tree->curname, entry->d_name);
       if (is_dir_dirent (entry, "%s", entryname)) {
 	if (strcmp (entry->d_name, ".") != 0
@@ -123,15 +124,21 @@ readtree (TREE *tree) {
 	  return entryname;
 	}
       }
+    else if (tree->dirstack && tree->dirstack->scanned) {
+      strcpy (entryname, tree->dirstack->path);
+      pop (tree);
+      if (tree->flags & DIRS_POSTORDER)
+	return entryname;
+      }
     else if (tree->dirstack) {
       if (tree->curdir)
 	closedir (tree->curdir);
 
       strcpy (tree->curname, tree->dirstack->path);
-      pop (tree);
+      tree->dirstack->scanned = 1;
 
       tree->curdir = opendir (tree->curname);
-      if (tree->curdir && (tree->flags & DIRS))
+      if (tree->curdir && (tree->flags & DIRS_PREORDER))
 	return tree->curname;
       }
     else

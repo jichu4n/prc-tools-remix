@@ -64,7 +64,7 @@ int is_dir_dirent (struct dirent *dent, const char *pathformat, ...)
    PATH_FORMAT et al), rather than just its immediate contents.  */
 
 typedef struct directory_tree TREE;
-enum { FILES = 1, DIRS = 2 };
+enum { FILES = 1, DIRS_PREORDER = 2, DIRS_POSTORDER = 4 };
 
 TREE *opentree (int flags, const char *path_format, ...) PRINTF_FUNC (2, 3);
 const char *readtree (TREE *tree);
