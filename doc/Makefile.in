@@ -1,7 +1,7 @@
 # Makefile for prc-tools documentation.
 #
-# Copyright (c) 2000 Palm Computing, Inc. or its subsidiaries.
-# All rights reserved.
+# Copyright 2001, 2002 John Marshall.
+# Portions copyright 2000 Palm Inc. or its subsidiaries.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,6 +12,8 @@ srcdir = @srcdir@
 VPATH = @srcdir@
 
 SHELL = /bin/sh
+
+configured_subdirs = @subdirs@
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -26,13 +28,17 @@ MAKEINFO = makeinfo
 MAKEINFOFLAGS =
 
 MAKEHTML = texi2html
-MAKEHTMLFLAGS = -D USERMANUALONLY -split node
+MAKEHTMLFLAGS = -split node
 
-all: prc-tools.info
+all: info
 
-info:
+info: prc-tools.info
 
-install: all
+html: prc-tools.html index.html index.texi.html
+
+install: install-info
+
+install-info: info
 	$(INSTALL) -d $(infodir)
 	rm -f $(infodir)/prc-tools.info*
 	for f in prc-tools.info*; do \
@@ -47,35 +53,16 @@ install: all
 	  else true; fi; \
 	else true; fi
 
-html: index.html texidocs-list
-
 install-html: html
 	$(INSTALL) -d $(htmldir)
-	$(INSTALL_DATA) index.html $(htmldir)/index.html
+	$(INSTALL_DATA) index.texi.html $(htmldir)/index.html
+	-rm -rf $(htmldir)/texi
 	$(INSTALL) -d $(htmldir)/texi
-	for file in `cat texidocs-list`; do \
-	  d=`echo $${file} | sed -e 's:/[^/]*$$::'`; \
-	  pkg=`echo $${file} | sed -e 's:^.*/::' -e 's:_.*$$::'`; \
-	  echo $${pkg}; \
-	  rm -f $(htmldir)/texi/$${pkg}[_.]*html; \
-	  for f in `cd $${d} && echo $${pkg}[_.]*html`; do \
-	    $(INSTALL_DATA) $${d}/$${f} $(htmldir)/texi/$${f}; \
-	  done; \
+	for f in `ls *.html | grep -v '^index'`; do \
+	  $(INSTALL_DATA) $$f $(htmldir)/texi/$$f; \
 	done
 
-
-index.html: index.html.in texidocs-list
-	(sed -n -e '1,/@texidocs@/p' $(srcdir)/index.html.in; \
-	 for file in `cat texidocs-list`; do \
-	   pkg=`echo $${file} | sed -e 's:^.*/::' -e 's:_.*$$::'`; \
-	   title=`grep '<[hH]1>' $${file} | sed -e 's/<[/hH1]*>//g'`; \
-	   echo "<tr>"; \
-	   echo "<td><b><a href=\"texi/$${pkg}_toc.html\">$${pkg}</a></b></td>"; \
-	   echo "<td>$${title}</td>"; \
-	   echo "</tr>"; \
-	 done; \
-	 sed -n -e '/@texidocs@/,$$p' $(srcdir)/index.html.in) | \
-	sed -e '/@texidocs@/d' > index.html
+.PHONY: all info html install install-info install-html clean
 
 
 prc-tools.info: prc-tools.texi
@@ -88,37 +75,73 @@ prc-tools.dvi: prc-tools.texi
 prc-tools.ps: prc-tools.dvi
 	dvips -o $@ $<
 
-prc-tools_toc.html: prc-tools.texi
+prc-tools.html: prc-tools.texi
 	-@rm -f prc-tools[_.]*html
 	$(MAKEHTML) $(MAKEHTMLFLAGS) -I $(srcdir) $(srcdir)/prc-tools.texi
 
+# We also generate HTML copies of the various tools' user manuals.  Since
+# they don't all (yet) provide HTML documentation targets in their makefiles,
+# we do this with rather hackish fingers reaching from here over into the
+# tool build directories.
+#
+# The nasty hackish part is that we've had to duplicate some of the *.texi
+# dependency information here, and that information is subject to change as
+# the other packages change.  But they'll probably change only slowly in
+# this regard, and it's less horrible in practice (though not in theory!)
+# than locally patching their makefiles for this, as we did in the past.
+
+index.texi.html: index.html
+	sed 's:href="./:href="texi/:' < index.html > index.texi.html
+
+index.html: index.html.in html-subtargets
+	awk '\
+/@if-('`tr -cs 'a-z-' '|' < html-subtargets`'1)/ { discard = 0; next } \
+/@if-/   { discard = 1 } \
+!discard { print }' $(srcdir)/index.html.in | sed 's:"@:"./:' > index.html
+
+.PHONY: html-binutils html-gdb html-gcc html-make
+
+MKHTML = $(MAKEHTML) $(MAKEHTMLFLAGS)
+
+html-binutils:
+	-@rm -f binutils[_.]*html ld[_.]*html as[_.]*html
+	[ -f $(srcdir)/../binutils/ld/configdoc.texi ] || \
+	[ -f ../binutils/ld/configdoc.texi ] || (cd ../binutils; $(MAKE) info)
+	$(MKHTML) -I ../binutils/binutils/doc \
+	  -I $(srcdir)/../binutils/binutils/doc \
+	  $(srcdir)/../binutils/binutils/doc/binutils.texi
+	$(MKHTML) -I ../binutils/ld -I $(srcdir)/../binutils/ld \
+	  -I $(srcdir)/../binutils/bfd/doc $(srcdir)/../binutils/ld/ld.texinfo
+	$(MKHTML) -I ../binutils/gas/doc -I $(srcdir)/../binutils/gas/doc \
+	  $(srcdir)/../binutils/gas/doc/as.texinfo
+
+html-gdb:
+	-@rm -f gdb[_.]*html
+	[ -f ../gdb/gdb/doc/gdb-cfg.texi ] || (cd ../gdb; $(MAKE) info)
+	$(MKHTML) -I ../gdb/gdb/doc -I $(srcdir)/../gdb/gdb/doc \
+	  -I $(srcdir)/../gdb/readline/doc -I $(srcdir)/../gdb/gdb/mi \
+	  $(srcdir)/../gdb/gdb/doc/gdb.texinfo
+
+html-gcc:
+	-@rm -f gcc[_.]*html cpp[_.]*html
+	$(MKHTML) -D USERMANUALONLY -I $(srcdir)/../gcc/gcc \
+	  $(srcdir)/../gcc/gcc/gcc.texi
+	$(MKHTML) -I $(srcdir)/../gcc/gcc $(srcdir)/../gcc/gcc/cpp.texi
+
+html-make:
+	-@rm -f make[_.]*html
+	# Expect one duplicate node (Conditional Syntax)
+	$(MKHTML) -I $(srcdir)/../make $(srcdir)/../make/make.texinfo
+
+html-subtargets:
+	for d in $(configured_subdirs); do \
+	  if [ -d ../$$d ]; then echo html-$$d; else :; fi; \
+	done > $@
+	$(MAKE) "MAKEHTML=$(MAKEHTML)" "MAKEHTMLFLAGS=$(MAKEHTMLFLAGS)" `cat $@`
+
 
 clean:
+	-rm -f prc-tools.info*
 	-rm -f *.aux *.log *.toc *.fn *.vr *.cp *.pg *.ky *.tp *.fns
-	-rm -f *-list
-	-rm -f *.html
-
-
-### Slightly hackish fingers reaching into the tool build directories:
-
-TEXIDOCS = ./prc-tools_toc.html \
-	   ../gcc/gcc/gcc_toc.html \
-	   ../gcc/gcc/cpp_toc.html \
-	   ../gdb/gdb/doc/gdb_toc.html \
-	   ../binutils/ld/ld_toc.html \
-	   ../binutils/gas/doc/as_toc.html \
-	   ../binutils/binutils/binutils_toc.html \
-	   ../make/make_toc.html
-
-texidocs-list:
-	rm -f texidocs-list
-	for file in $(TEXIDOCS); do \
-	  d=`echo $${file} | sed -e 's:/[^/]*$$::'`; \
-	  f=`echo $${file} | sed -e 's:^.*/::'`; \
-	  if [ -f ./$${d}/Makefile ]; then \
-	    if (cd $${d} && make MAKEHTML="$(MAKEHTML)" MAKEHTMLFLAGS="$(MAKEHTMLFLAGS)" $${f}); \
-	    then true; else exit 1; fi; \
-	    echo $${file} >> texidocs-list; \
-	  else true; fi; \
-	done
-	touch texidocs-list
+	-rm -f prc-tools.dvi prc-tools.ps
+	-rm -f html-subtargets *.html

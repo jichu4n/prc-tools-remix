@@ -17,10 +17,27 @@ Palm&nbsp;OS port.  The remainder are the user manuals for the various
 <a href="http://www.gnu.org/">GNU</a> packages used in the tool chain.
 
 <p>
+<ul>
+<li> Using <b><a href="@prc-tools.html">PRC-Tools</a></b>
+<!-- @if-html-gcc -->
+<li> Using the <b><a href="@gcc.html">GNU Compiler Collection</a></b>:
+     C and C++ on Palm OS
+<li> Using the <b><a href="@cpp.html">preprocessor</a></b>:
+     #define, #include, and friends
+<!-- @if-html-gdb -->
+<li> Debugging remotely with <b><a href="@gdb.html">GDB</a></b>
+<!-- @if-html-binutils -->
+<li> Specifics of the <b><a href="@ld.html">linker</a></b>
+     and <b><a href="@as.html">assembler</a></b>
+<li> Other <b><a href="@binutils.html">binary utilities</a></b>
+     for dealing with object files
+<!-- @if-html-make -->
+<li> Using <b><a href="@make.html">make</a></b>
+     to build your project
+<!-- @if-1 -->
+</ul>
+
 <table>
-
-@texidocs@
-
 <tr><td colspan=2>&nbsp;<br>
 You may also have some or all of the following documentation installed:
 <br>&nbsp;</td></tr>
