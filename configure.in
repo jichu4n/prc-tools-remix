@@ -63,7 +63,8 @@ yes|no)	AC_MSG_ERROR(--enable-targets must explicitly list the targets) ;;
 esac])
 
 AC_ARG_ENABLE(generic,
-[  --disable-generic       omit tools etc that are not target-specific])
+[  --disable-generic       omit tools etc that are not target-specific],
+[], [enable_generic=yes])
 
 
 # Use "cd subdir; $(up_srcdir)$(srcdir)/..." to find $srcdir correctly
@@ -144,7 +145,7 @@ if test -n "$enable_targets"; then
     esac
   done
 
-  if test x$enable_generic != xno; then
+  if test $enable_generic = yes; then
     changequote(,)dnl
     first=`echo $enable_targets | sed 's/,.*//'`
     others=`echo $enable_targets | sed 's/^[^,]*,//'`
@@ -206,7 +207,7 @@ else
   fi
 fi
 
-if test x$enable_generic != xno; then
+if test $enable_generic = yes; then
   config_subdirs="$config_subdirs make"
   output_files="$output_files doc/Makefile doc/version.texi include/Makefile
 		tools/Makefile"
@@ -264,7 +265,7 @@ else
 fi
 AC_SUBST(INTLLIBS)
 
-if test x$enable_generic != xno; then
+if test $enable_generic = yes; then
   # Building manpages requires binutils to be in the tree (which was
   # checked above) and a recent Pod::Man
   AC_MSG_CHECKING([for recent Pod::Man])
