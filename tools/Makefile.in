@@ -48,8 +48,7 @@ PFD = libpfd.a
 
 GENERIC_PROGS = build-prc$(exeext) palmdev-prep$(exeext)
 
-PREFIXED_PROGS = obj-res$(exeext) multigen$(exeext) stubgen$(exeext) \
-		 sdkfind$(exeext)
+PREFIXED_PROGS = obj-res$(exeext) multigen$(exeext) stubgen$(exeext)
 
 INSTALL_FILES = $(GENERIC_PROGS) $(PREFIXED_PROGS)
 
@@ -111,10 +110,6 @@ stubgen_objs = stubgen.o utils.o def.yy.o def.tab.o
 stubgen$(exeext): $(stubgen_objs) $(PFD)
 	$(CC) $(ALL_LDFLAGS) -o $@ $(stubgen_objs) -liberty -lpfd
 
-sdkfind_objs = sdkfind.o utils.o dirutils.o
-sdkfind$(exeext): $(sdkfind_objs)
-	$(CC) $(ALL_LDFLAGS) -o $@ $(sdkfind_objs) -liberty
-
 palmdev_prep_objs = palmdev-prep.o utils.o dirutils.o
 palmdev-prep$(exeext): $(palmdev_prep_objs)
 	$(CC) $(ALL_LDFLAGS) -o $@ $(palmdev_prep_objs) -liberty
@@ -125,7 +120,6 @@ obj-res.o: obj-res.cpp binres.hpp pfd.hpp pfdheader.h utils.h
 multigen.o: multigen.c multicode-s.str multicode-ld.str utils.h def.h
 stubgen.o: stubgen.c glib-jumps-s.str glib-stubs-c.str syslib-dispatch-s.str \
 	   utils.h def.h pfdheader.h
-sdkfind.o: sdkfind.c config.h utils.h
 palmdev-prep.o: palmdev-prep.c config.h utils.h
 binres.o: binres.cpp binres.hpp pfd.hpp pfdheader.h pfdio.hpp utils.h
 utils.o: utils.c config.h utils.h

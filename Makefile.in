@@ -86,8 +86,7 @@ all-target:
 	  fi; \
 	done
 
-# FIXME: delenda est install-wrappers!!
-install: install-host install-gcc install-target install-wrappers
+install: install-host install-gcc install-target
 
 # FIXME: these three want unifying too -- will fix install properly soon
 # FIXME: install-info removed until this is fixed properly
@@ -110,49 +109,6 @@ install-target:
 	  fi; \
 	done
 
-
-DRIVER_PROGS = cpp$(exeext) gcc$(exeext) g++$(exeext) c++$(exeext)
-
-install-wrappers:
-	$(INSTALL) -d $(tooldir)/real-bin
-	if $(bindir)/$(target_alias)-gcc -print-search-dirs | grep ^palmdev: >/dev/null; \
-	then \
-	  echo "**"; \
-	  echo "** $(target_alias)-<driver> wrappers already installed"; \
-	  echo "**"; \
-	else \
-	  for drv in $(DRIVER_PROGS); do \
-	    $(INSTALL) $(bindir)/$(target_alias)-$${drv} \
-		       $(tooldir)/real-bin/$${drv}; \
-	  done; \
-	fi
-	# Combine real drivers where possible
-	cd $(tooldir)/real-bin; \
-	rm -f c++$(exeext); \
-	ln g++$(exeext) c++$(exeext) \
-	|| ln -s g++$(exeext) c++$(exeext) \
-	|| $(INSTALL) ./g++$(exeext) ./c++$(exeext)
-	# Replace the visible drivers in $(bindir) with the wrapper
-	cd $(bindir); \
-	target_sdkfind=$(target_alias)-sdkfind$(exeext); \
-	for drv in $(DRIVER_PROGS); do \
-	  if test -f $(target_alias)-$${drv}; then \
-	    rm -f $(target_alias)-$${drv}; \
-	    ln $${target_sdkfind} $(target_alias)-$${drv} \
-	    || ln -s $${target_sdkfind} $(target_alias)-$${drv} \
-	    || $(INSTALL) ./$${target_sdkfind} ./$(target_alias)-$${drv}; \
-	  fi; \
-	done
-	# and in $(tooldir)/bin
-	cd $(tooldir)/bin; \
-	for drv in $(DRIVER_PROGS); do \
-	  if test -f $${drv}; then \
-	    rm -f $${drv}; \
-	    ln sdkfind$(exeext) $${drv} \
-	    || ln -s sdkfind$(exeext) $${drv} \
-	    || $(INSTALL) ./sdkfind$(exeext) ./$${drv}; \
-	  fi; \
-	done
 
 
 clean:
