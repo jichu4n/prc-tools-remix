@@ -1,7 +1,7 @@
 # Makefile for prc-tools.
 #
-# Copyright (c) 1999-2001 Palm Computing, Inc. or its subsidiaries.
-# All rights reserved.
+# Copyright 2002 John Marshall
+# Portions copyright 1999-2001 Palm, Inc. or its subsidiaries
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -161,11 +161,8 @@ clean:
 	-rm -rf $(minitooldir)
 
 
-distdir = prc-tools-@prc_tools_version@
+distdir = prc-tools
 nondistpat = ^(binutils|gcc|gdb|make)$$
-
-$(srcdir)/configure: $(srcdir)/configure.in
-	@echo dist error: configure is older than configure.in && exit 1
 
 # The source directory is likely to be a working development directory.
 # We need to do some tidying up before creating the distribution tarball:
@@ -177,7 +174,7 @@ $(srcdir)/configure: $(srcdir)/configure.in
 #  * If the directory is checked out from Perforce, many of the files will
 #    likely be read-only.  We want them to be read-write in the tarball.
 
-dist: $(srcdir)/configure
+dist-tree:
 	-rm -rf $(distdir) $(distdir).tar $(distdir).tar.gz
 	mkdir $(distdir)
 	-chmod 777 $(distdir)
@@ -187,6 +184,28 @@ dist: $(srcdir)/configure
 	for dir in `find $(distdir) -type d -print`; do \
 	  (cd $${dir} && chmod a+rw *); \
 	done
+
+dist-tarball:
 	tar cf $(distdir).tar $(distdir)
 	gzip -9 $(distdir).tar
 	-rm -rf $(distdir)
+
+
+dist: dist-tree dist-tarball
+
+snapshot:
+	$(MAKE) -f $(srcdir)/Makefile.in srcdir=$(srcdir) \
+	distdir=prc-tools-`date +%Y%m%d` dist-tree dist-tarball
+
+$(distdir)/configure: $(distdir)/configure.in
+	cd $(distdir) && autoconf
+
+release-check: $(distdir)/configure
+
+release:
+	$(MAKE) -f $(srcdir)/Makefile.in srcdir=$(srcdir) \
+	distdir=prc-tools-`grep '^Version:' $(srcdir)/prc-tools.spec | \
+			   sed 's/.*: //'` \
+	dist-tree release-check dist-tarball
+
+.PHONY: dist-tree dist-tarball dist snapshot release-check release
