@@ -86,7 +86,7 @@ diff -urN orig-binutils-2.12/ChangeLogs.palmos binutils-2.12/ChangeLogs.palmos
 diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
 --- orig-binutils-2.12/bfd/coff-m68k.c	Tue Sep 18 11:57:22 2001
 +++ binutils-2.12/bfd/coff-m68k.c	Wed Apr 17 18:46:27 2002
-@@ -106,6 +106,7 @@
+@@ -107,6 +107,7 @@
    HOWTO(R_PCRWORD,	       0,  1, 	16, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP16",   true, 0x0000ffff,0x0000ffff, false),
    HOWTO(R_PCRLONG,	       0,  2, 	32, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP32",   true, 0xffffffff,0xffffffff, false),
    HOWTO(R_RELLONG_NEG,	       0,  -2, 	32, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "-32",	true, 0xffffffff,0xffffffff, false),
@@ -94,7 +94,7 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
  };
  #endif /* not ONLY_DECLARE_RELOCS */
  
-@@ -139,6 +140,7 @@
+@@ -149,6 +150,7 @@
     case R_PCRWORD:	internal->howto = m68kcoff_howto_table + 4; break;
     case R_PCRLONG:	internal->howto = m68kcoff_howto_table + 5; break;
     case R_RELLONG_NEG:	internal->howto = m68kcoff_howto_table + 6; break;
@@ -102,7 +102,7 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
    }
  }
  
-@@ -149,6 +151,10 @@
+@@ -156,6 +158,10 @@
  m68k_howto2rtype (internal)
       reloc_howto_type *internal;
  {
@@ -113,7 +113,7 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
    if (internal->pc_relative)
    {
      switch (internal->bitsize)
-@@ -189,6 +195,7 @@
+@@ -193,6 +199,7 @@
      case BFD_RELOC_16_PCREL:	return m68kcoff_howto_table + 4;
      case BFD_RELOC_32_PCREL:	return m68kcoff_howto_table + 5;
        /* FIXME: There doesn't seem to be a code for R_RELLONG_NEG.  */
@@ -121,7 +121,7 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
      }
    /*NOTREACHED*/
  }
-@@ -203,6 +210,42 @@
+@@ -207,6 +214,42 @@
  
  #define coff_bfd_reloc_type_lookup m68k_reloc_type_lookup
  
@@ -164,7 +164,7 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
  #ifndef COFF_COMMON_ADDEND
  #ifndef coff_rtype_to_howto
  
-@@ -215,10 +258,10 @@
+@@ -219,10 +262,10 @@
  
  static reloc_howto_type *
  m68kcoff_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
@@ -177,7 +177,7 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
       struct internal_syment *sym ATTRIBUTE_UNUSED;
       bfd_vma *addendp;
  {
-@@ -232,6 +275,9 @@
+@@ -236,6 +279,9 @@
    if (howto->pc_relative)
      *addendp += sec->vma;
  
@@ -187,7 +187,7 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
    return howto;
  }
  
-@@ -375,7 +421,7 @@
+@@ -379,7 +425,7 @@
  
  static reloc_howto_type *
  m68kcoff_common_addend_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
@@ -196,7 +196,7 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
       asection *sec;
       struct internal_reloc *rel;
       struct coff_link_hash_entry *h;
-@@ -392,6 +438,9 @@
+@@ -396,6 +442,9 @@
    if (howto->pc_relative)
      *addendp += sec->vma;
  
@@ -206,7 +206,7 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
    if (sym != NULL && sym->n_scnum == 0 && sym->n_value != 0)
      {
        /* This is a common symbol.  The section contents include the
-@@ -499,21 +548,194 @@
+@@ -505,21 +554,194 @@
  	    targetsec = NULL;
  	}
  
@@ -407,7 +407,7 @@ diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
 diff -urN orig-binutils-2.12/bfd/config.bfd binutils-2.12/bfd/config.bfd
 --- orig-binutils-2.12/bfd/config.bfd	Wed Feb 13 21:45:46 2002
 +++ binutils-2.12/bfd/config.bfd	Mon Apr 15 18:24:42 2002
-@@ -161,6 +161,10 @@
+@@ -182,6 +182,10 @@
      targ_defvec=bfd_elf32_littlearm_oabi_vec
      targ_selvecs=bfd_elf32_bigarm_oabi_vec
      ;;
@@ -418,7 +418,7 @@ diff -urN orig-binutils-2.12/bfd/config.bfd binutils-2.12/bfd/config.bfd
  
    thumb-*-coff)
      targ_defvec=armcoff_little_vec
-@@ -567,6 +571,9 @@
+@@ -610,6 +614,9 @@
      targ_selvecs=ieee_vec
      targ_underscore=yes
      ;;
@@ -431,7 +431,7 @@ diff -urN orig-binutils-2.12/bfd/config.bfd binutils-2.12/bfd/config.bfd
 diff -urN orig-binutils-2.12/config.sub binutils-2.12/config.sub
 --- orig-binutils-2.12/config.sub	Sun Feb 24 01:02:46 2002
 +++ binutils-2.12/config.sub	Mon Apr 15 18:22:53 2002
-@@ -255,6 +255,10 @@
+@@ -275,6 +275,10 @@
  		echo Invalid configuration \`$1\': machine \`$basic_machine\' not recognized 1>&2
  		exit 1
  		;;
@@ -480,7 +480,7 @@ diff -urN orig-binutils-2.12/gas/config/m68k-parse.h binutils-2.12/gas/config/m6
 diff -urN orig-binutils-2.12/gas/config/m68k-parse.y binutils-2.12/gas/config/m68k-parse.y
 --- orig-binutils-2.12/gas/config/m68k-parse.y	Wed Sep 19 07:33:21 2001
 +++ binutils-2.12/gas/config/m68k-parse.y	Mon Apr 15 18:21:09 2002
-@@ -973,7 +973,7 @@
+@@ -974,7 +974,7 @@
  	tail = 2;
      }
  
@@ -489,7 +489,7 @@ diff -urN orig-binutils-2.12/gas/config/m68k-parse.y binutils-2.12/gas/config/m6
    {
      /* Look for @PLTPC, etc.  */
      char *cp;
-@@ -1005,6 +1005,11 @@
+@@ -1006,6 +1006,11 @@
  	    yylval.exp.pic_reloc = pic_got_off;
  	    tail += 4;
  	  }
@@ -517,7 +517,7 @@ diff -urN orig-binutils-2.12/gas/config/obj-coff.h binutils-2.12/gas/config/obj-
 diff -urN orig-binutils-2.12/gas/config/tc-m68k.c binutils-2.12/gas/config/tc-m68k.c
 --- orig-binutils-2.12/gas/config/tc-m68k.c	Wed Feb 13 20:16:45 2002
 +++ binutils-2.12/gas/config/tc-m68k.c	Wed Apr 17 18:09:26 2002
-@@ -215,7 +215,7 @@
+@@ -216,7 +216,7 @@
  	 significance of some values (in the branch instruction, for
  	 example).  */
        int pcrel_fix;
@@ -526,7 +526,7 @@ diff -urN orig-binutils-2.12/gas/config/tc-m68k.c binutils-2.12/gas/config/tc-m6
        /* Whether this expression needs special pic relocation, and if
  	 so, which.  */
        enum pic_relocation pic_reloc;
-@@ -283,7 +283,7 @@
+@@ -284,7 +284,7 @@
    the_ins.reloc[the_ins.nrel].exp = exp->exp;
    the_ins.reloc[the_ins.nrel].wid = width;
    the_ins.reloc[the_ins.nrel].pcrel_fix = pc_fix;
@@ -564,7 +564,7 @@ diff -urN orig-binutils-2.12/gas/config/tc-m68k.c binutils-2.12/gas/config/tc-m6
 diff -urN orig-binutils-2.12/gas/configure.in binutils-2.12/gas/configure.in
 --- orig-binutils-2.12/gas/configure.in	Tue Feb 26 11:35:27 2002
 +++ binutils-2.12/gas/configure.in	Mon Apr 15 18:17:24 2002
-@@ -196,6 +196,7 @@
+@@ -204,6 +204,7 @@
        arm-*-pe | thumb-*-pe)            fmt=coff em=pe ;;
        arm-*-riscix*)	                fmt=aout em=riscix ;;
        arm-*-vxworks)	                fmt=coff ;;
@@ -572,7 +572,7 @@ diff -urN orig-binutils-2.12/gas/configure.in binutils-2.12/gas/configure.in
  
        avr-*-*)		    fmt=elf bfd_gas=yes ;;
  
-@@ -321,6 +322,7 @@
+@@ -346,6 +347,7 @@
        m68k-*-openbsd*)      fmt=aout em=nbsd bfd_gas=yes ;;
        m68k-apple-aux*)      fmt=coff em=aux ;;
        m68k-*-psos*)         fmt=elf em=psos;;
@@ -583,7 +583,7 @@ diff -urN orig-binutils-2.12/gas/configure.in binutils-2.12/gas/configure.in
 diff -urN orig-binutils-2.12/gas/configure binutils-2.12/gas/configure
 --- orig-binutils-2.12/gas/configure	Tue Feb 26 11:35:27 2002
 +++ binutils-2.12/gas/configure	Mon Apr 15 18:16:53 2002
-@@ -2312,6 +2312,7 @@
+@@ -2354,6 +2354,7 @@
        arm-*-pe | thumb-*-pe)            fmt=coff em=pe ;;
        arm-*-riscix*)	                fmt=aout em=riscix ;;
        arm-*-vxworks)	                fmt=coff ;;
@@ -591,7 +591,7 @@ diff -urN orig-binutils-2.12/gas/configure binutils-2.12/gas/configure
  
        avr-*-*)		    fmt=elf bfd_gas=yes ;;
  
-@@ -2440,6 +2441,7 @@
+@@ -2499,6 +2500,7 @@
        m68k-*-openbsd*)      fmt=aout em=nbsd bfd_gas=yes ;;
        m68k-apple-aux*)      fmt=coff em=aux ;;
        m68k-*-psos*)         fmt=elf em=psos;;
@@ -602,7 +602,7 @@ diff -urN orig-binutils-2.12/gas/configure binutils-2.12/gas/configure
 diff -urN orig-binutils-2.12/gas/m68k-parse.c binutils-2.12/gas/m68k-parse.c
 --- orig-binutils-2.12/gas/m68k-parse.c	Fri Mar  8 07:16:01 2002
 +++ binutils-2.12/gas/m68k-parse.c	Mon Apr 15 18:14:40 2002
-@@ -1978,7 +1978,7 @@
+@@ -2196,7 +2196,7 @@
  	tail = 2;
      }
  
@@ -611,7 +611,7 @@ diff -urN orig-binutils-2.12/gas/m68k-parse.c binutils-2.12/gas/m68k-parse.c
    {
      /* Look for @PLTPC, etc.  */
      char *cp;
-@@ -2010,6 +2010,11 @@
+@@ -2228,6 +2228,11 @@
  	    yylval.exp.pic_reloc = pic_got_off;
  	    tail += 4;
  	  }
@@ -626,7 +626,7 @@ diff -urN orig-binutils-2.12/gas/m68k-parse.c binutils-2.12/gas/m68k-parse.c
 diff -urN orig-binutils-2.12/include/coff/internal.h binutils-2.12/include/coff/internal.h
 --- orig-binutils-2.12/include/coff/internal.h	Fri Aug 24 02:20:01 2001
 +++ binutils-2.12/include/coff/internal.h	Mon Apr 15 18:16:06 2002
-@@ -632,6 +632,10 @@
+@@ -622,6 +622,10 @@
  #define R_LVRT16       132
  #define R_VRT32        133
  
@@ -640,7 +640,7 @@ diff -urN orig-binutils-2.12/include/coff/internal.h binutils-2.12/include/coff/
 diff -urN orig-binutils-2.12/ld/configure.tgt binutils-2.12/ld/configure.tgt
 --- orig-binutils-2.12/ld/configure.tgt	Wed Feb 20 06:26:22 2002
 +++ binutils-2.12/ld/configure.tgt	Mon Apr 15 18:12:59 2002
-@@ -191,6 +191,7 @@
+@@ -227,6 +227,7 @@
  arm*-*-linux-gnu*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
  arm*-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
  arm*-*-conix*)		targ_emul=armelf ;;
@@ -648,7 +648,7 @@ diff -urN orig-binutils-2.12/ld/configure.tgt binutils-2.12/ld/configure.tgt
  thumb-*-linux-gnu* | thumb-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
  strongarm-*-coff)	targ_emul=armcoff ;;
  strongarm-*-elf)	targ_emul=armelf ;;
-@@ -242,6 +243,7 @@
+@@ -308,6 +309,7 @@
  m68*-*-netbsd*)		targ_emul=m68knbsd ;;
  m68*-*-psos*)		targ_emul=m68kpsos ;;
  m68*-*-rtems*)		targ_emul=m68kcoff ;;
