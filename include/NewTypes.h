@@ -15,9 +15,14 @@
    <BuildRules.h> or <BuildDefines.h>.  We can use those #defines to
    identify the SDK.  */
 
+/* 5.0 R2 did introduce a CPU_ARM macro, but more uniquely it also added
+   some screen density constants.  */
+#if defined(SCREEN_DENSITY_STANDARD)
+#define SDK_VERSION  52
+
 /* 5.0 should have introduced an ARM macro for use with CPU_TYPE, but the
    only change actually made was the introduction of a version macro.  */
-#if defined(PALMOS_SDK_VERSION)
+#elif defined(PALMOS_SDK_VERSION)
 #define SDK_VERSION  50
 
 /* 4.0 introduced tracing.  */
