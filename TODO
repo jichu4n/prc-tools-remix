@@ -56,8 +56,15 @@
 
 * Find a less hackish way to suppress [un]protoize and gcov.
 
-* The headers installed by our prc-tools/include subdirectory need
-  to be accessible from all targets; they should go somewhere like
-  $datadir/prc-tools/include/after instead of $prefix/$target/include.
-
 * Add a post-install script to the Cygwin build to do install-info.
+
+* Issues with the tiny libc implementation:
+  - _SP et al in ctype.h
+  - strtol/strtoul should be in stdlib.h, not string.h
+  - we don't have overloaded const / non-const versions of each function (C++)
+  - u_int in sys/types.h
+
+* Proper way to get GCC to search $(datadir)/prc-tools/include is to override
+  SYSTEM_HEADER_DIR (or better NATIVE_SYSTEM_HEADER_DIR?) in t-m68kpalmos.
+  (See Zack Weinberg's gcc@ message of 2002-08-03 "Re: gcc 3.2's cpp breaks
+  configure scripts" <20020803230707.GG466@codesourcery.com>.)
