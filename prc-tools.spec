@@ -61,17 +61,22 @@ touch gcc/gcc/cstamp-h.in
 
 mkdir build
 mkdir build/empty
+mkdir build/static-libs
 
 %build
+cd build
+
+# Ensure that we link *statically* against the stdc++ library
+rm -f static-libs/*
+ln -s `${CXX:-g++} -print-file-name=libstdc++.a` static-libs/libstdc++.a
+
 # The --with-headers bit is a nasty hack to try to make fixinc happy on
 # Solaris and simultaneously stop it from doing anything.
-cd build
-../configure \
+LDFLAGS=-L`pwd`/static-libs ../configure \
   --target=%{target} \
   --enable-languages=c,c++ \
   --with-headers=`pwd`/empty \
   --with-palmdev-prefix=%{palmdev_prefix} \
-  --without-shared-libstdcxx-for-tools \
   --prefix=%{_prefix} --exec-prefix=%{_exec_prefix} \
   --bindir=%{_bindir} --sbindir=%{_sbindir} --libexecdir=%{_libexecdir} \
   --localstatedir=%{_localstatedir} --sharedstatedir=%{_sharedstatedir} \
