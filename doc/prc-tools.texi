@@ -94,6 +94,7 @@ few standard GCC features are not supported.
 * New options::
 * Function attributes::
 * Unsupported GCC features::
+* Include files::
 @end menu
 
 
@@ -290,6 +291,48 @@ Changing the specs file with @samp{-specs=@var{file}} or invoking
 @code{m68k-palmos-as} or @code{m68k-palmos-ld} directly should be done
 with caution: proper operation is quite dependent on options set in the
 default specs file.
+@end itemize
+
+
+@node Include files
+@section Include files
+
+Blah.  @@@@@@ Talk about header file directories here.
+
+@subsection NewTypes.h
+
+@findex @file{NewTypes.h}
+
+With Palm OS SDKs prior to the 3.5 SDK, programmers were encouraged to use
+typedefs such as @code{DWord} and @code{VoidHand} rather than the built-in
+types.  In the 3.5 SDK, the names of these typedefs have been changed to
+the somewhat more mnemonic @code{UInt32} (etc) and the rather more
+functional @code{MemHandle}.  (Previously there were two ``handle''
+datatypes, @code{VoidHand} and @code{Handle}, with no real reason for a
+distinction between them, and programmers were continually casting between
+them.  @code{MemHandle} corrects this historical accident.)
+
+People wanting to write library header files capable of interacting with
+any SDK have a dilemma:  which to use, old- or new-style type names?
+
+You can use old-style names by instructing users to include
+@file{PalmCompatibility.h} before including your header file if they are
+using the 3.5 SDK.  But this is not very satisfactory:  the onus shouldn't
+be on users to get this right, and you might prefer to use new-style names.
+
+You can ensure new-style names are available simply by including
+@file{NewTypes.h} at the top of your header file.  Including this header
+provides the following:
+
+@itemize @bullet
+@item
+The identifiers @code{UInt8}, @code{Int8}, @code{UInt16}, @code{Int16},
+@code{UInt32}, @code{Int32}, @code{MemPtr}, and @code{MemHandle} are
+all typedeffed appropriately.
+
+@item
+The macro @code{SDK_VERSION} is defined to either 10, 20, 30, 31, or 35,
+indicating the SDK version which is in use.
 @end itemize
 
 
