@@ -88,6 +88,17 @@ install: $(INSTALL_FILES) $(INSTALL_HFILES)
 	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib/$${f}; \
 	done
 
+
+bootstrap_h = ../bootstrap/bootstrap.h ../include/NewTypes.h
+
+malloc.o free.o calloc.o realloc.o: malloc.c include/stdlib.h $(bootstrap_h)
+	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/malloc.c
+
+atexit.o: atexit.c include/stdlib.h $(bootstrap_h)
+
+conio.o: conio.c include/stdio.h $(bootstrap_h) ../bootstrap/bootstrap-ui.h
+
+
 .c.s:
 	$(CC) $(CFLAGS) -S $<
 
@@ -127,25 +138,3 @@ libstdc++.a:
 
 clean:
 	-rm -f *.[oa] Libc* libcstub* *.grc *.exp *.sa Libg* libgstub*
-
-distclean: clean
-	-rm Makefile
-
-#div.o ldiv.o: division.c
-#	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $<
-
-malloc.o free.o calloc.o realloc.o: malloc.c include/stdlib.h ../include/NewTypes.h
-	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/malloc.c
-
-#rand.o srand.o: random.c
-#	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $<
-#
-#bmemcmp.o memcpy.o bcopy.o memset.o bzero.o: memory.S
-#	$(CC) $(ASFLAGS) -c -o $@ -DL`basename $@ .o` $<
-#
-#strtol.o strtoul.o atoil.o: strtonum.S
-#	$(CC) $(ASFLAGS) -c -o $@ -DL`basename $@ .o` $<
-
-atexit.o: atexit.c include/stdlib.h ../include/NewTypes.h
-
-conio.o: conio.c ../include/NewTypes.h
