@@ -1,0 +1,75 @@
+#! /bin/sh
+#  Execute this script to produce a minimally "package"-like binary tarball
+
+# This script is pretty much just a stripped-down version of prc-tools.spec
+# and in places we scrape data from that file instead of duplicating it here.
+
+#prep
+# Before running this script, you should either set $SOURCES to a directory
+# containing the binutils/gcc/gdb/make tarballs or put them in the current dir
+: ${SOURCES:=.}
+# This script is primarily for Cygwin, hence the PalmDev default
+: ${target:=m68k-palmos} ${palmdev_prefix:=/PalmDev}
+
+for pkg_ver in `grep '^%setup.*-n' prc-tools.spec | cut -d' ' -f3`; do
+  pkg=`echo $pkg_ver | sed 's/-[^-]*//'`
+  if [ ! -d $pkg ]; then
+    tar xvfz $SOURCES/$pkg_ver.tar.gz
+    [ -f $pkg_ver.palmos.diff ] && patch -p0 < $pkg_ver.palmos.diff
+    mv $pkg_ver $pkg
+  fi
+done
+
+touch "gcc/gcc/cstamp-h.in"
+
+[ -d build ] || mkdir build
+[ -d build/empty ] || mkdir build/empty
+
+#build
+: ${prefix:=/usr/local} ${docdir:=$prefix/doc/prc-tools}
+
+(cd build; ../configure \
+  --target=$target \
+  --enable-languages=c,c++ \
+  --disable-nls \
+  --with-headers=`pwd`/empty \
+  --with-palmdev-prefix=$palmdev_prefix \
+  --enable-html-docs=$docdir \
+  --prefix=$prefix \
+  ${mandir:+--mandir=$mandir} ${infodir:+--infodir=$infodir})
+
+# HACK: For some reason, libiberty isn't being built.  Do it explicitly for now
+(cd build/gcc/libiberty; make)
+
+(cd build; make)
+
+#install
+: ${DESTDIR:=buildroot}
+
+rm -rf $DESTDIR $DESTDIR-htmldocs
+(cd build; make install \
+  prefix=$DESTDIR$prefix htmldir=$DESTDIR-htmldocs$docdir \
+  ${mandir:+mandir=$DESTDIR$mandir} ${infodir:+infodir=$DESTDIR$infodir})
+
+mkdir -p $DESTDIR$docdir
+cp -p README COPYING $DESTDIR$docdir
+
+#package
+: ${PKGBASE:=`pwd`/prc-tools} ${PKGSHORTTAIL:=-binary} ${PKGTAIL:=$PKGSHORTTAIL}
+: ${exec_prefix=$prefix}
+: ${bindir:=$exec_prefix/bin} ${libdir:=$exec_prefix/lib}
+: ${infodir:=$prefix/info}
+
+(cd $DESTDIR; tar cvf $PKGBASE$PKGTAIL.tar \
+  $bindir \
+  $exec_prefix/$target \
+  $libdir/gcc-lib/$target \
+  $infodir/prc-tools*)
+bzip2 $PKGBASE$PKGTAIL.tar
+
+(cd $DESTDIR-htmldocs; tar cvf $PKGBASE-htmldocs$PKGTAIL.tar *)
+bzip2 $PKGBASE-htmldocs$PKGTAIL.tar
+
+if /bin/sh -c 'zip -h' >/dev/null 2>&1; then
+  (cd $DESTDIR-htmldocs$docdir; zip -l9r $PKGBASE-htmldocs$PKGSHORTTAIL.zip *)
+fi

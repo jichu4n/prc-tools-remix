@@ -11,7 +11,7 @@
 Prc-tools is built regularly on Linux and Cygwin, and should build without
 too much trouble on other Unix-like systems.  These regular builds are done
 either with the RPM spec file <code>prc-tools.spec</code> or with the
-<code>cygwin-build</code> script.  While we make every effort to keep
+<code>prc-tools.build</code> script.  While we make every effort to keep
 these instructions up to date, those two files should be considered to
 represent the canonical tested build procedures.
 
@@ -127,12 +127,6 @@ the patches:
 </pre></blockquote>
 
 <p>
-On Windows, you should also apply the Cygwin-specific patches:
-<blockquote><pre>
-~$ cat prc-tools-srcdir/*.cygwin.diff | patch -p0
-</pre></blockquote>
-
-<p>
 If you don't have autoconf installed, you need to fix the datestamp
 on <code>cstamp-h.in</code> to prevent autoconf from being invoked to
 regenerate it:
@@ -152,10 +146,9 @@ integrated into just one build:
 ~/prc-tools-srcdir$ ln -s ../gcc-2.95.3 gcc
 ~/prc-tools-srcdir$ cd ..
 </pre></blockquote>
-(On Windows, if you use any non-Cygwin programs in your build (such as the
-texi2html perl script), you should use <code>mv</code> instead of
-<code>ln -s</code> since non-Cygwin programs can't see through Cygwin's
-symlinks.)
+(On Windows, if you use any non-Cygwin programs in your build, you should
+use <code>mv</code> instead of <code>ln -s</code> since non-Cygwin programs
+can't see through Cygwin's symlinks.)
 
 <p>
 You can optionally generate HTML versions of the documentation for
