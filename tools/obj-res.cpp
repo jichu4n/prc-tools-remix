@@ -26,7 +26,6 @@
 #include <stdlib.h>
 
 #include "getopt.h"
-#include "bfd.h"
 
 #include "binres.hpp"
 #include "pfd.hpp"
