@@ -24,6 +24,7 @@ install: all
 	$(INSTALL_DATA) $(srcdir)/EntryPoints.h $(headerdir)/EntryPoints.h
 	$(INSTALL_DATA) $(srcdir)/NewTypes.h $(headerdir)/NewTypes.h
 	$(INSTALL_DATA) $(srcdir)/Standalone.h $(headerdir)/Standalone.h
+	$(INSTALL_DATA) $(srcdir)/stdlib.h $(headerdir)/stdlib.h
 	$(INSTALL_DATA) Pilot.fake $(headerdir)/Pilot.h
 	$(INSTALL_DATA) PalmOS.fake $(headerdir)/PalmOS.h
 
