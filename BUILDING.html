@@ -180,8 +180,14 @@ their source trees:
 	 --with-headers=`pwd`/empty
 </pre></blockquote>
 
-(The parameters above must be given, with whatever values are appropriate,
-because their defaults will cause problems.)  In addition to the standard
+(Source tarballs contain the <code>configure</code> script, but CVS does not.
+If you are building from CVS you'll have to use
+<a href="http://sources.redhat.com/autoconf/">autoconf</a> to regenerate it
+from <code>configure.in</code> first.)
+
+<p>
+The parameters shown above must be given, with whatever values are appropriate,
+because their defaults will cause problems.  In addition to the standard
 configure options, the following options can be used:
 <dl>
 <dt>
