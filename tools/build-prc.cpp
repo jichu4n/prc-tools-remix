@@ -43,7 +43,7 @@
 #include "pfd.hpp"
 #include "pfdio.hpp"
 
-static const char* version = "2.1";
+const char* progversion = "2.1";
 
 void
 usage() {
@@ -462,7 +462,7 @@ main (int argc, char** argv) {
       break;
 
     case OPTION_VERSION:
-      printf ("%s version %s\n", progname, version);
+      printf ("%s version %s\n", progname, progversion);
       work_desired = false;
       break;
       }
