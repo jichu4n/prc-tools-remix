@@ -506,9 +506,16 @@ main (int argc, char** argv) {
       if (superior (db.bundle, option_pri))  db.bundle = true;
       break;
 
-    case OPTION_HELP:
+    case OPTION_HELP: {
       usage();
+      printf ("Supported binary targets:\n");
+      const char** targets = binary_file_targets ();
+      for (const char** t = targets; *t; t++)
+	printf ("%s%s", (t == targets)? "  " : ", ", *t);
+      printf ("\n");
+      free (targets);
       work_desired = false;
+      }
       break;
 
     case OPTION_VERSION:

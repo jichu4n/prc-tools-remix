@@ -586,3 +586,8 @@ process_binary_file (const char* fname, const binary_file_info& info,
 
   return db;
   }
+
+const char**
+binary_file_targets () {
+  return bfd_target_list ();
+  }

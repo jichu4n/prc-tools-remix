@@ -57,4 +57,8 @@ ResourceDatabase process_binary_file (const char* fname,
 				      const binary_file_info& info,
 				      binary_file_stats* stats = NULL);
 
+// Returns a NULL-terminated vector of target names.  Remember to free() it
+// when you're finished with it.
+const char** binary_file_targets ();
+
 #endif
