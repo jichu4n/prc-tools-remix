@@ -185,6 +185,13 @@ because their defaults will cause problems.  In addition to the standard
 configure options, the following options can be used:
 <dl>
 <dt>
+<code>--enable-targets=m68k-palmos,arm-palmos</code>
+<dd>
+Sets multiple target platforms for the tool chain: binutils, GCC, etc will be
+built for each target, and the generic tools in <code>tools</code> will be
+configured for <em>all</em> of the given targets.  You must use this or
+<code>--target</code>, but not both.
+<dt>
 <code>--target=m68k-palmos</code>
 <dd>
 Sets the target platform for the tool chain.  The target used in

@@ -31,8 +31,14 @@ RANLIB = @RANLIB@
 LEX = @LEX@
 YACC = @YACC@
 
-INCDIRS = -I. -I$(srcdir) -I$(srcdir)/../binutils/include -I../binutils/bfd
-LIBDIRS = -L. -L../binutils/bfd -L../binutils/libiberty
+# In a single target build, the target's BFD and libiberty from
+# ../binutils/{bfd,libiberty} are used; but when there are multiple
+# targets, extra multi-target versions are built in ../{bfd,liberty}.
+# Configure will set this appropriately.
+BFDIBERTY = @tools_bfdiberty@
+
+INCDIRS = -I. -I$(srcdir) -I$(srcdir)/../binutils/include -I$(BFDIBERTY)/bfd
+LIBDIRS = -L. -L$(BFDIBERTY)/bfd -L$(BFDIBERTY)/libiberty
 
 ALL_CFLAGS = $(INCDIRS) $(CPPFLAGS) $(CFLAGS)
 ALL_CXXFLAGS = $(INCDIRS) $(CPPFLAGS) $(CXXFLAGS)

@@ -69,11 +69,13 @@ output_files="Makefile"
 all_subdirs=
 extra_subdirs=
 configure_args=
+bfd_configure_args=
 extra_dependencies=/dev/null
 extra_target_configs=
 
 AC_SUBST(extra_subdirs)
 AC_SUBST(configure_args)
+AC_SUBST(bfd_configure_args)
 AC_SUBST_FILE(extra_dependencies)
 AC_SUBST(extra_target_configs)
 
@@ -81,11 +83,15 @@ target_gcc_prereqs=
 target_gcc_flags=
 targetlib_prereqs=
 targetlib_flags=
+tools_prereqs=
+tools_bfdiberty=
 
 AC_SUBST(target_gcc_prereqs)
 AC_SUBST(target_gcc_flags)
 AC_SUBST(targetlib_prereqs)
 AC_SUBST(targetlib_flags)
+AC_SUBST(tools_prereqs)
+AC_SUBST(tools_bfdiberty)
 
 if test -n "$enable_targets"; then
   # Collect up the arguments that were given to configure, except for
@@ -116,13 +122,19 @@ if test -n "$enable_targets"; then
     (echo; echo "$targ: $targ/config.status") >> $extra_dependencies
   done
 
-  # FIXME  Extend this so that the generic subdirs (mainly "tools") work
-  # in a multitarget world -- which is, of course, the whole point.
-  # For now, just disable generic.
-  enable_generic=no
   if test x$enable_generic != xno; then
-    # FIXME
-    :
+    test -d bfd  || mkdir bfd
+    test -d libiberty || mkdir libiberty
+    extra_subdirs="$extra_subdirs bfd libiberty"
+    all_subdirs="$all_subdirs bfd libiberty"
+    tools_prereqs="bfd libiberty"
+    tools_bfdiberty=".."
+
+    changequote(,)dnl
+    first=`echo $enable_targets | sed 's/,.*//'`
+    others=`echo $enable_targets | sed 's/^[^,]*,//'`
+    bfd_configure_args="--target=$first --enable-targets=$others"
+    changequote([,])dnl
   fi
 else
   case "$target_cpu" in
@@ -137,6 +149,9 @@ else
   *)	AC_MSG_ERROR($target is not supported as a Palm OS target)
   	;;
   esac
+
+  # The "tools" subdirectory should look for BFD and libiberty over here.
+  tools_bfdiberty="../binutils"
 
   # The extra variables to be passed down to GCC and the target libraries
   # depend on which of binutils and GCC is being built in the tree.  This is
@@ -169,6 +184,12 @@ if test x$enable_generic != xno; then
   output_files="$output_files doc/Makefile doc/version.texi include/Makefile
 		tools/Makefile"
   all_subdirs="$all_subdirs make doc include tools"
+
+  if test -d $srcdir/binutils; then
+    :
+  else
+    AC_MSG_ERROR(tools cannot be built without also building binutils/bfd)
+  fi
 fi
 
 all_extant_subdirs=
