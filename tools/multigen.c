@@ -1,8 +1,8 @@
 /* multigen.c: generate a multiple section stub file and linker script from
    a .def file.
 
-   Copyright (c) 1999-2001 Palm Computing, Inc. or its subsidiaries.
-   All rights reserved.
+   Copyright 2002 John Marshall.
+   Portions copyright 1999-2001 Palm, Inc. or its subsidiaries.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -123,7 +123,7 @@ main (int argc, char **argv) {
       break;
 
     case OPTION_VERSION:
-      print_version ("multigen", "=Jp");
+      print_version ("multigen", "Jp");
       work_desired = 0;
       break;
       }

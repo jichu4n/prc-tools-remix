@@ -1,7 +1,6 @@
 /* obj-res.cpp: extract resources from a bfd executable.
 
-   Copyright (c) 1998, 1999, 2001 by John Marshall.
-   <jmarshall@acm.org>
+   Copyright 1998, 1999, 2001, 2002 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -103,7 +102,7 @@ main (int argc, char** argv) {
       break;
 
     case OPTION_VERSION:
-      print_version ("obj-res", "=Jpg");
+      print_version ("obj-res", "Jpg");
       work_desired = false;
       break;
       }
