@@ -173,8 +173,8 @@ diff -urN orig-gdb-5.2.1/gdb/m68k-tdep.c gdb-5.2.1/gdb/m68k-tdep.c
  
 diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 --- orig-gdb-5.2.1/gdb/remote-palmos.c	Thu Jan  1 00:00:00 1970
-+++ gdb-5.2.1/gdb/remote-palmos.c	Wed Aug 14 18:35:57 2002
-@@ -0,0 +1,1282 @@
++++ gdb-5.2.1/gdb/remote-palmos.c	Wed Nov 13 01:02:15 2002
+@@ -0,0 +1,1284 @@
 +/* Remote target communications for serial-line targets in custom GDB protocol
 +   Copyright 1988, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 +   
@@ -217,8 +217,6 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +#include "gdb-stabs.h"
 +#include "gdbthread.h"
 +
-+#include "dcache.h"
-+
 +#ifdef USG
 +#include <sys/types.h>
 +#endif
@@ -239,13 +237,14 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +
 +static int remote_xfer_memory PARAMS ((CORE_ADDR memaddr, char *myaddr,
 +				       int len, int should_write,
++				       struct mem_attrib *attrib,
 +				       struct target_ops *target));
 +
 +static void remote_prepare_to_store PARAMS ((void));
 +
 +static void remote_fetch_registers PARAMS ((int regno));
 +
-+static void remote_resume PARAMS ((int pid, int step,
++static void remote_resume PARAMS ((ptid_t ptid, int step,
 +				   enum target_signal siggnal));
 +
 +static int remote_start_remote PARAMS ((PTR dummy));
@@ -282,7 +281,8 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +
 +static int readchar PARAMS ((int timeout));
 +
-+static int remote_wait PARAMS ((int pid, struct target_waitstatus *status));
++static ptid_t remote_wait PARAMS ((ptid_t ptid,
++				   struct target_waitstatus *status));
 +
 +static void remote_kill PARAMS ((void));
 +
@@ -432,14 +432,14 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +	  + symfile_objfile->num_sections
 +	  * sizeof (offs->offsets));
 +
-+  ANOFFSET (offs, SECT_OFF_TEXT) = text_addr;
++  offs->offsets[SECT_OFF_TEXT (symfile_objfile)] = text_addr;
 +
 +  /* This is a temporary kludge to force data and bss to use the same offsets
 +     because that's what nlmconv does now.  The real solution requires changes
 +     to the stub and remote.c that I don't have time to do right now.  */
 +
-+  ANOFFSET (offs, SECT_OFF_DATA) = data_addr;
-+  ANOFFSET (offs, SECT_OFF_BSS) = data_addr;
++  offs->offsets[SECT_OFF_DATA (symfile_objfile)] = data_addr;
++  offs->offsets[SECT_OFF_BSS  (symfile_objfile)] = data_addr;
 +
 +  objfile_relocate (symfile_objfile, offs);
 +}
@@ -484,9 +484,8 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +}
 +
 +/* Generic code for opening a connection to a remote target.  */
-+static DCACHE *remote_dcache;
 +
-+static serial_t remote_desc = NULL;
++static struct serial *remote_desc = NULL;
 +static int startup = 1;
 +
 +static void
@@ -502,9 +501,7 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +
 +  unpush_target (target);
 +
-+  remote_dcache = dcache_init (remote_read_bytes, remote_write_bytes);
-+
-+  remote_desc = SERIAL_OPEN(name);
++  remote_desc = serial_open(name);
 +  if (!remote_desc)
 +    perror_with_name(name);
 +    
@@ -513,14 +510,14 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +
 +  if (baud_rate != -1)
 +    {
-+    if (SERIAL_SETBAUDRATE (remote_desc, baud_rate))
++    if (serial_setbaudrate (remote_desc, baud_rate))
 +       {
-+       SERIAL_CLOSE (remote_desc);
++       serial_close (remote_desc);
 +       perror_with_name (name);
 +      }
 +  }
 +  
-+  SERIAL_RAW (remote_desc);
++  serial_raw (remote_desc);
 +  
 +  crcinit();
 +  
@@ -533,7 +530,7 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +    }
 +  push_target (target);	/* Switch to using remote target now */
 +
-+  inferior_pid = 42000;
++  inferior_ptid = pid_to_ptid (42000);
 +  /* Start the remote connection; if error (0), discard this target.
 +     In particular, if the user quits, be sure to discard it
 +     (we'd be in an inconsistent state otherwise).  */
@@ -550,7 +547,7 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +     int quitting;
 +{
 +  if (remote_desc)
-+    SERIAL_CLOSE(remote_desc);
++    serial_close(remote_desc);
 +  remote_desc = NULL;
 +}
 +
@@ -574,8 +571,9 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +int last_sent_step;
 +
 +static void
-+remote_resume (pid, step, siggnal)
-+     int pid, step;
++remote_resume (ptid, step, siggnal)
++     ptid_t ptid;
++     int step;
 +     enum target_signal siggnal;
 +{
 +   unsigned long sr;
@@ -618,8 +616,6 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +   
 +   memset(buffer+76, 0, 14); /* Zero out watch parameters */
 +   
-+   dcache_flush (remote_dcache);
-+              
 +   last_sent_signal = siggnal;
 +   last_sent_step = step;
 +   
@@ -664,7 +660,7 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +Give up (and stop debugging it)? "))
 +    {
 +      target_mourn_inferior ();
-+      return_to_top_level (RETURN_QUIT);
++      throw_exception (RETURN_QUIT);
 +    }
 +
 +  target_terminal_inferior ();
@@ -723,7 +719,7 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +     {
 +       int ch;
 +       
-+       ch = SERIAL_READCHAR (remote_desc, timeout);
++       ch = serial_readchar (remote_desc, timeout);
 +         
 +       switch (ch)
 +         {
@@ -743,9 +739,9 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +   Returns "pid" (though it's not clear what, if anything, that
 +   means in the case of this target).  */
 +
-+static int
-+remote_wait (pid, status)
-+     int pid;
++static ptid_t
++remote_wait (ptid, status)
++     ptid_t ptid;
 +     struct target_waitstatus *status;
 +{
 +  char * buf;
@@ -854,7 +850,7 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +	      if (sal.pc && bp != sal.pc && bp > sal.pc && bp <= sal.end)
 +	        bp = sal.end;
 +	      remote_insert_wbreakpoint(bp, TARGET_SIGNAL_STOP);
-+              remote_resume(0,0,TARGET_SIGNAL_0);
++              remote_resume(inferior_ptid,0,TARGET_SIGNAL_0);
 +	      stop_soon_quietly = 0;
 +              continue;
 +	    }
@@ -863,7 +859,7 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +	  }
 +  	  puts_filtered ("Unknown packet received.\n");
 +	}
-+	return inferior_pid;
++	return inferior_ptid;
 +}
 +
 +/* Number of bytes of registers this stub implements.  */
@@ -963,7 +959,7 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +	int l;
 +	unsigned long todo, done;
 +	
-+	printf("wanting to write %d bytes at %d\n", len, memaddr);
++	/* printf("wanting to write %d bytes at %d\n", len, memaddr); */
 +	
 +	done = 0;
 +	while (done < len) {
@@ -985,7 +981,7 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +	  }
 +	  done += todo;
 +	}
-+	printf("Actually wrote %d bytes\n", done);
++	/* printf("Actually wrote %d bytes\n", done); */
 +	return done;
 +}
 +
@@ -1067,14 +1063,21 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +
 +/* ARGSUSED */
 +static int
-+remote_xfer_memory(memaddr, myaddr, len, should_write, target)
++remote_xfer_memory(memaddr, myaddr, len, should_write, attrib, target)
 +     CORE_ADDR memaddr;
 +     char *myaddr;
 +     int len;
 +     int should_write;
++     struct mem_attrib *attrib;			/* ignored */
 +     struct target_ops *target;			/* ignored */
 +{
-+  return dcache_xfer_memory (remote_dcache, memaddr, myaddr, len, should_write);
++  CORE_ADDR targaddr;
++  int targlen;
++  int (*xfer) (CORE_ADDR, char *, int) =
++    should_write? remote_write_bytes : remote_read_bytes;
++
++  REMOTE_TRANSLATE_XFER_ADDRESS (memaddr, len, &targaddr, &targlen);
++  return xfer (targaddr, myaddr, targlen);
 +}
 +
 +   
@@ -1140,7 +1143,7 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +  }
 +  printf("!\n");*/
 +   
-+  if (SERIAL_WRITE(remote_desc, buffer, len+12))
++  if (serial_write(remote_desc, buffer, len+12))
 +         perror_with_name ("putpkt: write failed");
 +}
 +
@@ -1432,7 +1435,6 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +  palmos_ops.to_thread_alive = 0;
 +  palmos_ops.to_stop = 0;
 +  palmos_ops.to_pid_to_exec_file = NULL; /* ? */
-+  palmos_ops.to_core_file_to_sym_file = NULL; /* ? */
 +  palmos_ops.to_stratum = process_stratum;
 +  palmos_ops.DONT_USE = NULL;  /* ?? to_next */
 +  palmos_ops.to_has_all_memory = 1;
