@@ -87,4 +87,4 @@ AC_DEFINE_UNQUOTED(TARGET, "${target}")
 AC_DEFINE_UNQUOTED(TARGET_ALIAS, "${target_alias}")
 AC_DEFINE_UNQUOTED(EXEEXT, "${EXEEXT}")
 
-AC_OUTPUT(Makefile crt/Makefile crt/Make-multi doc/Makefile include/Makefile libc/Makefile libm/Makefile tools/Makefile)
+AC_OUTPUT(Makefile crt/Makefile doc/Makefile include/Makefile libc/Makefile libm/Makefile tools/Makefile)

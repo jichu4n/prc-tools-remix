@@ -10,6 +10,7 @@
 
 srcdir = @srcdir@
 VPATH = @srcdir@
+#stop
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -21,43 +22,59 @@ INSTALL_DATA = @INSTALL_DATA@
 BOOTSTRAP_SDKFLAGS = -DBOOTSTRAP -I$(srcdir)/../bootstrap -nopalmos
 SDKFLAGS = @build_sdk@
 
+MULTIFLAGS =
+
 CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
 # Don't use -fomit-frame-pointer just now: it's broken
 # CFLAGS = -O5 -fomit-frame-pointer -fno-builtin -Wall -W
-CFLAGS = -O5 -fno-builtin -Wall -W -I$(srcdir)/../include $(SDKFLAGS)
+CFLAGS = -O5 -fno-builtin -Wall -W -g \
+  -I$(srcdir)/../include $(SDKFLAGS) $(MULTIFLAGS)
 
-INSTALL_FILES = crt0.o gdbstub.o scrt0.o libcrt.a libcrt-owngp.a \
-  libnoexcept.a libnfm.a
+MOWN_GP_FILES = mown-gp/crt0.o mown-gp/scrt0.o mown-gp/gdbstub.o \
+  mown-gp/libcrt.a
+INSTALL_FILES = crt0.o gdbstub.o libcrt.a libnoexcept.a libnfm.a \
+  $(MOWN_GP_FILES)
 
 all: $(INSTALL_FILES)
 
 install: $(INSTALL_FILES)
 	$(INSTALL) -d $(exec_prefix)/$(target_alias)/lib
+	$(INSTALL) -d $(exec_prefix)/$(target_alias)/lib/mown-gp
 	for f in $(INSTALL_FILES); do \
 	  echo $${f}; \
-	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib; \
+	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib/$${f}; \
 	done
 
 
 crt0.o: crt0.c ../include/NewTypes.h crt.h
-
 scrt0.o: scrt0.c ../include/NewTypes.h crt.h palmos_GLib.h
-	$(CC) $(CFLAGS) -mown-gp -c -o $@ $(srcdir)/scrt0.c
-
+hooks.o: hooks.c ../include/NewTypes.h crt.h
 gdbstub.o: gdbstub.c ../include/NewTypes.h crt.h
+palmos_GLib.o: palmos_GLib.c ../include/NewTypes.h palmos_GLib.h
 
-CRTLIB_SRCS = \
-  hooks.c palmos_GLib.c dreloc.c \
-  ../include/NewTypes.h crt.h
+DRELOC_OBJS = single_dreloc.o multi_dreloc.o multi_free.o reloc_chain.o
+$(DRELOC_OBJS): dreloc.c ../include/NewTypes.h crt.h
+	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/dreloc.c
 
-libcrt.a: $(CRTLIB_SRCS)
-	$(MAKE) -f Make-multi VER="" CFLAGS="$(CFLAGS)" $@
+CRTLIB_OBJS = hooks.o palmos_GLib.o $(DRELOC_OBJS)
 
-libcrt-owngp.a: $(CRTLIB_SRCS)
-	$(MAKE) -f Make-multi VER="-owngp" CFLAGS="$(CFLAGS) -mown-gp" $@
+libcrt.a: $(CRTLIB_OBJS)
+	-rm -f $@
+	$(AR) cr $@ $(CRTLIB_OBJS)
+	$(RANLIB) $@
+
+mown-gp/Makefile: Makefile
+	if [ ! -d mown-gp ]; then mkdir mown-gp; fi
+	sed '1,/^#stop/s,= \([^/]\),= ../\1,' Makefile > mown-gp/Makefile
+
+$(MOWN_GP_FILES): sub-multilibs
+
+sub-multilibs: mown-gp/Makefile
+	cd mown-gp && \
+	$(MAKE) MULTIFLAGS=-mown-gp `echo $(MOWN_GP_FILES) | sed 's,[^ /]*/,,g'`
 
 
 NOEXCEPTLIB_OBJS = new.o newnt.o del.o vdel.o delnt.o vdelnt.o
@@ -89,7 +106,8 @@ $(NFMLIB_OBJS): nfm.c
 	$(CC) $(CFLAGS) -c -o $@ -DL__`basename $@ .o` $(srcdir)/nfm.c
 
 clean:
-	-rm *.o *.a
+	-rm -f *.o *.a
+	-rm -rf mown-gp
 
 distclean: clean
-	-rm Makefile Make-multi
+	-rm -f Makefile

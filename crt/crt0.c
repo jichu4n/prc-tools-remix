@@ -26,43 +26,59 @@
 
 #include "crt.h"
 
+#ifdef __OWNGP__
+register UInt32 reg_a4 asm ("%a4");
+#endif
+
 UInt32
 start ()
 {
-  SysAppInfoType* appInfo;
+  SysAppInfoType *appInfo;
   void *prevGlobals;
   void *globalsPtr;
-  UInt32 result;
-  Int16 mainCmd;
-  void *mainPBP;
-  UInt16 mainFlags;
 
   if (SysAppStartup (&appInfo, &prevGlobals, &globalsPtr) != 0)
     {
       SndPlaySystemSound (sndError);
       return -1;
     }
+  else
+    {
+      Int16 mainCmd = appInfo->cmd;
+      void *mainPBP = appInfo->cmdPBP;
+      UInt16 mainFlags = appInfo->launchFlags;
+      UInt32 result;
 
-  mainCmd = appInfo->cmd;
-  mainPBP = appInfo->cmdPBP;
-  mainFlags = appInfo->launchFlags;
+#ifdef __OWNGP__
+      UInt32 save_a4 = reg_a4;
 
-  if (mainFlags & sysAppLaunchFlagNewGlobals)
-    _GccRelocateData (); 
+      if (mainFlags & sysAppLaunchFlagNewGlobals)
+	asm ("move.l %%a5,%%a4; sub.l #edata,%%a4" : : : "%a4");
+      else
+	reg_a4 = 0;
+#endif
 
-  __do_bhook (mainCmd, mainPBP, mainFlags);
+      if (mainFlags & sysAppLaunchFlagNewGlobals)
+	_GccRelocateData ();
 
-  if (mainFlags & sysAppLaunchFlagNewGlobals)
-    __do_ctors ();
+      __do_bhook (mainCmd, mainPBP, mainFlags);
 
-  result = PilotMain (mainCmd, mainPBP, mainFlags);
+      if (mainFlags & sysAppLaunchFlagNewGlobals)
+	__do_ctors ();
 
-  if (mainFlags & sysAppLaunchFlagNewGlobals)
-    __do_dtors ();
+      result = PilotMain (mainCmd, mainPBP, mainFlags);
 
-  __do_ehook (mainCmd, mainPBP, mainFlags);
+      if (mainFlags & sysAppLaunchFlagNewGlobals)
+	__do_dtors ();
 
-  SysAppExit (appInfo, prevGlobals, globalsPtr);
+      __do_ehook (mainCmd, mainPBP, mainFlags);
 
-  return result;
+#ifdef __OWNGP__
+      reg_a4 = save_a4;
+#endif
+
+      SysAppExit (appInfo, prevGlobals, globalsPtr);
+
+      return result;
+    }
 }

@@ -21,7 +21,6 @@
 
 #include "crt.h"
 
-extern char data_start;
 extern UInt32 start ();
 
 #ifdef Lsingle_dreloc

@@ -13,6 +13,7 @@
 
 srcdir = @srcdir@
 VPATH = @srcdir@
+#stop
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -24,13 +25,15 @@ INSTALL_DATA = @INSTALL_DATA@
 BOOTSTRAP_SDKFLAGS = -DBOOTSTRAP -I$(srcdir)/../bootstrap -nopalmos
 SDKFLAGS = @build_sdk@
 
+MULTIFLAGS =
+
 CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
 # PRINT_FLOATS huh?
 CFLAGS = -Wall -O2 -fno-builtin -DPRINT_FLOATS \
-	 -I$(srcdir)/include -I$(srcdir)/../include $(SDKFLAGS)
+  -I$(srcdir)/include -I$(srcdir)/../include $(SDKFLAGS) $(MULTIFLAGS)
 
 INSTALL_DIR = $(exec_prefix)/$(target_alias)
 
@@ -68,7 +71,7 @@ INSTALL_HFILES = $(INCDIR)/ctype.h $(INCDIR)/errno.h $(INCDIR)/malloc.h \
 		 $(INCDIR)/setjmp.h $(INCDIR)/stdio.h $(INCDIR)/string.h \
 		 $(INCDIR)/stdlib.h $(INCDIR)/sys/types.h
 
-INSTALL_FILES = libc.a libg.a libstdc++.a
+INSTALL_FILES = libc.a mown-gp/libc.a libg.a mown-gp/libg.a libstdc++.a
 
 all: $(INSTALL_FILES)
 
@@ -80,9 +83,10 @@ install: $(INSTALL_FILES) $(INSTALL_HFILES)
 	  $(INSTALL_DATA) $${f} `echo $${f} | sed -e 's:^$(INCDIR):$(exec_prefix)/$(target_alias)/include:'`; \
 	done
 	$(INSTALL) -d $(exec_prefix)/$(target_alias)/lib
+	$(INSTALL) -d $(exec_prefix)/$(target_alias)/lib/mown-gp
 	for f in $(INSTALL_FILES); do \
 	  echo $${f}; \
-	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib; \
+	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib/$${f}; \
 	done
 
 #all: libc.a libc.sa libg.a libg.sa
@@ -104,10 +108,22 @@ old-install: libc.a libc.sa libg.a libg.sa
 .c.s:
 	$(CC) $(CFLAGS) -S $<
 
+all-multilibs: libc.a libg.a
+
 libc.a: $(OBJS)
 	rm -f libc.a
 	$(AR) cur libc.a $(OBJS)
 	$(RANLIB) libc.a
+
+mown-gp/libc.a: sub-multilibs
+
+mown-gp/Makefile: Makefile
+	if [ ! -d mown-gp ]; then mkdir mown-gp; fi
+	sed '1,/^#stop/s,= \.,= ../.,' Makefile > mown-gp/Makefile
+
+sub-multilibs: mown-gp/Makefile
+	cd mown-gp && $(MAKE) MULTIFLAGS=-mown-gp all-multilibs
+
 
 libg.a: $(OBJS) $(GOBJS)
 	rm -f libg.a

@@ -4946,8 +4946,8 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68k.md gcc-2.95.3/gcc/config/m68k/m68
  ;; This is the first machine-dependent peephole optimization.
 diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h gcc-2.95.3/gcc/config/m68k/m68kpalmos.h
 --- orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Wed Dec 31 16:00:00 1969
-+++ gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Mon Sep  3 02:07:59 2001
-@@ -0,0 +1,313 @@
++++ gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Mon Sep  3 03:09:37 2001
+@@ -0,0 +1,312 @@
 +/* Definitions of target machine for GNU compiler.  "naked" 68020,
 +   COFF object files and debugging, version.
 +   Copyright (C) 1994 Free Software Foundation, Inc.
@@ -5128,8 +5128,7 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h gcc-2.95.3/gcc/config/m68
 +#define CC1PLUS_SPEC ""
 +
 +#undef LINK_SPEC
-+#define LINK_SPEC "\
-+--embedded-relocs -N %{!static:-dy} %{!T:-T pilot.ld%s}"
++#define LINK_SPEC "--embedded-relocs -N %{!static:-dy} %{!T:-T pilot.ld%s}"
 +
 +#undef STARTFILE_SPEC
 +#define STARTFILE_SPEC \
@@ -5142,8 +5141,8 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h gcc-2.95.3/gcc/config/m68
 +#define LIB_SPEC "%{!shared:%{g*:-lg} %{!p:%{!pg:-lc}}%{p:-lc_p}%{pg:-lc_p}}"
 +
 +#undef CPP_SUBTARGET_SPEC
-+#define CPP_SUBTARGET_SPEC "\
-+%{mown-gp:-D__OWNGP__ }%{mextralogues:-D__EXTRALOGUES__ }"
++#define CPP_SUBTARGET_SPEC \
++  "%{mown-gp:-D__OWNGP__ }%{mextralogues:-D__EXTRALOGUES__ }"
 +
 +extern int palmos_valid_machine_decl_attribute ();
 +#define VALID_MACHINE_DECL_ATTRIBUTE(DECL, ATTRIBUTES, ID, ARGS)	\
@@ -5310,8 +5309,8 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/palmos_link.ld gcc-2.95.3/gcc/config/m
 +}
 diff -urN orig-gcc-2.95.3/gcc/config/m68k/t-m68kpalmos gcc-2.95.3/gcc/config/m68k/t-m68kpalmos
 --- orig-gcc-2.95.3/gcc/config/m68k/t-m68kpalmos	Wed Dec 31 16:00:00 1969
-+++ gcc-2.95.3/gcc/config/m68k/t-m68kpalmos	Mon Mar 19 18:11:44 2001
-@@ -0,0 +1,25 @@
++++ gcc-2.95.3/gcc/config/m68k/t-m68kpalmos	Mon Sep  3 03:09:50 2001
+@@ -0,0 +1,30 @@
 +TARGET_LIBGCC2_CFLAGS = -Dinhibit_libc
 +CROSS_LIBGCC1 = libgcc1-asm.a
 +LIB1ASMSRC = m68k/lb1sf68palmos.asm
@@ -5337,6 +5336,11 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/t-m68kpalmos gcc-2.95.3/gcc/config/m68
 +
 +# Don't include assert.h -- we don't have enough stdio to use its functions
 +INSTALL_ASSERT_H =
++
++MULTILIB_OPTIONS = mown-gp
++
++LIBGCC = stmp-multilib
++INSTALL_LIBGCC = install-multilib
 diff -urN orig-gcc-2.95.3/gcc/config/m68k/xm-m68kpalmos.h gcc-2.95.3/gcc/config/m68k/xm-m68kpalmos.h
 --- orig-gcc-2.95.3/gcc/config/m68k/xm-m68kpalmos.h	Wed Dec 31 16:00:00 1969
 +++ gcc-2.95.3/gcc/config/m68k/xm-m68kpalmos.h	Mon Mar 19 18:11:44 2001
