@@ -30,9 +30,16 @@
 #endif
 
 /* 5.0 R2 did introduce a CPU_ARM macro, but more uniquely it also added
-   some screen density constants.  */
+   some screen density constants.  5.0 R3's BuildDefines.h is the same as
+   that in 5.0 R2, so we need to look further afield to distinguish them.  */
 #if defined SCREEN_DENSITY_STANDARD
+
+#include <Chars.h>
+#ifdef vchrInputAreaControl
+#define SDK_VERSION  53
+#else
 #define SDK_VERSION  52
+#endif
 
 /* 5.0 should have introduced an ARM macro for use with CPU_TYPE, but the
    only change actually made was the introduction of a version macro.  */
