@@ -1678,3 +1678,17 @@ diff -urN orig-binutils-2.12.1/ld/scripttempl/m68kpalmos.sc binutils-2.12.1/ld/s
 +    .disposn : { *(.disposn) } > disposition_region
 +}
 +EOF
+diff -urN orig-binutils-2.12.1/libiberty/fnmatch.c binutils-2.12.1/libiberty/fnmatch.c
+--- orig-binutils-2.12.1/libiberty/fnmatch.c	Fri Dec 29 21:16:02 2000
++++ binutils-2.12.1/libiberty/fnmatch.c	Mon Aug 19 13:31:55 2002
+@@ -55,7 +55,9 @@
+    program understand `configure --with-gnu-libc' and omit the object files,
+    it is simpler to just do this in the source for each such file.  */
+ 
+-#if defined (_LIBC) || !defined (__GNU_LIBRARY__)
++/* [PRC-TOOLS-LOCAL] It's not a waste when you're trying to avoid the New!
++   Improved! glibc-2.2.4 fnmatch GLIBC@2.2.3 dependency.  Hack on, dude.  */
++#if defined (_LIBC) || !defined (__GNU_LIBRARY__) || 1
+ 
+ 
+ #if !defined(__GNU_LIBRARY__) && !defined(STDC_HEADERS)
