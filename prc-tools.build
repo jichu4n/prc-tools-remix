@@ -10,8 +10,12 @@
 # directory, and set $PATCH to a suitable version of patch (one that can
 # parse patches in unidiff format and that line-terminates output correctly).
 : ${SOURCES:=.} ${PATCH:=patch}
-# This script is primarily for Cygwin, hence the PalmDev default
-: ${palmdev_prefix:=/PalmDev}
+
+case `./config.guess` in
+  *-cygwin*)	palmdev_prefix=/PalmDev ;;
+  *-darwin*)	palmdev_prefix=/Developer/PalmDev ;;
+  *)		palmdev_prefix=/opt/palmdev ;;
+esac
 
 for pkg_ver in `grep '^Source[^0]:' prc-tools.spec |
 		sed -e 's:.*/::' -e 's/\.tar.*//'`; do
