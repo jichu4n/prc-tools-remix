@@ -79,7 +79,6 @@ else
 fi
 AC_MSG_RESULT($prc_tools_version)
 
-AC_SUBST(prc_tools_version)
 AC_DEFINE_UNQUOTED(PRC_TOOLS_VERSION, "${prc_tools_version}")
 
 
