@@ -13,7 +13,7 @@ extern "C" void free (void *);
 void *
 operator new (size_t sz) throw (std::bad_alloc)
 {
-  return malloc (sz);
+  return malloc (sz? sz : 1);
 }
 
 #endif
@@ -22,7 +22,7 @@ operator new (size_t sz) throw (std::bad_alloc)
 void *
 operator new[] (size_t sz) throw (std::bad_alloc)
 {
-  return malloc (sz);
+  return malloc (sz? sz : 1);
 }
 
 #endif
@@ -31,7 +31,7 @@ operator new[] (size_t sz) throw (std::bad_alloc)
 void *
 operator new (size_t sz, const std::nothrow_t&) throw ()
 {
-  return malloc (sz);
+  return malloc (sz? sz : 1);
 }
 
 #endif
@@ -40,7 +40,7 @@ operator new (size_t sz, const std::nothrow_t&) throw ()
 void *
 operator new[] (size_t sz, const std::nothrow_t&) throw ()
 {
-  return malloc (sz);
+  return malloc (sz? sz : 1);
 }
 
 #endif
