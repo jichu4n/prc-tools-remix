@@ -5,7 +5,7 @@
    This file is part of prc-tools, but is not licensed in the same way
    as the majority of prc-tools.  The contents of this file are in the
    public domain.
-   
+
    One particular consequence of this is that you may use these functions
    in Palm OS executables without concern that doing so by itself causes
    the resulting executable to be covered by any particular license, such as
@@ -15,9 +15,9 @@
    from other header files that are so-covered).  */
 
 #ifndef _PRC_TOOLS_STDLIB_H
-#define _PRC_TOOLS_STDLIB_H
-
 #include_next <stdlib.h>
+
+#ifdef __OPTIMIZE__
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,4 +39,5 @@ extern inline void free (void *_ptr) {
 }
 #endif
 
+#endif
 #endif
