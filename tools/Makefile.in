@@ -37,7 +37,7 @@ YACC = @YACC@
 # multiple targets, we need the special multi-target one we've built.
 
 GENERIC_BINUTILS = ../@first_enabled_target@/binutils
-SPECIAL_BFD = @target_bfd@
+SPECIAL_BFD = ../@target_bfd@
 
 # For libraries (like libiberty and pfd) which are generic such that any copy
 # will do, we can add -L options for our likely locations and search for them

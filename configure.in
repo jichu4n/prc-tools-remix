@@ -154,7 +154,7 @@ if test -n "$enable_targets"; then
     # FIXME It doesn't really need all of $first_enabled_target; really all
     # it needs from there is $first_enabled_target/binutils/{libiberty,intl}
     tools_prereqs="multi-bfd $first_enabled_target"
-    target_bfd="../multi-bfd"
+    target_bfd="multi-bfd"
   fi
 else
   case "$target_cpu" in
@@ -174,7 +174,7 @@ else
 
   # The "tools" subdirectory should look for BFD over here.
   tools_prereqs="binutils"
-  target_bfd="../binutils/bfd"
+  target_bfd="binutils/bfd"
 
   # The extra variables to be passed down to GCC and the target libraries
   # depend on which of binutils and GCC is being built in the tree.  This is
