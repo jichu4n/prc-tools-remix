@@ -33,7 +33,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
 #include "utils.h"
 #include "def.h"
 #include "pfdheader.h"
@@ -213,6 +212,10 @@ lookup_trapno (const char *name) {
   char *record;
   int namelen;
 
+#if 0
+/* The configury involved in finding the TRAPNO_FNAME has changed
+   significantly.  We'll reenable this stuff and do it right when we
+   implement HACK support in .def files, i.e., when it'll be useful.  */
   if (trapno_text == NULL && !trapfile_missing) {
     long length;
     if ((trapno_text = slurp_file (TRAPNO_FNAME, "r", &length)) == NULL) {
@@ -220,6 +223,7 @@ lookup_trapno (const char *name) {
       trapfile_missing = 1;
       }
     }
+#endif
 
   if (trapfile_missing)
     return 0;

@@ -35,15 +35,16 @@ YACC = @YACC@
 STATIC_CXXLIBS = -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lm -lgcc -lc -lgcc
 CXXLIBS = @static_cxxlibs@
 
-BINUTILS_INCDIRS = -I$(srcdir)/../binutils/include -I../binutils/bfd
-BINUTILS_LIBDIRS = -L../binutils/bfd -L../binutils/libiberty
+INCDIRS = -I. -I$(srcdir)/../binutils/include -I../binutils/bfd
+LIBDIRS = -L. -L../binutils/bfd -L../binutils/libiberty
 
-EXTRA_CFLAGS = \
-  -DTARGET=\"$(target)\" \
-  -DTARGET_ALIAS=\"$(target_alias)\" \
-  -DEXEC_PREFIX=\"$(exec_prefix)\" \
-  -DPALMDEV_PREFIX=\"$(palmdev_prefix)\" \
-  -DEXEEXT=\"$(exeext)\"
+# This ought to be in config.h.in, but that doesn't work because configure
+# sets $exec_prefix too late.
+CONFIG_DEFINES = -DEXEC_PREFIX=\"$(exec_prefix)\"
+
+ALL_CFLAGS = $(CONFIG_DEFINES) $(INCDIRS) $(CFLAGS) $(CPPFLAGS)
+ALL_CXXFLAGS = $(CONFIG_DEFINES) $(INCDIRS) $(CXXFLAGS) $(CPPFLAGS)
+ALL_LDFLAGS = $(LIBDIRS) $(LDFLAGS)
 
 PFD = libpfd.a
 
@@ -89,35 +90,32 @@ install-info:
 .SUFFIXES: .cpp
 
 .c.o:
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(BINUTILS_INCDIRS) -I. -o $@ -c $<
-# -I. is for def.tab.h when compiling def.yy.c below
+	$(CC) $(ALL_CFLAGS) -o $@ -c $<
 
 .cpp.o:
-	$(CXX) $(CXXFLAGS) $(BINUTILS_INCDIRS) -o $@ -c $<
+	$(CXX) $(ALL_CXXFLAGS) -o $@ -c $<
 
 obj_res_objs = obj-res.o binres.o utils.o
 obj-res$(exeext): $(obj_res_objs) $(PFD)
-	$(CXX) $(LDFLAGS) -o $@ $(obj_res_objs) \
-	$(BINUTILS_LIBDIRS) -lbfd -liberty -L. -lpfd $(CXXLIBS)
+	$(CXX) $(ALL_LDFLAGS) -o $@ $(obj_res_objs) \
+	-lbfd -liberty -lpfd $(CXXLIBS)
 
 build_prc_objs = build-prc.o binres.o utils.o def.yy.o def.tab.o
 build-prc$(exeext): $(build_prc_objs) $(PFD)
-	$(CXX) $(LDFLAGS) -o $@ $(build_prc_objs) \
-	$(BINUTILS_LIBDIRS) -lbfd -liberty -L. -lpfd $(CXXLIBS)
+	$(CXX) $(ALL_LDFLAGS) -o $@ $(build_prc_objs) \
+	-lbfd -liberty -lpfd $(CXXLIBS)
 
 multigen_objs = multigen.o utils.o def.yy.o def.tab.o
 multigen$(exeext): $(multigen_objs) $(PFD)
-	$(CC) $(LDFLAGS) -o $@ $(multigen_objs) \
-	$(BINUTILS_LIBDIRS) -liberty -L. -lpfd
+	$(CC) $(ALL_LDFLAGS) -o $@ $(multigen_objs) -liberty -lpfd
 
 stubgen_objs = stubgen.o utils.o def.yy.o def.tab.o
 stubgen$(exeext): $(stubgen_objs) $(PFD)
-	$(CC) $(LDFLAGS) -o $@ $(stubgen_objs) \
-	$(BINUTILS_LIBDIRS) -liberty -L. -lpfd
+	$(CC) $(ALL_LDFLAGS) -o $@ $(stubgen_objs) -liberty -lpfd
 
 sdkfind_objs = sdkfind.o utils.o
 sdkfind$(exeext): $(sdkfind_objs)
-	$(CC) $(LDFLAGS) -o $@ $(sdkfind_objs) $(BINUTILS_LIBDIRS) -liberty
+	$(CC) $(ALL_LDFLAGS) -o $@ $(sdkfind_objs) -liberty
 
 build-prc.o: build-prc.cpp utils.h def.h binres.hpp \
 	     pfd.hpp pfdheader.h pfdio.hpp
