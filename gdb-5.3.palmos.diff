@@ -1,7 +1,7 @@
-diff -urN orig-gdb-5.2.1/bfd/config.bfd gdb-5.2.1/bfd/config.bfd
---- orig-gdb-5.2.1/bfd/config.bfd	Sun Feb 10 21:37:45 2002
-+++ gdb-5.2.1/bfd/config.bfd	Tue Nov 12 23:26:51 2002
-@@ -610,6 +610,9 @@
+diff -urN orig-gdb-5.3/bfd/config.bfd gdb-5.3/bfd/config.bfd
+--- orig-gdb-5.3/bfd/config.bfd	Thu Sep  5 22:34:35 2002
++++ gdb-5.3/bfd/config.bfd	Tue Nov 12 23:26:51 2002
+@@ -648,6 +648,9 @@
      targ_selvecs=ieee_vec
      targ_underscore=yes
      ;;
@@ -11,10 +11,10 @@ diff -urN orig-gdb-5.2.1/bfd/config.bfd gdb-5.2.1/bfd/config.bfd
  
    m88*-harris-cxux* | m88*-*-dgux* | m88*-*-sysv4*)
      targ_defvec=bfd_elf32_m88k_vec
-diff -urN orig-gdb-5.2.1/config.sub gdb-5.2.1/config.sub
---- orig-gdb-5.2.1/config.sub	Sun Feb 24 01:04:00 2002
-+++ gdb-5.2.1/config.sub	Tue Nov 12 23:01:49 2002
-@@ -275,6 +275,10 @@
+diff -urN orig-gdb-5.3/config.sub gdb-5.3/config.sub
+--- orig-gdb-5.3/config.sub	Fri Aug 23 23:22:39 2002
++++ gdb-5.3/config.sub	Tue Nov 12 23:01:49 2002
+@@ -285,6 +285,10 @@
  		echo Invalid configuration \`$1\': machine \`$basic_machine\' not recognized 1>&2
  		exit 1
  		;;
@@ -25,9 +25,9 @@ diff -urN orig-gdb-5.2.1/config.sub gdb-5.2.1/config.sub
  	# Recognize the basic CPU types with company name.
  	580-* \
  	| a29k-* \
-diff -urN orig-gdb-5.2.1/gdb/ChangeLog.palmos gdb-5.2.1/gdb/ChangeLog.palmos
---- orig-gdb-5.2.1/gdb/ChangeLog.palmos	Thu Jan  1 00:00:00 1970
-+++ gdb-5.2.1/gdb/ChangeLog.palmos	Fri Jun  2 20:47:49 2000
+diff -urN orig-gdb-5.3/gdb/ChangeLog.palmos gdb-5.3/gdb/ChangeLog.palmos
+--- orig-gdb-5.3/gdb/ChangeLog.palmos	Thu Jan  1 00:00:00 1970
++++ gdb-5.3/gdb/ChangeLog.palmos	Fri Jun  2 20:47:49 2000
 @@ -0,0 +1,26 @@
 +Fri Aug 21 11:08:23 1998  Peter Trommler      <trp@zurich.ibm.com>
 +	* ChangeLog.palmos: New file.
@@ -55,41 +55,39 @@ diff -urN orig-gdb-5.2.1/gdb/ChangeLog.palmos gdb-5.2.1/gdb/ChangeLog.palmos
 +
 +	* m68k-tdep.c (m68k_saved_pc_after_call): Added support for
 +	MAC_SYSCALL_TRAP style systraps.
-diff -urN orig-gdb-5.2.1/gdb/Makefile.in gdb-5.2.1/gdb/Makefile.in
---- orig-gdb-5.2.1/gdb/Makefile.in	Fri Jul 19 20:22:06 2002
-+++ gdb-5.2.1/gdb/Makefile.in	Tue Nov 12 23:11:50 2002
-@@ -1199,8 +1199,8 @@
+diff -urN orig-gdb-5.3/gdb/Makefile.in gdb-5.3/gdb/Makefile.in
+--- orig-gdb-5.3/gdb/Makefile.in	Mon Nov 25 23:05:38 2002
++++ gdb-5.3/gdb/Makefile.in	Thu Dec 12 12:24:26 2002
+@@ -1373,7 +1373,7 @@
  	procfs.c \
- 	remote-adapt.c remote-array.c remote-bug.c remote-e7000.c remote-eb.c \
+ 	remote-array.c remote-e7000.c \
  	remote-es.c remote-hms.c remote-mips.c \
--	remote-mm.c remote-nindy.c remote-os9k.c remote-rdp.c remote-sim.c \
--	remote-st.c remote-utils.c dcache.c \
-+	remote-mm.c remote-nindy.c remote-os9k.c remote-palmos.c remote-rdp.c \
-+	remote-sim.c remote-st.c remote-utils.c dcache.c \
- 	remote-udi.c remote-vx.c remote-vx29k.c \
+-	remote-rdp.c remote-sim.c \
++	remote-palmos.c remote-rdp.c remote-sim.c \
+ 	remote-st.c remote-utils.c dcache.c \
+ 	remote-vx.c \
  	rs6000-nat.c rs6000-tdep.c \
- 	s390-tdep.c s390-nat.c \
-@@ -1926,6 +1926,10 @@
- 	$(command_h) $(monitor_h) $(remote_utils_h) $(symtab_h) $(symfile_h) \
- 	$(objfiles_h) $(gdb_stabs_h) $(gdb_string_h) $(regcache_h)
- 
-+remote-palmos.o: remote-palmos.c $(defs_h) $(gdbcode_h) \
-+	$(command_h) $(monitor_h) $(remote_utils_h) $(symtab_h) $(symfile_h) \
-+	$(objfiles_h) $(gdb_stabs_h) $(gdb_string_h) $(regcache_h)
-+
- remote-sds.o: remote-sds.c $(bfd_h) $(defs_h) $(gdbcmd_h) \
- 	$(inferior_h) $(remote_utils_h) $(symfile_h) $(terminal_h) \
- 	$(gdb_string_h) $(regcache_h)
-diff -urN orig-gdb-5.2.1/gdb/config/m68k/palmos.mt gdb-5.2.1/gdb/config/m68k/palmos.mt
---- orig-gdb-5.2.1/gdb/config/m68k/palmos.mt	Thu Jan  1 00:00:00 1970
-+++ gdb-5.2.1/gdb/config/m68k/palmos.mt	Tue Nov 12 23:12:57 2002
+@@ -2015,6 +2015,10 @@
+ # OBSOLETE remote-nindy.o: remote-nindy.c
+ # OBSOLETE remote-nrom.o: remote-nrom.c
+ # OBSOLETE remote-os9k.o: remote-os9k.c
++remote-palmos.o: remote-palmos.c $(defs_h) $(gdb_string_h) $(frame_h) \
++	$(inferior_h) $(bfd_h) $(symfile_h) $(target_h) $(gdb_wait_h) \
++	$(gdbcmd_h) $(objfiles_h) $(gdb_stabs_h) $(gdbthread_h) \
++	$(serial_h) $(xmodem_h)
+ remote-rdi.o: remote-rdi.c $(defs_h) $(gdb_string_h) $(frame_h) \
+ 	$(inferior_h) $(bfd_h) $(symfile_h) $(target_h) $(gdbcmd_h) \
+ 	$(objfiles_h) $(gdb_stabs_h) $(gdbthread_h) $(gdbcore_h) \
+diff -urN orig-gdb-5.3/gdb/config/m68k/palmos.mt gdb-5.3/gdb/config/m68k/palmos.mt
+--- orig-gdb-5.3/gdb/config/m68k/palmos.mt	Thu Jan  1 00:00:00 1970
++++ gdb-5.3/gdb/config/m68k/palmos.mt	Tue Nov 12 23:12:57 2002
 @@ -0,0 +1,3 @@
 +# Target: Motorola 680x0 running Palm OS
 +TDEPFILES= coff-solib.o m68k-tdep.o remote-palmos.o
 +TM_FILE= tm-palmos.h
-diff -urN orig-gdb-5.2.1/gdb/config/m68k/tm-palmos.h gdb-5.2.1/gdb/config/m68k/tm-palmos.h
---- orig-gdb-5.2.1/gdb/config/m68k/tm-palmos.h	Thu Jan  1 00:00:00 1970
-+++ gdb-5.2.1/gdb/config/m68k/tm-palmos.h	Tue Nov 12 23:15:05 2002
+diff -urN orig-gdb-5.3/gdb/config/m68k/tm-palmos.h gdb-5.3/gdb/config/m68k/tm-palmos.h
+--- orig-gdb-5.3/gdb/config/m68k/tm-palmos.h	Thu Jan  1 00:00:00 1970
++++ gdb-5.3/gdb/config/m68k/tm-palmos.h	Tue Nov 12 23:15:05 2002
 @@ -0,0 +1,54 @@
 +/* Target machine definitions for m68k Palm OS.
 +   Copyright 2002 John Marshall.  (For now.)
@@ -145,21 +143,21 @@ diff -urN orig-gdb-5.2.1/gdb/config/m68k/tm-palmos.h gdb-5.2.1/gdb/config/m68k/t
 +#else
 +#define MAC_SYSCALL_TRAP read_memory_integer ((32+15)*4, 4)
 +#endif
-diff -urN orig-gdb-5.2.1/gdb/configure.tgt gdb-5.2.1/gdb/configure.tgt
---- orig-gdb-5.2.1/gdb/configure.tgt	Wed May 29 04:36:55 2002
-+++ gdb-5.2.1/gdb/configure.tgt	Tue Nov 12 23:09:22 2002
-@@ -168,6 +168,7 @@
+diff -urN orig-gdb-5.3/gdb/configure.tgt gdb-5.3/gdb/configure.tgt
+--- orig-gdb-5.3/gdb/configure.tgt	Sun Oct 20 14:14:39 2002
++++ gdb-5.3/gdb/configure.tgt	Tue Nov 12 23:09:22 2002
+@@ -159,6 +159,7 @@
  m68*-*-lynxos*)		gdb_target=m68klynx ;;
- m68*-*-netbsd*)		gdb_target=nbsd ;;
+ m68*-*-netbsd*)		gdb_target=nbsdaout ;;
  m68*-*-os68k*)		gdb_target=os68k ;;
 +m68*-*-palmos*)		gdb_target=palmos ;;
  m68*-*-sunos3*)		gdb_target=sun3os3 ;;
  m68*-*-sunos4*)		gdb_target=sun3os4 ;;
  m68*-*-sysv4*)		gdb_target=m68kv4 ;;
-diff -urN orig-gdb-5.2.1/gdb/m68k-tdep.c gdb-5.2.1/gdb/m68k-tdep.c
---- orig-gdb-5.2.1/gdb/m68k-tdep.c	Sun Dec  2 00:06:46 2001
-+++ gdb-5.2.1/gdb/m68k-tdep.c	Tue Nov 12 23:16:53 2002
-@@ -674,6 +674,11 @@
+diff -urN orig-gdb-5.3/gdb/m68k-tdep.c gdb-5.3/gdb/m68k-tdep.c
+--- orig-gdb-5.3/gdb/m68k-tdep.c	Sat Aug 24 02:21:34 2002
++++ gdb-5.3/gdb/m68k-tdep.c	Tue Nov 12 23:16:53 2002
+@@ -967,6 +967,11 @@
      return read_memory_integer (read_register (SP_REGNUM) + 4, 4);
    else
  #endif /* SYSCALL_TRAP */
@@ -171,9 +169,9 @@ diff -urN orig-gdb-5.2.1/gdb/m68k-tdep.c gdb-5.2.1/gdb/m68k-tdep.c
      return read_memory_integer (read_register (SP_REGNUM), 4);
  }
  
-diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
---- orig-gdb-5.2.1/gdb/remote-palmos.c	Thu Jan  1 00:00:00 1970
-+++ gdb-5.2.1/gdb/remote-palmos.c	Wed Nov 13 01:02:15 2002
+diff -urN orig-gdb-5.3/gdb/remote-palmos.c gdb-5.3/gdb/remote-palmos.c
+--- orig-gdb-5.3/gdb/remote-palmos.c	Thu Jan  1 00:00:00 1970
++++ gdb-5.3/gdb/remote-palmos.c	Thu Dec 12 13:26:30 2002
 @@ -0,0 +1,1284 @@
 +/* Remote target communications for serial-line targets in custom GDB protocol
 +   Copyright 1988, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
@@ -325,7 +323,7 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +	int on;
 +} breakpoint[MAX_BREAKS + 1];
 +
-+static char regs[REGISTER_BYTES];
++static char regs[16*4 + 8 + 8*12 + 3*4];
 +
 +/* Portable memory access macros */
 +
@@ -1459,10 +1457,10 @@ diff -urN orig-gdb-5.2.1/gdb/remote-palmos.c gdb-5.2.1/gdb/remote-palmos.c
 +  pilot_ops.to_mourn_inferior = remote_mourn_pilot;
 +  add_target (&pilot_ops);
 +}
-diff -urN orig-gdb-5.2.1/gdb/stack.c gdb-5.2.1/gdb/stack.c
---- orig-gdb-5.2.1/gdb/stack.c	Thu Feb 14 08:24:54 2002
-+++ gdb-5.2.1/gdb/stack.c	Tue Nov 12 23:17:51 2002
-@@ -524,6 +524,12 @@
+diff -urN orig-gdb-5.3/gdb/stack.c gdb-5.3/gdb/stack.c
+--- orig-gdb-5.3/gdb/stack.c	Thu Aug 29 21:59:35 2002
++++ gdb-5.3/gdb/stack.c	Tue Nov 12 23:17:51 2002
+@@ -536,6 +536,12 @@
  	  funname = SYMBOL_NAME (msymbol);
  	  funlang = SYMBOL_LANGUAGE (msymbol);
  	}
@@ -1475,9 +1473,9 @@ diff -urN orig-gdb-5.2.1/gdb/stack.c gdb-5.2.1/gdb/stack.c
      }
  
    annotate_frame_begin (level == -1 ? 0 : level, fi->pc);
-diff -urN orig-gdb-5.2.1/libiberty/fnmatch.c gdb-5.2.1/libiberty/fnmatch.c
---- orig-gdb-5.2.1/libiberty/fnmatch.c	Fri Dec 29 21:16:02 2000
-+++ gdb-5.2.1/libiberty/fnmatch.c	Tue Nov 12 23:22:10 2002
+diff -urN orig-gdb-5.3/libiberty/fnmatch.c gdb-5.3/libiberty/fnmatch.c
+--- orig-gdb-5.3/libiberty/fnmatch.c	Fri Dec 29 21:16:02 2000
++++ gdb-5.3/libiberty/fnmatch.c	Tue Nov 12 23:22:10 2002
 @@ -55,7 +55,9 @@
     program understand `configure --with-gnu-libc' and omit the object files,
     it is simpler to just do this in the source for each such file.  */
