@@ -48,10 +48,10 @@ diff -urN orig-gcc-3.3.1/gcc/config.gcc gcc-3.3.1/gcc/config.gcc
  	tmake_file=arm/t-pe
 diff -urN orig-gcc-3.3.1/gcc/config/arm/palmos.h gcc-3.3.1/gcc/config/arm/palmos.h
 --- orig-gcc-3.3.1/gcc/config/arm/palmos.h	Thu Jan  1 00:00:00 1970
-+++ gcc-3.3.1/gcc/config/arm/palmos.h	Fri May 16 02:39:07 2003
-@@ -0,0 +1,43 @@
++++ gcc-3.3.1/gcc/config/arm/palmos.h	Tue Sep 16 01:07:33 2003
+@@ -0,0 +1,45 @@
 +/* Definitions for Palm OS on ARM.
-+   Copyright 2002 John Marshall.  (Until it is contributed.)
++   Copyright 2002, 2003 John Marshall.  (Until it is contributed.)
 +
 +This file is part of GCC.
 +
@@ -89,6 +89,8 @@ diff -urN orig-gcc-3.3.1/gcc/config/arm/palmos.h gcc-3.3.1/gcc/config/arm/palmos
 +#undef EXTRA_SECTIONS
 +#undef EXTRA_SECTION_FUNCTIONS
 +#undef READONLY_DATA_SECTION
++#undef TARGET_ASM_SELECT_SECTION
++#undef TARGET_ASM_SELECT_RTX_SECTION
 +
 +#undef USE_CONST_SECTION
 +#undef CONST_SECTION_ASM_OP
