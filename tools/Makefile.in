@@ -40,8 +40,9 @@ ALL_LDFLAGS = $(LIBDIRS) $(LDFLAGS)
 
 UTILS_DEFINES = -DPRC_TOOLS_VERSION=\"@prc_tools_version@\"
 
-PALMDEV_PREP_DEFINES = -DSTANDARD_EXEC_PREFIX=\"$(libdir)/gcc-lib\" \
-  -DTARGET_ALIAS=\"$(target_alias)\" -DPALMDEV_PREFIX=\"@palmdev_prefix@\"
+PALMDEV_PREP_DEFINES = \
+  -DSTANDARD_EXEC_PREFIX=\"$(libdir)/gcc-lib\" \
+  -DPALMDEV_PREFIX=\"@palmdev_prefix@\"
 
 
 PFD = libpfd.a

@@ -244,14 +244,20 @@ analyze_palmdev_tree (const char *prefix_as_given, int report) {
 const char *spec[2] = { "cpp", "link" };
 const char *option[2] = { "-isystem ", "-L" };
 
+const char *
+libdir (const char *target) {
+  return (matches ("m68k-", target))? "m68k-palmos-coff" : target;
+  }
+
 static void
 write_dirtree (FILE *f, struct root *root, const char *target,
 	       enum sub_kind kind) {
   if (root->sub[kind]) {
-    /* FIXME this will need generalising when we have multiple targets.  */
-    const char *target_for_lib = target? "/m68k-palmos-coff" : "";
-    TREE *tree = opentree (DIRS, "%s/%s%s", root->prefix, root->sub[kind],
-			   target_for_lib);
+    TREE *tree =
+      (kind == include)? opentree (DIRS, "%s/%s", root->prefix, root->sub[kind])
+		       : opentree (DIRS, "%s/%s/%s", root->prefix,
+				   root->sub[kind], libdir (target));
+
     const char *dir;
     while ((dir = readtree (tree)) != NULL) {
       const char *s;
@@ -328,8 +334,23 @@ remove_file (int verbose, const char *fname) {
   }
 
 
-/* FIXME this will need to get cleverer when we have multiple targets.  */
-const char *target_list[] = { TARGET_ALIAS, NULL };
+const char *
+next_target (DIR **dir) {
+  struct dirent *e;
+
+  if (*dir == NULL)
+    *dir = opendir (STANDARD_EXEC_PREFIX);
+
+  while (*dir && (e = readdir (*dir)) != NULL)
+    if (strstr (e->d_name, "-palmos")
+	&& is_dir_dirent (e, "%s/%s", STANDARD_EXEC_PREFIX, e->d_name))
+      return e->d_name;
+
+  if (*dir)
+    closedir (*dir);
+
+  return NULL;
+  }
 
 char *
 specfilename (const char *target) {
@@ -419,10 +440,11 @@ main (int argc, char **argv) {
       usage ();
     }
   else if (removing) {
-    const char **target;
+    const char *target;
+    DIR *dir = NULL;
 
-    for (target = target_list; *target; target++)
-      remove_file (verbose, specfilename (*target));
+    while ((target = next_target (&dir)) != NULL)
+      remove_file (verbose, specfilename (target));
     }
   else {
     struct root *default_sdk = NULL;
@@ -460,22 +482,24 @@ main (int argc, char **argv) {
     if (dump_target)
       write_specs (stdout, dump_target, default_sdk);
     else if (generic_root_list || sdk_root_list) {
-      const char **target;
+      const char *target;
+      int ntargets;
+      DIR *dir = NULL;
       const char *message = "...done";
 
       if (report)
 	printf ("Writing SDK details to target specs files...\n");
 
-      for (target = target_list; *target; target++) {
-	const char *fname = specfilename (*target);
+      for (ntargets = 0; (target = next_target (&dir)) != NULL; ntargets++) {
+	const char *fname = specfilename (target);
 	FILE *f = fopen (fname, "w");
 
 	if (f) {
-	  write_specs (f, *target, default_sdk);
+	  write_specs (f, target, default_sdk);
 	  fclose (f);
 
 	  if (verbose)
-	    printf ("Wrote %s specs to '%s'\n", *target, fname);
+	    printf ("Wrote %s specs to '%s'\n", target, fname);
 	  }
 	else {
 #ifdef EACCES
@@ -489,6 +513,9 @@ main (int argc, char **argv) {
 
       if (report)
 	printf ("%s\n", message);
+
+      if (ntargets == 0)
+	error ("installation problem: no prc-tools targets found");
       }
     else {
       error ("no Palm OS development material detected");
