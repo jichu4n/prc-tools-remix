@@ -1293,7 +1293,9 @@ for a GLib, it is easier to have @code{stubgen} generate them for you from the
 relevant clause in your library's definition file (@pxref{Definition files}).
 
 @code{stubgen} reads from @var{deffile} and by default writes its output to
-@file{@var{deffile}-dispatch.s}.
+@file{@var{deffile}-stubs.c} and @file{@var{deffile}-jumps.s}, or to
+@file{@var{deffile}-dispatch.s}, depending on the @var{project-kind}
+specified in @var{deffile}.
 
 @table @code
 @item -b @var{base}
