@@ -12,7 +12,7 @@ Source1: ftp://sources.redhat.com/pub/binutils/releases/binutils-2.13.1.tar.bz2
 Source2: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.2.1.tar.gz
 Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.3/gcc-2.95.3.tar.gz
 Source4: ftp://ftp.gnu.org/pub/gnu/make/make-3.79.1.tar.gz
-Source5: ftp://gcc.gnu.org/pub/gcc/releases/gcc-3.2/gcc-3.2.tar.gz
+Source5: ftp://gcc.gnu.org/pub/gcc/releases/gcc-3.2.1/gcc-3.2.1.tar.gz
 NoSource: 1
 NoSource: 2
 NoSource: 3
@@ -39,7 +39,7 @@ Group: Development/Palm OS
 Requires: prc-tools >= 2.2
 %description arm
 A compiler tool chain for building Palm OS armlets in C or C++.
-Includes (patched versions of) binutils 2.13.1 and GCC 3.2, and requires
+Includes (patched versions of) binutils 2.13.1 and GCC 3.2.1, and requires
 the various post-linker tools from a corresponding prc-tools package.
 
 Note that this version of ARM prc-tools does not provide startup code or
@@ -66,7 +66,7 @@ relocation facilities of your RPM installation tool.
 %setup -q -T -b 2 -n gdb-5.2.1
 %setup -q -T -b 3 -n gcc-2.95.3
 %setup -q -T -b 4 -n make-3.79.1
-%setup -q -T -b 5 -n gcc-3.2
+%setup -q -T -b 5 -n gcc-3.2.1
 %setup -q
 
 cat *.palmos.diff | (cd .. && patch -p0)
@@ -74,7 +74,7 @@ cat *.palmos.diff | (cd .. && patch -p0)
 mv ../binutils-2.13.1 binutils
 mv ../gdb-5.2.1 gdb
 mv ../gcc-2.95.3 gcc295
-mv ../gcc-3.2 gcc
+mv ../gcc-3.2.1 gcc
 mv ../make-3.79.1 make
 
 # The patch touches a file this depends on, and you need autoconf to remake
