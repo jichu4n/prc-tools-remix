@@ -334,8 +334,8 @@ The identifiers @code{UInt8}, @code{Int8}, @code{UInt16}, @code{Int16},
 all typedeffed appropriately.
 
 @item
-The macro @code{SDK_VERSION} is defined to either 10, 20, 30, 31, or 35,
-indicating the SDK version which is in use.
+The macro @code{SDK_VERSION} is defined to one of 10, 20, 30, 31, 35, 40,
+and so on, indicating the SDK version which is in use.
 @end itemize
 
 
