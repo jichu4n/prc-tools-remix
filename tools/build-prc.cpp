@@ -171,10 +171,29 @@ check_maincode (const char* fname, const ResourceDatabase& db,
 	   fname, info.maincode.type, info.maincode.id);
   }
 
+struct range {
+  unsigned int lo, hi, n;
+  };
+
+static void
+check_range (const char* fname, const struct range& r, const char* type,
+	     unsigned int full_lo, unsigned int full_hi) {
+  if (r.n > 0) {
+    if (r.lo != full_lo)
+      warning ("[%s] first '%s' resource in range #%u--%u is #%u",
+	       fname, type, full_lo, full_hi, r.lo);
+
+    unsigned int size = r.hi - r.lo + 1;
+    if (r.n < size)
+      warning ("[%s] '%s' resources #%u--%u are noncontiguous (%u missing)",
+	       fname, type, r.lo, r.hi, size - r.n);
+    }
+  }
+
 static void
 check_hack (const char* fname, const ResourceDatabase& db,
 	    const struct binary_file_info&) {
-  struct { unsigned int lo, hi, n; } traps, forms;
+  struct range traps, forms;
 
   traps.lo = forms.lo = 0xffff;
   traps.hi = forms.hi = 0;
@@ -212,17 +231,9 @@ check_hack (const char* fname, const ResourceDatabase& db,
     }
 
   // and that each forms a contiguous sequence from the base of its range
-  unsigned int missing;
 
-  missing = (traps.n > 0)? (traps.hi - traps.lo + 1) - traps.n : 0;
-  if (missing > 0)
-    warning ("[%s] 'TRAP' resources #%u--%u are noncontiguous (%u missing)",
-	     fname, traps.lo, traps.hi, missing);
-
-  missing = (forms.n > 0)? (forms.hi - forms.lo + 1) - forms.n : 0;
-  if (missing > 0)
-    warning ("[%s] 'tFRM' resources #%u--%u are noncontiguous (%u missing)",
-	     fname, forms.lo, forms.hi, missing);
+  check_range (fname, traps, "TRAP", 1000, 1499);
+  check_range (fname, forms, "tFRM", 2000, 2999);
 
   // and that at least one trap and the name is present
 
