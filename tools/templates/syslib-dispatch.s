@@ -26,8 +26,8 @@
 	.even
 	.globl jmptable
 jmptable:
-	dc.w	name
+	dc.w	.Lname-jmptable
 	@-function-offsets-@
 
-name:
+.Lname:
 	.asciz	"@libname@"
