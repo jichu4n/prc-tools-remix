@@ -7,7 +7,7 @@ Summary: GCC and related tools for Palm OS development
 Copyright: GPL
 URL: http://prc-tools.sourceforge.net/
 Group: Development/Tools
-Source0: http://download.sourceforge.net/prc-tools/prc-tools-%{version}.tar.gz
+Source0: http://prdownloads.sourceforge.net/prc-tools/%{name}-%{version}.tar.gz
 Source1: ftp://sources.redhat.com/pub/binutils/releases/binutils-2.9.1.tar.gz
 Source2: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.0.tar.gz
 Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.3/gcc-2.95.3.tar.gz
