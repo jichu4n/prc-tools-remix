@@ -1250,7 +1250,7 @@ build-prc [ -o @var{file} | --output @var{file} ]
           [ --ok-to-install-newer ] [ --reset-after-install ]
           [ --copy-prevention ] [ --stream ] [ --hidden ]
           [ --launchable-data ] [ --recyclable ] [ --bundle ]
-	  [ -z @var{n} | --compress-data @var{n} ]
+          [ -z @var{n} | --compress-data @var{n} ]
           @var{file}@dots{}
 @end example
 
