@@ -121,6 +121,7 @@ header_item:
 	| STREAM		{ db.stream = 1; }
 	| HIDDEN		{ db.hidden = 1; }
 	| LAUNCHABLE_DATA	{ db.launchable_data = 1; }
+	| DATA			{ call->data (1); }
 	| STACK '=' UINT	{ call->stack ($3); }
 	;
 
@@ -261,6 +262,7 @@ read_def_file (const char *fname, const struct def_callbacks *callbacks) {
     einfo (E_NOFILE | E_PERROR, "can't open def file `%s'", fname);
   }
 
+static void default_i (int i UNUSED_PARAM) {}
 static void default_str (const char *s UNUSED_PARAM) {}
 static void default_ul (unsigned long ul UNUSED_PARAM) {}
 static void default_ui_ui_str (unsigned int ui1 UNUSED_PARAM,
@@ -276,6 +278,7 @@ struct def_callbacks default_def_callbacks = {
   default_str,
   default_str,
   default_ui_ui_str,
+  default_i,
   default_ul,
   default_ul_str
   };

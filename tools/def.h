@@ -38,6 +38,7 @@ struct def_callbacks {
   void (*multicode_section)(const char *secname);
   void (*export_function)(const char *funcname);
   void (*trap)(unsigned int resid, unsigned int vector, const char *fname);
+  void (*data)(int allow);
   void (*stack)(unsigned long);
   void (*version_resource)(unsigned long resno, const char *text);
   };

@@ -196,7 +196,7 @@ slurp_file_as_datablock (const char* fname) {
 
 	db	name, type, creator, all 9 attributes, version, modnum
 	bininfo	maincode, emit_appl_extras, emit_data, stack_size  */
-		
+
 enum priority_level {
   default_pri, def_default_pri, def_specific_pri, old_cli_pri, option_pri
   };
@@ -311,6 +311,12 @@ multicode_section (const char* secname) {
     bininfo.extracode[secname] = ResKey ("code", id);
   else
     einfo (E_FILE, "section `%s' duplicated", secname);
+  }
+
+static void
+data (int allow) {
+  if (superior (bininfo.emit_data, def_specific_pri))
+    bininfo.emit_data = allow;
   }
 
 static void
@@ -504,6 +510,7 @@ main (int argc, char** argv) {
     struct def_callbacks def_funcs = default_def_callbacks;
     def_funcs.db_header = db_header;
     def_funcs.multicode_section = multicode_section;
+    def_funcs.data = data;
     def_funcs.stack = stack;
     def_funcs.trap = trap;
     def_funcs.version_resource = version_resource;
