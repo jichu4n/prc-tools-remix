@@ -23,7 +23,6 @@ bindir = @bindir@
 libdir = @libdir@
 target = @target@
 target_alias = @target_alias@
-palmdev_prefix = @palmdev_prefix@
 exeext = @EXEEXT@
 tooldir = $(exec_prefix)/$(target_alias)
 
@@ -126,8 +125,8 @@ build-prc.o: build-prc.cpp utils.h def.h binres.hpp \
 obj-res.o: obj-res.cpp binres.hpp pfd.hpp pfdheader.h utils.h
 multigen.o: multigen.c multicode-s.str multicode-ld.str utils.h def.h
 stubgen.o: stubgen.c glib-jumps-s.str glib-stubs-c.str syslib-dispatch-s.str \
-	   utils.h def.h
-sdkfind.o: sdkfind.c utils.h
+	   utils.h def.h pfdheader.h
+sdkfind.o: sdkfind.c config.h utils.h
 palmdev-prep.o: palmdev-prep.c config.h utils.h
 binres.o: binres.cpp binres.hpp pfd.hpp pfdheader.h pfdio.hpp utils.h
 utils.o: utils.c config.h utils.h
@@ -179,7 +178,5 @@ libpfd.a: $(PFD_OBJS)
 
 
 clean:
-	-rm -f *.o *.str def.*.* def.output
-
-distclean: clean
-	-rm -f $(INSTALL_FILES) libpfd.a Makefile
+	-rm -f *.o *.a *.str def.*.* def.output
+	-rm -f $(INSTALL_FILES)
