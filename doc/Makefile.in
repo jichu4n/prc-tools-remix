@@ -59,17 +59,17 @@ install-html: html
 .PHONY: all info html install install-info install-html clean
 
 
-prc-tools.info: prc-tools.texi version.texi
+prc-tools.info: prc-tools.texi build-prc.texi palmdev-prep.texi version.texi
 	-@rm -f prc-tools.info*
 	$(MAKEINFO) $(MAKEINFOFLAGS) -I $(srcdir) $(srcdir)/prc-tools.texi
 
-prc-tools.dvi: prc-tools.texi version.texi
+prc-tools.dvi: prc-tools.texi build-prc.texi palmdev-prep.texi version.texi
 	texi2dvi -I $(srcdir) $(srcdir)/prc-tools.texi
 
 prc-tools.ps: prc-tools.dvi
 	dvips -o $@ prc-tools.dvi
 
-prc-tools.html: prc-tools.texi version.texi
+prc-tools.html: prc-tools.texi build-prc.texi palmdev-prep.texi version.texi
 	-@rm -f prc-tools[_.]*html
 	$(MAKEHTML) $(MAKEHTMLFLAGS) -I $(srcdir) $(srcdir)/prc-tools.texi
 

@@ -1,0 +1,175 @@
+@example
+build-prc [ -l ] [ -L ] [ -t @var{type} ] @var{prcfile} @var{app-name} @var{crid} @var{file}@dots{}
+
+build-prc [ -o @var{file} | --output @var{file} ]
+          [ -a @var{file} | --appinfo @var{file} ]
+          [ -s @var{file} | --sortinfo @var{file} ]
+          [ -l ] [ -L ] [ -H | --hack ]
+          [ -t @var{type} | --type @var{type} ]
+          [ -c @var{crid} | --creator @var{crid} ]
+          [ -n @var{name} | --name @var{name} ]
+          [ -m @var{num} | --modification-number @var{num} ]
+          [ -v @var{num} | --version-number @var{num} ]
+          [ --read-only ] [ --appinfo-dirty ] [ --backup ]
+          [ --ok-to-install-newer ] [ --reset-after-install ]
+          [ --copy-prevention ] [ --stream ] [ --hidden ]
+          [ --launchable-data ] [ --recyclable ] [ --bundle ]
+          [ -z @var{n} | --compress-data @var{n} ]
+          [ --no-check-header ] [ --no-check-resources ]
+          [ --no-check ]
+          @var{file}@dots{}
+@end example
+
+@code{build-prc} reads resources from the input files given and
+combines them into one output Palm OS .prc resource data file.  There are
+two styles of build-prc command line:  in the old style, the first three
+non-option arguments describe the output file, and input files don't start
+until the fourth argument.  In the new style, all non-option arguments
+are input files.  An invocation is new-style if the first file argument
+does not have a .prc extension or if the @code{-o} option is used.
+
+Input files are identified by their extension:
+
+@table @code
+@item @var{fname}.def
+A project definition file, which controls the post-linking process.
+If your project uses a definition file, there can be only one and it
+must be first in the list of input files.  (Hence definition files can
+only be used in a new-style invocation.)
+
+@item @var{type}@var{nnnn}.bin
+@itemx @var{type}@var{nnnn}.@var{progname}.grc
+A raw binary resource file (the .grc style filename is produced
+by obj-res).  The contents of a raw file are added to the output as
+a @code{@var{type} #@var{nnnn}} resource, where @var{nnnn} is in hexadecimal.
+
+@item  @var{fname}.prc
+@itemx @var{fname}.ro
+A resource database in @code{.prc} format.  The contents of all the
+resources in a resource database are copied to the output database.
+(The information in the input database's header---name, creator, flags,
+etc---is entirely ignored.)
+
+@item @var{progname}
+Files with no extensions are treated as bfd executables.  If a bfd
+executable contains either a @code{.disposn} or a @code{.trap} section,
+its @code{.text} section is converted to a stand-alone code resource
+accordingly (@pxref{Stand-alone code}).  Otherwise, its code and data
+sections are converted to resources according to a definition
+file, or, if there is no definition file, as if the @code{application}
+project kind was specified.
+@end table
+
+By default, @code{build-prc} uses its first non-option argument as
+the filename for its output .prc file.  In an old-style command line,
+@var{prcfile} is used as is.  In a new-style command line, the output
+filename is formed by removing the extension, if any, from the first
+file argument and appending `.prc'.
+
+@table @code
+@item -o @var{file}
+@itemx --output @var{file}
+Write the .prc output to @var{file}.  It is an error to use this
+option in an old-style command line, as it conflicts with the mandatory
+@var{prcfile} argument.
+
+@item -a @var{file}
+@itemx --appinfo @var{file}
+Add an AppInfo block with the contents of @var{file} to the database.
+
+@item -s @var{file}
+@itemx --sortinfo @var{file}
+Add a SortInfo block with the contents of @var{file} to the database.
+
+@item -l
+Build a GLib shared library; this is equivalent to specifying a project
+kind of ``glib'' in a definition file.  In particular, it changes the
+default database type and the disposition of code and data sections in
+the bfd executable, and influences resource checking.
+
+@item -L
+Build a system shared library; this is equivalent to specifying a project
+kind of ``syslib'' in a definition file.  In particular, it changes the
+default database type and the disposition of code (and data) sections in
+the bfd executable, and influences resource checking.
+
+@item -H
+@itemx --hack
+Build a HackMaster hack; this is equivalent to specifying a project kind
+of ``hack'' in a definition file.  In particular, it changes the default
+database type, requires all bfd executables to be marked as stand-alone,
+and influences resource checking.
+
+@item -t @var{type}
+@itemx --type @var{type}
+Set the database's type to @var{type}, overriding any type it may get from
+a definition file or elsewhere.
+
+Note that this affects @emph{only} the type recorded in the database
+header; in particular, it does not change build-prc's notion of the kind
+of project being generated (@pxref{Definition files, project kinds}), nor
+does it influence resource checking.  If you do not want the database to
+be checked as if it is an application, you must either tell build-prc what
+it @emph{really} is, by using a definition file or one of the options
+listed above, or, as a last resort, suppress resource checking entirely.
+
+@item -c @var{crid}
+@itemx --creator @var{crid}
+Set the database's creator ID to @var{crid}, overriding any ID it may get
+from a definition file.  It is an error to use this option in an old-style
+command line, as it conflicts with the mandatory @var{crid} argument.
+
+@item -n @var{name}
+@itemx --name @var{name}
+Set the database's name to @var{name}, overriding any name it may get from
+a definition file.  It is an error to use this option in an old-style command
+line, as it conflicts with the mandatory @var{app-name} argument.
+
+@item -m @var{num}
+@itemx --modification-number @var{num}
+Set the modification number in the database header to @var{num}.
+
+@item -v @var{num}
+@itemx --version-number @var{num}
+Set the database header version number to @var{num}.
+
+@item  --read-only
+@itemx --appinfo-dirty
+@itemx --backup
+@itemx --ok-to-install-newer
+@itemx --reset-after-install
+@itemx --copy-prevention
+@itemx --stream
+@itemx --hidden
+@itemx --launchable-data
+@itemx --recyclable
+@itemx --bundle
+Set the corresponding database header attribute, adding to any attributes
+set in a definition file.  These options may also be spelt without the
+internal hyphens (@code{--readonly}, etc).
+
+@item -z @var{N}
+@itemx --compress-data @var{N}
+Compress the data resource, `data #0'.  Compression ranges from 0, no
+compression, to 7, full (and somewhat experimental!) compression.
+
+@item --no-check-header
+Suppress warnings related to invalid database header fields, such as a blank
+database name or creator ID.  If the database being generated is only for
+use as a temporary file, for example, these warnings may not be of interest.
+
+@item --no-check-resources
+Suppress checking for the presence of vital resources.  Databases
+corresponding to particular kinds of project are malformed if they do not
+contain certain resources:  for example, an application without a `code #1'
+resource cannot be launched correctly, and a Hack requires `TRAP' resources
+to be numbered consecutively and to have corresponding `code' resources.
+
+By default, build-prc will check for these resources and emit diagnostics
+accordingly, which helps you detect mistakes such as the omission of a bfd
+executable from the build-prc invocation.
+
+@item --no-check
+Suppress all checking of the generated database; this is equivalent to using
+all of the @code{--no-check-@var{foo}} options listed above.
+@end table
