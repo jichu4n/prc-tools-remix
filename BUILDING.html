@@ -1,9 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
+<html><head>
 <title>Building prc-tools</title>
 </head>
-
 <body>
 
 <h1>Building prc-tools</h1>
@@ -19,8 +17,8 @@ represent the canonical tested build procedures.
 Problems encountered while building prc-tools are likely to be bugs in the
 build scripts, makefiles, or procedures, and we would like to hear about them.
 The <code>prc-tools-devel</code> mailing list is the right place to report
-difficulties in building prc-tools itself.  (But it is <b>not</b> the right
-place for difficulties encountered while <i>using</i> the tools.)
+difficulties in building prc-tools itself.  (But it is <strong>not</strong>
+the right place for difficulties encountered while <em>using</em> the tools.)
 
 <p>
 In this document, we use <code>prc-tools-srcdir</code> to refer to the top
@@ -49,7 +47,7 @@ Hence prc-tools contains header files (in the <code>bootstrap</code>
 subdirectory) which declare just enough Palm OS API functions and related
 machinery to compile the run-time support code.  Thus prc-tools itself can
 be compiled by itself, without requiring any separate Palm OS SDK to be
-installed on the build system.  (Of course people later <b>using</b>
+installed on the build system.  (Of course people later <strong>using</strong>
 prc-tools will likely need to obtain an SDK themselves if they wish to
 write non-trivial applications.)
 
@@ -72,7 +70,7 @@ you have a recent GCC installed as, e.g., <code>gcc295</code>,
 you can specify that the tools be built using the non-default compiler
 by defining variables for the configure command:
 <blockquote><pre>
-~/build$ CC=gcc295 CXX=g++295 ../prc-tools-srcdir/configure <i>...etc...</i>
+~/build$ CC=gcc295 CXX=g++295 ../prc-tools-srcdir/configure <em>...etc...</em>
 </pre></blockquote>
 
 <p>
@@ -228,7 +226,7 @@ Generate HTML-formatted documentation for prc-tools and also whichever of
 binutils, GDB, GCC, and make have been made available within the source tree.
 By default, generation of HTML documentation is disabled.  If you enable it,
 you can specify where the resulting HTML files should be installed, or, if you
-omit the optional directory argument, <i>palmdev-prefix</i><code>/doc</code>
+omit the optional directory argument, <em>palmdev-prefix</em><code>/doc</code>
 will be used by default.
 </dl>
 
@@ -240,8 +238,8 @@ You can build and install prc-tools just as you would any other package:
 ~/build$ make install
 </pre></blockquote>
 
-You may need to change user (e.g. to <b>root</b>) if you are installing to
-directories to which your usual user doesn't have write access.
+You may need to change user (e.g. to <strong>root</strong>) if you are
+installing to directories to which your usual user doesn't have write access.
 
 <p>
 In the past, building prc-tools was a tedious multistage process of
@@ -277,7 +275,7 @@ and also in the <a href="http://www.objsw.com/CrossGCC/">Cross-FAQ</a>,
 if you run into problems.
 
 <p><hr>
-<i>To the <a href="http://prc-tools.sourceforge.net/">prc-tools website</a></i>
+<em>To the
+<a href="http://prc-tools.sourceforge.net/">prc-tools website</a></em>
 
-</body>
-</html>
+</body></html>
