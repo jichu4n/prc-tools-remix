@@ -268,82 +268,109 @@ analyze_palmdev_tree (const char *prefix_as_given, int report) {
   }
 
 
-const char *spec[2] = { "cpp", "link" };
-const char *option[2] = { "-isystem ", "-L" };
+struct spec_kind {
+  const char *spec;
+  void (*write_tree) (FILE *, const struct root *, const struct spec_kind *);
+  const char * const *targetdirs;
+  };
 
-const char *
-libdir (const char *target) {
-  return (matches ("m68k-", target))? "m68k-palmos-coff" : target;
+static void
+write_option (FILE *f, const char *option, const char *path) {
+  const char *s;
+  fprintf (f, " %s", option);
+  for (s = path; *s; s++) {
+    if (isspace (*s))
+      putc ('\\', f);
+    putc (*s, f);
+    }
   }
 
 static void
-write_dirtree (FILE *f, struct root *root, const char *target,
-	       enum sub_kind kind) {
-  if (root->sub[kind]) {
-    TREE *tree =
-      (kind == include)? opentree (DIRS, "%s/%s", root->prefix, root->sub[kind])
-		       : opentree (DIRS, "%s/%s/%s", root->prefix,
-				   root->sub[kind], libdir (target));
-
+write_include_tree (FILE *f, const struct root *root,
+		    const struct spec_kind *kind UNUSED_PARAM) {
+  if (root->sub[include]) {
+    TREE *tree = opentree (DIRS_PREORDER,
+			   "%s/%s", root->prefix, root->sub[include]);
     const char *dir;
-    while ((dir = readtree (tree)) != NULL) {
-      const char *s;
-      fprintf (f, " %s", option[kind]);
-      for (s = dir; *s; s++) {
-	if (isspace (*s))
-	  putc ('\\', f);
-	putc (*s, f);
-	}
-      }
-
+    while ((dir = readtree (tree)) != NULL)
+      write_option (f, "-isystem ", dir);
     closetree (tree);
     }
   }
 
 static void
-write_sdk_spec (FILE *f, struct root *sdk, const char *target,
-		enum sub_kind kind) {
-  fprintf (f, "*%s_sdk_%s:\n", spec[kind], sdk->key);
-  write_dirtree (f, sdk, target, kind);
+write_lib_tree (FILE *f, const struct root *root,
+		const struct spec_kind *kind) {
+  if (root->sub[lib]) {
+    const char * const *targetdir;
+    for (targetdir = kind->targetdirs; *targetdir; targetdir++) {
+      TREE *tree = opentree (DIRS_PREORDER,
+			     "%s/%s/%s", root->prefix, root->sub[lib],
+			     *targetdir);
+      const char *dir;
+
+      while ((dir = readtree (tree)) != NULL) {
+	/* FIXME check for multi-libs.  */
+	write_option (f, "-L", dir);
+	}
+
+      closetree (tree);
+      }
+    }
+  }
+
+static void
+write_sdk_spec (FILE *f, const struct root *sdk, const struct spec_kind *kind) {
+  fprintf (f, "*%s_sdk_%s:\n", kind->spec, sdk->key);
+  kind->write_tree (f, sdk, kind);
   if (sdk->base)
-    fprintf (f, " %%(%s_sdk_%s)", spec[kind], sdk->base);
+    fprintf (f, " %%(%s_sdk_%s)", kind->spec, sdk->base);
   fprintf (f, "\n\n");
   }
 
 static void
-write_main_spec (FILE *f, const char *target, const struct root *default_sdk,
-		 enum sub_kind kind) {
+write_main_spec (FILE *f, const struct root *default_sdk,
+		 const struct spec_kind *kind) {
   struct root *root, *sdk;
 
-  fprintf (f, "*%s:\n+ %%{!palmos-none:", spec[kind]);
+  fprintf (f, "*%s:\n+ %%{!palmos-none:", kind->spec);
 
   for (root = generic_root_list; root; root = root->next)
-    write_dirtree (f, root, target, kind);
+    kind->write_tree (f, root, kind);
 
   for (sdk = sdk_root_list; sdk; sdk = sdk->next) {
-    fprintf (f, " %%{palmos%s:%%(%s_sdk_%s)}", sdk->key, spec[kind], sdk->key);
+    fprintf (f, " %%{palmos%s:%%(%s_sdk_%s)}", sdk->key, kind->spec, sdk->key);
     if (strspn (sdk->key, "0123456789") == strlen (sdk->key))
-      fprintf (f, " %%{palmos%s.0:%%(%s_sdk_%s)}", sdk->key, spec[kind],
+      fprintf (f, " %%{palmos%s.0:%%(%s_sdk_%s)}", sdk->key, kind->spec,
 	       sdk->key);
     }
 
   if (default_sdk)
-    fprintf (f, " %%{!palmos*: %%(%s_sdk_%s)}", spec[kind], default_sdk->key);
+    fprintf (f, " %%{!palmos*: %%(%s_sdk_%s)}", kind->spec, default_sdk->key);
 
   fprintf (f, "}\n\n");
   }
 
 void
 write_specs (FILE *f, const char *target, const struct root *default_sdk) {
+  static const struct spec_kind include = { "cpp", write_include_tree, NULL };
+  static const char * const m68k_libdirs[] = { "m68k-palmos-coff", NULL };
+
+  const char * const generic_libdirs[] = { target, NULL };
+  const struct spec_kind lib = {
+    "link", write_lib_tree,
+    matches ("m68k-", target)? m68k_libdirs : generic_libdirs
+    };
+
   struct root *sdk;
 
   for (sdk = sdk_root_list; sdk; sdk = sdk->next) {
-    write_sdk_spec (f, sdk, NULL, include);
-    write_sdk_spec (f, sdk, target, lib);
+    write_sdk_spec (f, sdk, &include);
+    write_sdk_spec (f, sdk, &lib);
     }
 
-  write_main_spec (f, NULL, default_sdk, include);
-  write_main_spec (f, target, default_sdk, lib);
+  write_main_spec (f, default_sdk, &include);
+  write_main_spec (f, default_sdk, &lib);
   }
 
 
