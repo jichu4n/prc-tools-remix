@@ -1,5 +1,5 @@
-diff -urN orig/gcc-2.95.2/Makefile.in gcc-2.95.2/Makefile.in
---- orig/gcc-2.95.2/Makefile.in	Tue Jun 22 15:44:42 1999
+diff -urN orig-gcc-2.95.2/Makefile.in gcc-2.95.2/Makefile.in
+--- orig-gcc-2.95.2/Makefile.in	Tue Jun 22 15:44:42 1999
 +++ gcc-2.95.2/Makefile.in	Sat Jan  8 22:54:23 2000
 @@ -961,6 +961,7 @@
  	do-clean \
@@ -24,8 +24,8 @@ diff -urN orig/gcc-2.95.2/Makefile.in gcc-2.95.2/Makefile.in
  
  # Make sure makeinfo is built before we do a `make info'.
  do-info: all-texinfo
-diff -urN orig/gcc-2.95.2/configure.in gcc-2.95.2/configure.in
---- orig/gcc-2.95.2/configure.in	Tue Jun 22 15:44:40 1999
+diff -urN orig-gcc-2.95.2/configure.in gcc-2.95.2/configure.in
+--- orig-gcc-2.95.2/configure.in	Tue Jun 22 15:44:40 1999
 +++ gcc-2.95.2/configure.in	Sun Dec 19 02:57:58 1999
 @@ -729,6 +729,10 @@
    m68k-apollo-*)
@@ -38,8 +38,8 @@ diff -urN orig/gcc-2.95.2/configure.in gcc-2.95.2/configure.in
    mips*-*-irix5*)
      # The GNU linker does not support shared libraries.
      # emacs is emacs 18, which does not work on Irix 5 (emacs19 does work)
-diff -urN orig/gcc-2.95.2/gcc/Makefile.in gcc-2.95.2/gcc/Makefile.in
---- orig/gcc-2.95.2/gcc/Makefile.in	Fri Aug 13 00:46:55 1999
+diff -urN orig-gcc-2.95.2/gcc/Makefile.in gcc-2.95.2/gcc/Makefile.in
+--- orig-gcc-2.95.2/gcc/Makefile.in	Fri Aug 13 00:46:55 1999
 +++ gcc-2.95.2/gcc/Makefile.in	Tue Jan 25 20:58:35 2000
 @@ -109,6 +109,8 @@
  	then echo $(objdir)/../texinfo/makeinfo/makeinfo ; \
@@ -213,8 +213,8 @@ diff -urN orig/gcc-2.95.2/gcc/Makefile.in gcc-2.95.2/gcc/Makefile.in
  	  $(LANG_DIFF_EXCLUDES) \
  	  gcc-$(oldversion) gcc-$(version) > gcc-$(oldversion)-$(version).diff
  
-diff -urN orig/gcc-2.95.2/gcc/configure.in gcc-2.95.2/gcc/configure.in
---- orig/gcc-2.95.2/gcc/configure.in	Wed Oct 13 00:58:02 1999
+diff -urN orig-gcc-2.95.2/gcc/configure.in gcc-2.95.2/gcc/configure.in
+--- orig-gcc-2.95.2/gcc/configure.in	Wed Oct 13 00:58:02 1999
 +++ gcc-2.95.2/gcc/configure.in	Fri Jan 21 23:40:09 2000
 @@ -2007,6 +2007,13 @@
  		extra_headers=math-68881.h
@@ -241,8 +241,8 @@ diff -urN orig/gcc-2.95.2/gcc/configure.in gcc-2.95.2/gcc/configure.in
  	uninstall distdir \
  	mostlyclean clean distclean extraclean maintainer-clean \
  	stage1 stage2 stage3 stage4"
-diff -urN orig/gcc-2.95.2/gcc/cp/Make-lang.in gcc-2.95.2/gcc/cp/Make-lang.in
---- orig/gcc-2.95.2/gcc/cp/Make-lang.in	Mon Apr 26 16:50:36 1999
+diff -urN orig-gcc-2.95.2/gcc/cp/Make-lang.in gcc-2.95.2/gcc/cp/Make-lang.in
+--- orig-gcc-2.95.2/gcc/cp/Make-lang.in	Mon Apr 26 16:50:36 1999
 +++ gcc-2.95.2/gcc/cp/Make-lang.in	Sat Jan  8 22:51:54 2000
 @@ -22,7 +22,7 @@
  # Each language makefile fragment must provide the following targets:
@@ -272,8 +272,8 @@ diff -urN orig/gcc-2.95.2/gcc/cp/Make-lang.in gcc-2.95.2/gcc/cp/Make-lang.in
  	  else \
  	    rm -f $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
  	    $(INSTALL_PROGRAM) g++$(exeext) $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
-diff -urN orig/gcc-2.95.2/config.sub gcc-2.95.2/config.sub
---- orig/gcc-2.95.2/config.sub	Wed Aug  4 01:09:26 1999
+diff -urN orig-gcc-2.95.2/config.sub gcc-2.95.2/config.sub
+--- orig-gcc-2.95.2/config.sub	Wed Aug  4 01:09:26 1999
 +++ gcc-2.95.2/config.sub	Mon Nov  1 11:07:23 1999
 @@ -94,7 +94,7 @@
  	-convergent* | -ncr* | -news | -32* | -3600* | -3100* | -hitachi* |\
@@ -294,8 +294,8 @@ diff -urN orig/gcc-2.95.2/config.sub gcc-2.95.2/config.sub
  		;;
  	*)
  		os=-none
-diff -urN orig/gcc-2.95.2/gcc/ChangeLog.palmos gcc-2.95.2/gcc/ChangeLog.palmos
---- orig/gcc-2.95.2/gcc/ChangeLog.palmos	Wed Dec 31 16:00:00 1969
+diff -urN orig-gcc-2.95.2/gcc/ChangeLog.palmos gcc-2.95.2/gcc/ChangeLog.palmos
+--- orig-gcc-2.95.2/gcc/ChangeLog.palmos	Wed Dec 31 16:00:00 1969
 +++ gcc-2.95.2/gcc/ChangeLog.palmos	Mon Nov  1 11:07:23 1999
 @@ -0,0 +1,321 @@
 +Tue Nov 17 14:59:49 1998  John Marshall  <jmarshall@acm.org>
@@ -619,8 +619,8 @@ diff -urN orig/gcc-2.95.2/gcc/ChangeLog.palmos gcc-2.95.2/gcc/ChangeLog.palmos
 +
 +	* config/m68k/m68kpalmos.h, config/m68k/t-m68kpalmos,
 +	config/m68k/palmos_crt0.S: new files. 
-diff -urN orig/gcc-2.95.2/gcc/c-lang.c gcc-2.95.2/gcc/c-lang.c
---- orig/gcc-2.95.2/gcc/c-lang.c	Thu Sep 30 04:23:56 1999
+diff -urN orig-gcc-2.95.2/gcc/c-lang.c gcc-2.95.2/gcc/c-lang.c
+--- orig-gcc-2.95.2/gcc/c-lang.c	Thu Sep 30 04:23:56 1999
 +++ gcc-2.95.2/gcc/c-lang.c	Mon Nov  1 11:07:23 1999
 @@ -35,6 +35,16 @@
  extern cpp_options parse_options;
@@ -639,8 +639,8 @@ diff -urN orig/gcc-2.95.2/gcc/c-lang.c gcc-2.95.2/gcc/c-lang.c
  /* Each of the functions defined here
     is an alternative to a function in objc-actions.c.  */
     
-diff -urN orig/gcc-2.95.2/gcc/c-lex.c gcc-2.95.2/gcc/c-lex.c
---- orig/gcc-2.95.2/gcc/c-lex.c	Sat Mar 20 11:21:23 1999
+diff -urN orig-gcc-2.95.2/gcc/c-lex.c gcc-2.95.2/gcc/c-lex.c
+--- orig-gcc-2.95.2/gcc/c-lex.c	Sat Mar 20 11:21:23 1999
 +++ gcc-2.95.2/gcc/c-lex.c	Mon Nov  1 11:07:23 1999
 @@ -1893,7 +1893,7 @@
  	(void) local_mbtowc (NULL_PTR, NULL_PTR, 0);
@@ -660,8 +660,8 @@ diff -urN orig/gcc-2.95.2/gcc/c-lex.c gcc-2.95.2/gcc/c-lex.c
  	  }
  	else
  	  {
-diff -urN orig/gcc-2.95.2/gcc/calls.c gcc-2.95.2/gcc/calls.c
---- orig/gcc-2.95.2/gcc/calls.c	Fri May  7 18:58:39 1999
+diff -urN orig-gcc-2.95.2/gcc/calls.c gcc-2.95.2/gcc/calls.c
+--- orig-gcc-2.95.2/gcc/calls.c	Fri May  7 18:58:39 1999
 +++ gcc-2.95.2/gcc/calls.c	Mon Nov  1 11:07:23 1999
 @@ -313,7 +313,12 @@
    else
@@ -698,8 +698,8 @@ diff -urN orig/gcc-2.95.2/gcc/calls.c gcc-2.95.2/gcc/calls.c
  #endif
  
    is_const = no_queue;
-diff -urN orig/gcc-2.95.2/gcc/cccp.c gcc-2.95.2/gcc/cccp.c
---- orig/gcc-2.95.2/gcc/cccp.c	Tue Jun  1 10:10:01 1999
+diff -urN orig-gcc-2.95.2/gcc/cccp.c gcc-2.95.2/gcc/cccp.c
+--- orig-gcc-2.95.2/gcc/cccp.c	Tue Jun  1 10:10:01 1999
 +++ gcc-2.95.2/gcc/cccp.c	Fri Nov  5 23:05:28 1999
 @@ -82,8 +82,9 @@
  #define INCLUDE_LEN_FUDGE 12	/* leave room for VMS syntax conversion */
@@ -713,8 +713,8 @@ diff -urN orig/gcc-2.95.2/gcc/cccp.c gcc-2.95.2/gcc/cccp.c
    || defined (__MSDOS__)
  #define INO_T_EQ(a, b) 0
  #endif
-diff -urN orig/gcc-2.95.2/gcc/config/m68k/fpexcept.c gcc-2.95.2/gcc/config/m68k/fpexcept.c
---- orig/gcc-2.95.2/gcc/config/m68k/fpexcept.c	Wed Dec 31 16:00:00 1969
+diff -urN orig-gcc-2.95.2/gcc/config/m68k/fpexcept.c gcc-2.95.2/gcc/config/m68k/fpexcept.c
+--- orig-gcc-2.95.2/gcc/config/m68k/fpexcept.c	Wed Dec 31 16:00:00 1969
 +++ gcc-2.95.2/gcc/config/m68k/fpexcept.c	Mon Nov  1 11:07:23 1999
 @@ -0,0 +1,44 @@
 +/* Definitions of software floating point exeptions
@@ -761,8 +761,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/fpexcept.c gcc-2.95.2/gcc/config/m68k/
 +}
 +
 +
-diff -urN orig/gcc-2.95.2/gcc/config/m68k/fpgnulib.c gcc-2.95.2/gcc/config/m68k/fpgnulib.c
---- orig/gcc-2.95.2/gcc/config/m68k/fpgnulib.c	Wed Dec 16 13:06:34 1998
+diff -urN orig-gcc-2.95.2/gcc/config/m68k/fpgnulib.c gcc-2.95.2/gcc/config/m68k/fpgnulib.c
+--- orig-gcc-2.95.2/gcc/config/m68k/fpgnulib.c	Wed Dec 16 13:06:34 1998
 +++ gcc-2.95.2/gcc/config/m68k/fpgnulib.c	Wed Mar  8 04:03:55 2000
 @@ -107,7 +107,7 @@
  
@@ -826,8 +826,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/fpgnulib.c gcc-2.95.2/gcc/config/m68k/
  
  /* convert double to long double */
  long double
-diff -urN orig/gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm
---- orig/gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm	Wed Dec 31 16:00:00 1969
+diff -urN orig-gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm
+--- orig-gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm	Wed Dec 31 16:00:00 1969
 +++ gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm	Mon Nov  1 11:07:23 1999
 @@ -0,0 +1,3069 @@
 +/* libgcc1 routines for 68000 w/o floating-point hardware. */
@@ -3899,8 +3899,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm gcc-2.95.2/gcc/confi
 +	rts
 +#endif /* L_lesf2 */
 +
-diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k.c
---- orig/gcc-2.95.2/gcc/config/m68k/m68k.c	Sun Aug  1 21:51:08 1999
+diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k.c
+--- orig-gcc-2.95.2/gcc/config/m68k/m68k.c	Sun Aug  1 21:51:08 1999
 +++ gcc-2.95.2/gcc/config/m68k/m68k.c	Thu Sep 14 00:50:34 2000
 @@ -126,6 +126,392 @@
      m68k_align_funcs = def_align;
@@ -4678,8 +4678,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.c gcc-2.95.2/gcc/config/m68k/m68k
  		    fprintf (file, "@GOT");
  		    if (flag_pic == 1)
  		      fprintf (file, ".w");
-diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.h gcc-2.95.2/gcc/config/m68k/m68k.h
---- orig/gcc-2.95.2/gcc/config/m68k/m68k.h	Sun Jun 27 22:09:08 1999
+diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68k.h gcc-2.95.2/gcc/config/m68k/m68k.h
+--- orig-gcc-2.95.2/gcc/config/m68k/m68k.h	Sun Jun 27 22:09:08 1999
 +++ gcc-2.95.2/gcc/config/m68k/m68k.h	Mon Nov  1 11:07:24 1999
 @@ -1189,6 +1189,8 @@
     of a local variable as a function of frame_pointer_needed, which
@@ -4709,8 +4709,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.h gcc-2.95.2/gcc/config/m68k/m68k
  
  #define GO_IF_NONINDEXED_ADDRESS(X, ADDR)  \
  { if (INDIRECTABLE_1_ADDRESS_P (X)) goto ADDR; }
-diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.md gcc-2.95.2/gcc/config/m68k/m68k.md
---- orig/gcc-2.95.2/gcc/config/m68k/m68k.md	Wed Aug  4 23:22:05 1999
+diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68k.md gcc-2.95.2/gcc/config/m68k/m68k.md
+--- orig-gcc-2.95.2/gcc/config/m68k/m68k.md	Wed Aug  4 23:22:05 1999
 +++ gcc-2.95.2/gcc/config/m68k/m68k.md	Mon Nov  1 11:07:24 1999
 @@ -272,6 +272,8 @@
  
@@ -4957,8 +4957,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.md gcc-2.95.2/gcc/config/m68k/m68
  }")
  
  ;; This is the first machine-dependent peephole optimization.
-diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68k/m68kpalmos.h
---- orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Wed Dec 31 16:00:00 1969
+diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68k/m68kpalmos.h
+--- orig-gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Wed Dec 31 16:00:00 1969
 +++ gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Mon Jun 26 17:11:41 2000
 @@ -0,0 +1,336 @@
 +/* Definitions of target machine for GNU compiler.  "naked" 68020,
@@ -5297,8 +5297,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68
 +   || (GET_CODE (X) == SYMBOL_REF && SYMBOL_REF_FLAG (X))		\
 +   || (GET_CODE (X) == MEM && GET_CODE (XEXP (X, 0)) == SYMBOL_REF	\
 +       && SYMBOL_REF_FLAG (XEXP (X, 0))))
-diff -urN orig/gcc-2.95.2/gcc/config/m68k/palmos_link.ld gcc-2.95.2/gcc/config/m68k/palmos_link.ld
---- orig/gcc-2.95.2/gcc/config/m68k/palmos_link.ld	Wed Dec 31 16:00:00 1969
+diff -urN orig-gcc-2.95.2/gcc/config/m68k/palmos_link.ld gcc-2.95.2/gcc/config/m68k/palmos_link.ld
+--- orig-gcc-2.95.2/gcc/config/m68k/palmos_link.ld	Wed Dec 31 16:00:00 1969
 +++ gcc-2.95.2/gcc/config/m68k/palmos_link.ld	Mon Nov  1 11:07:24 1999
 @@ -0,0 +1,43 @@
 +MEMORY 
@@ -5344,8 +5344,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/palmos_link.ld gcc-2.95.2/gcc/config/m
 +        end = ALIGN( 4 );
 +        edata = ALIGN( 4 );
 +}
-diff -urN orig/gcc-2.95.2/gcc/config/m68k/t-m68kpalmos gcc-2.95.2/gcc/config/m68k/t-m68kpalmos
---- orig/gcc-2.95.2/gcc/config/m68k/t-m68kpalmos	Wed Dec 31 16:00:00 1969
+diff -urN orig-gcc-2.95.2/gcc/config/m68k/t-m68kpalmos gcc-2.95.2/gcc/config/m68k/t-m68kpalmos
+--- orig-gcc-2.95.2/gcc/config/m68k/t-m68kpalmos	Wed Dec 31 16:00:00 1969
 +++ gcc-2.95.2/gcc/config/m68k/t-m68kpalmos	Wed Dec 22 04:01:25 1999
 @@ -0,0 +1,25 @@
 +TARGET_LIBGCC2_CFLAGS = -Dinhibit_libc
@@ -5373,8 +5373,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/t-m68kpalmos gcc-2.95.2/gcc/config/m68
 +
 +# Don't include assert.h -- we don't have enough stdio to use its functions
 +INSTALL_ASSERT_H =
-diff -urN orig/gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h
---- orig/gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h	Wed Dec 31 16:00:00 1969
+diff -urN orig-gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h
+--- orig-gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h	Wed Dec 31 16:00:00 1969
 +++ gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h	Mon Nov  1 11:07:24 1999
 @@ -0,0 +1,41 @@
 +/* Configuration for GNU C-compiler for Motorola 68000 family.
@@ -5418,8 +5418,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/xm-m68kpalmos.h gcc-2.95.2/gcc/config/
 +/* Arguments to use with `exit'.  */
 +#define SUCCESS_EXIT_CODE 0
 +#define FATAL_EXIT_CODE 33
-diff -urN orig/gcc-2.95.2/gcc/configure gcc-2.95.2/gcc/configure
---- orig/gcc-2.95.2/gcc/configure	Wed Oct 13 00:58:02 1999
+diff -urN orig-gcc-2.95.2/gcc/configure gcc-2.95.2/gcc/configure
+--- orig-gcc-2.95.2/gcc/configure	Wed Oct 13 00:58:02 1999
 +++ gcc-2.95.2/gcc/configure	Fri Jan 21 23:44:26 2000
 @@ -4334,6 +4334,13 @@
  		extra_headers=math-68881.h
@@ -5446,8 +5446,8 @@ diff -urN orig/gcc-2.95.2/gcc/configure gcc-2.95.2/gcc/configure
  	uninstall distdir \
  	mostlyclean clean distclean extraclean maintainer-clean \
  	stage1 stage2 stage3 stage4"
-diff -urN orig/gcc-2.95.2/gcc/cp/decl2.c gcc-2.95.2/gcc/cp/decl2.c
---- orig/gcc-2.95.2/gcc/cp/decl2.c	Thu Aug 19 16:29:45 1999
+diff -urN orig-gcc-2.95.2/gcc/cp/decl2.c gcc-2.95.2/gcc/cp/decl2.c
+--- orig-gcc-2.95.2/gcc/cp/decl2.c	Thu Aug 19 16:29:45 1999
 +++ gcc-2.95.2/gcc/cp/decl2.c	Mon Nov  1 11:07:24 1999
 @@ -768,7 +768,10 @@
  	  warn_parentheses = setting;
@@ -5499,8 +5499,8 @@ diff -urN orig/gcc-2.95.2/gcc/cp/decl2.c gcc-2.95.2/gcc/cp/decl2.c
  
        return 1;
      }
-diff -urN orig/gcc-2.95.2/gcc/cp/lex.c gcc-2.95.2/gcc/cp/lex.c
---- orig/gcc-2.95.2/gcc/cp/lex.c	Wed Aug 11 11:36:44 1999
+diff -urN orig-gcc-2.95.2/gcc/cp/lex.c gcc-2.95.2/gcc/cp/lex.c
+--- orig-gcc-2.95.2/gcc/cp/lex.c	Wed Aug 11 11:36:44 1999
 +++ gcc-2.95.2/gcc/cp/lex.c	Mon Nov  1 11:07:24 1999
 @@ -3997,7 +3997,7 @@
  	(void) local_mbtowc (NULL_PTR, NULL_PTR, 0);
@@ -5520,8 +5520,8 @@ diff -urN orig/gcc-2.95.2/gcc/cp/lex.c gcc-2.95.2/gcc/cp/lex.c
  	  }
  	else
  	  {
-diff -urN orig/gcc-2.95.2/gcc/cp/tree.c gcc-2.95.2/gcc/cp/tree.c
---- orig/gcc-2.95.2/gcc/cp/tree.c	Sat May 22 04:25:40 1999
+diff -urN orig-gcc-2.95.2/gcc/cp/tree.c gcc-2.95.2/gcc/cp/tree.c
+--- orig-gcc-2.95.2/gcc/cp/tree.c	Sat May 22 04:25:40 1999
 +++ gcc-2.95.2/gcc/cp/tree.c	Mon Nov  1 11:07:24 1999
 @@ -177,7 +177,18 @@
      error ("non-lvalue in %s", string);
@@ -5542,8 +5542,8 @@ diff -urN orig/gcc-2.95.2/gcc/cp/tree.c gcc-2.95.2/gcc/cp/tree.c
  /* INIT is a CALL_EXPR which needs info about its target.
     TYPE is the type that this initialization should appear to have.
  
-diff -urN orig/gcc-2.95.2/gcc/cppfiles.c gcc-2.95.2/gcc/cppfiles.c
---- orig/gcc-2.95.2/gcc/cppfiles.c	Mon May 10 08:24:33 1999
+diff -urN orig-gcc-2.95.2/gcc/cppfiles.c gcc-2.95.2/gcc/cppfiles.c
+--- orig-gcc-2.95.2/gcc/cppfiles.c	Mon May 10 08:24:33 1999
 +++ gcc-2.95.2/gcc/cppfiles.c	Mon Nov  1 11:07:24 1999
 @@ -53,10 +53,11 @@
  #endif
@@ -5558,8 +5558,8 @@ diff -urN orig/gcc-2.95.2/gcc/cppfiles.c gcc-2.95.2/gcc/cppfiles.c
         || defined __MSDOS__
  #define INO_T_EQ(a, b) 0
  #else
-diff -urN orig/gcc-2.95.2/gcc/extend.texi gcc-2.95.2/gcc/extend.texi
---- orig/gcc-2.95.2/gcc/extend.texi	Tue Apr 13 22:34:34 1999
+diff -urN orig-gcc-2.95.2/gcc/extend.texi gcc-2.95.2/gcc/extend.texi
+--- orig-gcc-2.95.2/gcc/extend.texi	Tue Apr 13 22:34:34 1999
 +++ gcc-2.95.2/gcc/extend.texi	Tue Jan 11 08:02:22 2000
 @@ -113,6 +113,7 @@
  * Function Names::	Printable strings which are the name of the current
@@ -5569,8 +5569,8 @@ diff -urN orig/gcc-2.95.2/gcc/extend.texi gcc-2.95.2/gcc/extend.texi
  * Deprecated Features:: Things might disappear from g++.
  @end menu
  @end ifclear
-diff -urN orig/gcc-2.95.2/gcc/gcc.c gcc-2.95.2/gcc/gcc.c
---- orig/gcc-2.95.2/gcc/gcc.c	Thu Aug  5 01:44:13 1999
+diff -urN orig-gcc-2.95.2/gcc/gcc.c gcc-2.95.2/gcc/gcc.c
+--- orig-gcc-2.95.2/gcc/gcc.c	Thu Aug  5 01:44:13 1999
 +++ gcc-2.95.2/gcc/gcc.c	Thu Jan 20 19:11:03 2000
 @@ -1366,6 +1366,8 @@
  #undef MD_EXEC_PREFIX
@@ -5581,8 +5581,8 @@ diff -urN orig/gcc-2.95.2/gcc/gcc.c gcc-2.95.2/gcc/gcc.c
  #endif
  
  #ifndef STANDARD_EXEC_PREFIX
-diff -urN orig/gcc-2.95.2/gcc/gcc.texi gcc-2.95.2/gcc/gcc.texi
---- orig/gcc-2.95.2/gcc/gcc.texi	Sun Aug  8 23:47:01 1999
+diff -urN orig-gcc-2.95.2/gcc/gcc.texi gcc-2.95.2/gcc/gcc.texi
+--- orig-gcc-2.95.2/gcc/gcc.texi	Sun Aug  8 23:47:01 1999
 +++ gcc-2.95.2/gcc/gcc.texi	Tue Jan 11 10:34:11 2000
 @@ -4,15 +4,21 @@
  @c @setfilename usegcc.info
@@ -5634,8 +5634,8 @@ diff -urN orig/gcc-2.95.2/gcc/gcc.texi gcc-2.95.2/gcc/gcc.texi
  
  @printindex cp
  
-diff -urN orig/gcc-2.95.2/gcc/integrate.c gcc-2.95.2/gcc/integrate.c
---- orig/gcc-2.95.2/gcc/integrate.c	Sun Apr 25 16:35:12 1999
+diff -urN orig-gcc-2.95.2/gcc/integrate.c gcc-2.95.2/gcc/integrate.c
+--- orig-gcc-2.95.2/gcc/integrate.c	Sun Apr 25 16:35:12 1999
 +++ gcc-2.95.2/gcc/integrate.c	Mon Nov  1 11:07:24 1999
 @@ -1345,7 +1345,11 @@
      {
@@ -5663,8 +5663,8 @@ diff -urN orig/gcc-2.95.2/gcc/integrate.c gcc-2.95.2/gcc/integrate.c
  #endif
  	return gen_rtx_CALL (GET_MODE (orig),
  			     gen_rtx_MEM (GET_MODE (XEXP (orig, 0)),
-diff -urN orig/gcc-2.95.2/gcc/libgcc2.c gcc-2.95.2/gcc/libgcc2.c
---- orig/gcc-2.95.2/gcc/libgcc2.c	Thu Jun 10 20:11:43 1999
+diff -urN orig-gcc-2.95.2/gcc/libgcc2.c gcc-2.95.2/gcc/libgcc2.c
+--- orig-gcc-2.95.2/gcc/libgcc2.c	Thu Jun 10 20:11:43 1999
 +++ gcc-2.95.2/gcc/libgcc2.c	Mon Nov  1 11:07:24 1999
 @@ -1700,6 +1700,19 @@
      }
@@ -5695,8 +5695,8 @@ diff -urN orig/gcc-2.95.2/gcc/libgcc2.c gcc-2.95.2/gcc/libgcc2.c
      0x00000001, 0x00000002, 0x00000004, 0x00000008,
      0x00000010, 0x00000020, 0x00000040, 0x00000080,
      0x00000100, 0x00000200, 0x00000400, 0x00000800,
-diff -urN orig/gcc-2.95.2/gcc/reload1.c gcc-2.95.2/gcc/reload1.c
---- orig/gcc-2.95.2/gcc/reload1.c	Tue Jul  6 18:05:39 1999
+diff -urN orig-gcc-2.95.2/gcc/reload1.c gcc-2.95.2/gcc/reload1.c
+--- orig-gcc-2.95.2/gcc/reload1.c	Tue Jul  6 18:05:39 1999
 +++ gcc-2.95.2/gcc/reload1.c	Mon Nov  1 11:07:24 1999
 @@ -39,6 +39,8 @@
  #include "real.h"
@@ -5707,8 +5707,8 @@ diff -urN orig/gcc-2.95.2/gcc/reload1.c gcc-2.95.2/gcc/reload1.c
  #if !defined PREFERRED_STACK_BOUNDARY && defined STACK_BOUNDARY
  #define PREFERRED_STACK_BOUNDARY STACK_BOUNDARY
  #endif
-diff -urN orig/gcc-2.95.2/gcc/tree.h gcc-2.95.2/gcc/tree.h
---- orig/gcc-2.95.2/gcc/tree.h	Sun May  2 10:43:32 1999
+diff -urN orig-gcc-2.95.2/gcc/tree.h gcc-2.95.2/gcc/tree.h
+--- orig-gcc-2.95.2/gcc/tree.h	Sun May  2 10:43:32 1999
 +++ gcc-2.95.2/gcc/tree.h	Mon Nov  1 11:07:24 1999
 @@ -2250,6 +2250,7 @@
  
@@ -5718,8 +5718,8 @@ diff -urN orig/gcc-2.95.2/gcc/tree.h gcc-2.95.2/gcc/tree.h
  
  /* In c-common.c */
  extern tree truthvalue_conversion	PROTO ((tree));
-diff -urN orig/gcc-2.95.2/gcc/varasm.c gcc-2.95.2/gcc/varasm.c
---- orig/gcc-2.95.2/gcc/varasm.c	Wed Jun  9 05:13:49 1999
+diff -urN orig-gcc-2.95.2/gcc/varasm.c gcc-2.95.2/gcc/varasm.c
+--- orig-gcc-2.95.2/gcc/varasm.c	Wed Jun  9 05:13:49 1999
 +++ gcc-2.95.2/gcc/varasm.c	Mon Nov  1 11:07:24 1999
 @@ -470,6 +470,10 @@
  #endif
@@ -5850,8 +5850,8 @@ diff -urN orig/gcc-2.95.2/gcc/varasm.c gcc-2.95.2/gcc/varasm.c
  
    /* Allow a constructor with no elements for any data type.
       This means to fill the space with zeros.  */
-diff -urN orig/gcc-2.95.2/gcc/version.c gcc-2.95.2/gcc/version.c
---- orig/gcc-2.95.2/gcc/version.c	Sun Oct 24 23:49:39 1999
+diff -urN orig-gcc-2.95.2/gcc/version.c gcc-2.95.2/gcc/version.c
+--- orig-gcc-2.95.2/gcc/version.c	Sun Oct 24 23:49:39 1999
 +++ gcc-2.95.2/gcc/version.c	Mon Nov  1 11:08:03 1999
 @@ -1 +1 @@
 -char *version_string = "2.95.2 19991024 (release)";

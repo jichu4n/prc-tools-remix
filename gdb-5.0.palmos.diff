@@ -1,5 +1,5 @@
-diff -urN orig/gdb-5.0/gdb/Makefile.in gdb-5.0/gdb/Makefile.in
---- orig/gdb-5.0/gdb/Makefile.in	Wed May 17 21:44:54 2000
+diff -urN orig-gdb-5.0/gdb/Makefile.in gdb-5.0/gdb/Makefile.in
+--- orig-gdb-5.0/gdb/Makefile.in	Wed May 17 21:44:54 2000
 +++ gdb-5.0/gdb/Makefile.in	Fri Jun  2 20:50:35 2000
 @@ -1088,8 +1088,8 @@
  	procfs.c pyr-tdep.c pyr-xdep.c \
@@ -23,8 +23,8 @@ diff -urN orig/gdb-5.0/gdb/Makefile.in gdb-5.0/gdb/Makefile.in
  	$(command_h) monitor.h $(remote_utils_h) $(symtab_h) symfile.h \
  	objfiles.h gdb-stabs.h gdb_string.h
  
-diff -urN orig/gdb-5.0/config.sub gdb-5.0/config.sub
---- orig/gdb-5.0/config.sub	Thu Feb 24 13:20:57 2000
+diff -urN orig-gdb-5.0/config.sub gdb-5.0/config.sub
+--- orig-gdb-5.0/config.sub	Thu Feb 24 13:20:57 2000
 +++ gdb-5.0/config.sub	Fri Jun  2 20:47:49 2000
 @@ -99,7 +99,7 @@
  	-convergent* | -ncr* | -news | -32* | -3600* | -3100* | -hitachi* |\
@@ -45,8 +45,8 @@ diff -urN orig/gdb-5.0/config.sub gdb-5.0/config.sub
  		;;
  	*-atari*)
  		os=-mint
-diff -urN orig/gdb-5.0/gdb/ChangeLog.palmos gdb-5.0/gdb/ChangeLog.palmos
---- orig/gdb-5.0/gdb/ChangeLog.palmos	Wed Dec 31 16:00:00 1969
+diff -urN orig-gdb-5.0/gdb/ChangeLog.palmos gdb-5.0/gdb/ChangeLog.palmos
+--- orig-gdb-5.0/gdb/ChangeLog.palmos	Wed Dec 31 16:00:00 1969
 +++ gdb-5.0/gdb/ChangeLog.palmos	Fri Jun  2 20:47:49 2000
 @@ -0,0 +1,26 @@
 +Fri Aug 21 11:08:23 1998  Peter Trommler      <trp@zurich.ibm.com>
@@ -75,8 +75,8 @@ diff -urN orig/gdb-5.0/gdb/ChangeLog.palmos gdb-5.0/gdb/ChangeLog.palmos
 +
 +	* m68k-tdep.c (m68k_saved_pc_after_call): Added support for
 +	MAC_SYSCALL_TRAP style systraps.
-diff -urN orig/gdb-5.0/gdb/coff-solib.c gdb-5.0/gdb/coff-solib.c
---- orig/gdb-5.0/gdb/coff-solib.c	Mon Oct 11 21:37:19 1999
+diff -urN orig-gdb-5.0/gdb/coff-solib.c gdb-5.0/gdb/coff-solib.c
+--- orig-gdb-5.0/gdb/coff-solib.c	Mon Oct 11 21:37:19 1999
 +++ gdb-5.0/gdb/coff-solib.c	Tue Jun 20 13:15:02 2000
 @@ -25,6 +25,8 @@
  #include "bfd.h"
@@ -87,8 +87,8 @@ diff -urN orig/gdb-5.0/gdb/coff-solib.c gdb-5.0/gdb/coff-solib.c
  
  /*
  
-diff -urN orig/gdb-5.0/gdb/config/m68k/m68kpalmos.mt gdb-5.0/gdb/config/m68k/m68kpalmos.mt
---- orig/gdb-5.0/gdb/config/m68k/m68kpalmos.mt	Wed Dec 31 16:00:00 1969
+diff -urN orig-gdb-5.0/gdb/config/m68k/m68kpalmos.mt gdb-5.0/gdb/config/m68k/m68kpalmos.mt
+--- orig-gdb-5.0/gdb/config/m68k/m68kpalmos.mt	Wed Dec 31 16:00:00 1969
 +++ gdb-5.0/gdb/config/m68k/m68kpalmos.mt	Fri Jun  2 20:47:49 2000
 @@ -0,0 +1,6 @@
 +# Target: Motorola 680x0 running PalmOS
@@ -97,8 +97,8 @@ diff -urN orig/gdb-5.0/gdb/config/m68k/m68kpalmos.mt gdb-5.0/gdb/config/m68k/m68
 +TM_FILE= tm-m68kpalmos.h
 +
 +REMOTE_OBS = dcache.o remote-palmos.o remote.o
-diff -urN orig/gdb-5.0/gdb/config/m68k/tm-m68kpalmos.h gdb-5.0/gdb/config/m68k/tm-m68kpalmos.h
---- orig/gdb-5.0/gdb/config/m68k/tm-m68kpalmos.h	Wed Dec 31 16:00:00 1969
+diff -urN orig-gdb-5.0/gdb/config/m68k/tm-m68kpalmos.h gdb-5.0/gdb/config/m68k/tm-m68kpalmos.h
+--- orig-gdb-5.0/gdb/config/m68k/tm-m68kpalmos.h	Wed Dec 31 16:00:00 1969
 +++ gdb-5.0/gdb/config/m68k/tm-m68kpalmos.h	Fri Jun  2 20:47:49 2000
 @@ -0,0 +1,57 @@
 +/* Target machine definitions for m68k PalmOS.
@@ -158,8 +158,8 @@ diff -urN orig/gdb-5.0/gdb/config/m68k/tm-m68kpalmos.h gdb-5.0/gdb/config/m68k/t
 +#else
 +#define MAC_SYSCALL_TRAP read_memory_integer ((32+15)*4, 4)
 +#endif
-diff -urN orig/gdb-5.0/gdb/configure.tgt gdb-5.0/gdb/configure.tgt
---- orig/gdb-5.0/gdb/configure.tgt	Mon May  1 09:30:55 2000
+diff -urN orig-gdb-5.0/gdb/configure.tgt gdb-5.0/gdb/configure.tgt
+--- orig-gdb-5.0/gdb/configure.tgt	Mon May  1 09:30:55 2000
 +++ gdb-5.0/gdb/configure.tgt	Fri Jun  2 20:47:49 2000
 @@ -151,6 +151,7 @@
  m68*-monitor-*)         gdb_target=monitor ;;
@@ -169,8 +169,8 @@ diff -urN orig/gdb-5.0/gdb/configure.tgt gdb-5.0/gdb/configure.tgt
  m68*-*-coff*)		gdb_target=monitor ;;
  m68*-*-elf*)		gdb_target=monitor ;;
  m68*-*-linux*)		gdb_target=linux
-diff -urN orig/gdb-5.0/gdb/m68k-tdep.c gdb-5.0/gdb/m68k-tdep.c
---- orig/gdb-5.0/gdb/m68k-tdep.c	Thu Apr 27 22:48:25 2000
+diff -urN orig-gdb-5.0/gdb/m68k-tdep.c gdb-5.0/gdb/m68k-tdep.c
+--- orig-gdb-5.0/gdb/m68k-tdep.c	Thu Apr 27 22:48:25 2000
 +++ gdb-5.0/gdb/m68k-tdep.c	Fri Jun  2 20:47:49 2000
 @@ -701,6 +701,11 @@
      return read_memory_integer (read_register (SP_REGNUM) + 4, 4);
@@ -184,8 +184,8 @@ diff -urN orig/gdb-5.0/gdb/m68k-tdep.c gdb-5.0/gdb/m68k-tdep.c
      return read_memory_integer (read_register (SP_REGNUM), 4);
  }
  
-diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
---- orig/gdb-5.0/gdb/remote-palmos.c	Wed Dec 31 16:00:00 1969
+diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
+--- orig-gdb-5.0/gdb/remote-palmos.c	Wed Dec 31 16:00:00 1969
 +++ gdb-5.0/gdb/remote-palmos.c	Sat Jul 22 15:53:44 2000
 @@ -0,0 +1,1251 @@
 +/* Remote target communications for serial-line targets in custom GDB protocol
@@ -1439,8 +1439,8 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +  pilot_ops.to_mourn_inferior = remote_mourn_pilot;
 +  add_target (&pilot_ops);
 +}
-diff -urN orig/gdb-5.0/gdb/stack.c gdb-5.0/gdb/stack.c
---- orig/gdb-5.0/gdb/stack.c	Mon Feb 28 23:17:15 2000
+diff -urN orig-gdb-5.0/gdb/stack.c gdb-5.0/gdb/stack.c
+--- orig-gdb-5.0/gdb/stack.c	Mon Feb 28 23:17:15 2000
 +++ gdb-5.0/gdb/stack.c	Tue Jun 20 15:29:30 2000
 @@ -547,6 +547,12 @@
  	  funname = SYMBOL_NAME (msymbol);
