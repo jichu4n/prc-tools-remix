@@ -118,17 +118,16 @@ if test -n "$enable_targets"; then
   for arg
   do
     case "$arg" in
-      --enable-targets* | --with-palmdev-prefix* | --enable-html-docs*) ;;
+      --cache-file* | --enable-targets* | \
+      --with-palmdev-prefix* | --enable-html-docs*) ;;
       *" "*|*"	"*|*[\[\]\~\#\$\^\&\*\(\)\{\}\\\|\;\<\>\?]*)
 	 configure_args="$configure_args '$arg'" ;;
       *) configure_args="$configure_args $arg" ;;
     esac
   done
 
-  case "$configure_args" in
-    *cache-file*) ;;
-    *) configure_args="$configure_args --cache-file=../config.cache" ;;
-  esac
+  # Ensure that the different targets use different caches
+  configure_args="$configure_args --cache-file=config.cache"
 
   extra_dependencies=Makefile.extradeps
   > $extra_dependencies
