@@ -93,6 +93,9 @@ make all-install
 ## cd $RPM_BUILD_DIR/build-prc-tools/doc
 ## make install-html
 
+%clean
+[ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
+
 %post
 if /bin/sh -c 'install-info --version' >/dev/null 2>&1; then
   # tidy up after bug in 2.0 spec file :-(
@@ -114,9 +117,6 @@ if [ "$1" = 0 ]; then
     fi
   fi
 fi
-
-%clean
-[ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
 
 %files
 # prc-tools-specific post-linker tools
