@@ -493,6 +493,8 @@ process_binary_file (const char* fname, binary_file_info& normal_info) {
   else if (! arch_code_resource_type (abfd))
     error ("[%s] binary target '%s' is unsupported", fname,
 	   bfd_get_target (abfd));
+  else if (! (bfd_get_file_flags (abfd) & EXEC_P))
+    error ("[%s] object file has not been linked", fname);
   else
     opened = true;
 
@@ -501,9 +503,6 @@ process_binary_file (const char* fname, binary_file_info& normal_info) {
       bfd_close (abfd);
     return db;
     }
-
-  if (! (bfd_get_file_flags (abfd) & EXEC_P))
-    warning ("[%s] object file has not been linked", fname);
 
   asection* disp_sec = bfd_get_section_by_name (abfd, ".disposn");
   asection* trap_sec = bfd_get_section_by_name (abfd, ".trap");
