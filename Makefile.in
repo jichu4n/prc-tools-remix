@@ -43,7 +43,7 @@ all-host:
 	-rm -rf $(minitooldir)
 	for dir in `echo $(host_subdirs) | sed -e 's/gcc//' -e 's/make//'`; do \
 	  if [ -f ./$${dir}/Makefile ]; then \
-	    if (cd $${dir} && $(MAKE) all info); then true; else exit 1; fi; \
+	    if (cd $${dir} && $(MAKE) all); then true; else exit 1; fi; \
 	  fi; \
 	done
 	if [ -f ./binutils/Makefile ]; then \
