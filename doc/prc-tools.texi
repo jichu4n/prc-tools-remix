@@ -4,9 +4,9 @@
 @settitle Using PRC-Tools
 @c @footnotestyle separate
 
-@set update-month April 2001
-@set update-date 17 @value{update-month}
-@set prc-tools-version 2.0.92
+@set update-month October 2001
+@set update-date 16 @value{update-month}
+@set prc-tools-version 2.0.93
 
 @c %**end of header
 
@@ -32,7 +32,7 @@ This file documents the use of PRC-Tools, version @value{prc-tools-version}.
 @vskip 0pt plus 1filll
 
 Copyright @copyright{} 2000 Palm Computing, Inc. or its subsidiaries@*
-Portions copyright @copyright{} 1998 John Marshall
+Portions copyright @copyright{} 1998, 2001 John Marshall
 
 @sp 2
 Permission is granted to make and distribute verbatim copies of
@@ -686,19 +686,9 @@ version of prc-tools implements a limited form of that: functions may
 be marked as being in particular sections via the standard GCC
 @code{section} attribute (@pxref{Function Attributes, attributes,
 Declaring Attributes of Functions, gcc, Using and Porting GCC}).
-(This is done quite early in the compiler, so other ways of putting
+(These markings are used quite early in the compiler, so other ways of putting
 functions into different sections, such as @code{-ffunction-sections}
 and rearrangements at link time, don't work.)
-
-The current implementation puts pointers to the code resources into the
-application's global data, and uses those pointers in the code emitted
-for each call in which the calling function and the called function are in
-different sections.  This means that you must not attempt to call between
-different sections when globals are not available.  In particular, all
-functions in your application called while processing a launch code that
-doesn't give you globals must be in the main code section.  (This always
-includes @code{PilotMain}, which is always called by the startup code for
-all launch codes.)
 
 A project definition file (@pxref{Definition files}) must be used, with
 a multiple code clause to inform @code{build-prc} of the new sections.
@@ -708,8 +698,97 @@ a linker script to place the new sections at appropriate addresses.
 The easiest way to do these things is to use @code{multigen} to generate
 them from the same definition file clause (@pxref{multigen}).
 
+@menu
+* Multiple code resources and globals::  But especially @strong{without} globals
+* Multiple code tutorial::               Breaking up an existing application
+@end menu
 
-@c @node Multiple code example, , Multiple code resources, Multiple code resources
+
+@node Multiple code resources and globals
+@section Multiple code resources and global data
+
+The current implementation puts pointers to the code resources into the
+application's global data, and uses those pointers in the code emitted
+for each call in which the calling function and the called function are in
+different sections.  This means that you must not attempt to call between
+different sections when globals are not available.
+
+In particular, all functions in your application called while processing a
+launch code that doesn't give you globals must be in the main code section.
+This always includes @code{PilotMain}, which is always called by the startup
+code for all launch codes.
+
+@subsection Read-only data
+
+Read-only data, such as string literals and other constant data, are put
+into code sections rather than the global data section.  This saves global
+data space, which is in short supply, and is valid since the data, just
+like the code resources that contain them, are read-only.
+
+When an item of read-only data has file or global scope, it will be placed
+in the main code section.  When it is local to a function, it will mostly,
+but not always, be placed in the same code section as that function.
+
+GCC's optimizer will usually notice when a string literal (or other constant)
+is identical to one which has been previously emitted, and will reuse the
+storage previously emitted rather than reserving more space for a duplicate.
+
+Thus, in the following example, when optimisation is on, the string literal
+referenced from @code{bar} may well be in the @code{foosec} section, while
+@code{bar} itself is in the main code section:
+
+@smallexample
+const char *foo () __attribute__ ((section ("foosec")));
+const char *foo () @{ return "hello world"; @}
+const char *bar () @{ return "hello world"; @}
+@end smallexample
+
+The code emitted for such a reference is similar to that emitted for an
+inter-section function call: when there is a data reference in which the
+referring function and the referenced item of read-only data are in different
+sections, the code emitted uses the item's code resource's pointer, which is
+located in the application's global data.
+
+This means that you must ensure that this sort of reference doesn't occur
+when globals are not available.  Because this compiler optimisation (of
+course) occurs only within a single compilation unit, a sufficient (but not
+necessary) way to ensure this is by placing functions which are in different
+sections in different compilation units (e.g., in separate @file{.c} files).
+
+In particular, all read-only data referenced while processing a launch code
+that doesn't give you globals must be in the main code section.  (Thus, in
+the example above, @code{bar} is likely to crash if it is called during a
+no-globals launch.)
+
+This can be arranged in the following ways, amongst others:
+
+@itemize @bullet
+@item
+Write functions used during no-globals launches so that they use read-only
+data with file or global scope:
+
+@smallexample
+const char greeting[] = "hello world";
+const char *bar () @{ return greeting; @}
+@end smallexample
+
+@item
+Order the functions within a compilation unit so that all functions in the
+main code section are defined before any functions in other code sections.
+Then any shared read-only data will be in the main code section.
+
+(When an item of read-only data is reused, it will have been placed in the
+same section as the function from which it was @strong{first} referenced.
+Thus, if the functions are ordered as described, all read-only data
+referenced from the functions in the main code section will themselves be
+in the main code section.  Any inter-section references to read-only data
+must then be from functions in other named code sections.  But in order for
+such a function to have been called, globals must be available; hence the
+inter-section reference will be safe too.)
+@end itemize
+
+
+@node Multiple code tutorial
 @section Breaking up an existing application
 
 To use multiple code resources in an existing application, you need to
