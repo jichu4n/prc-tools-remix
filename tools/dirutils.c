@@ -44,7 +44,7 @@ is_dir_dirent (struct dirent *dent, const char *pathformat, ...) {
   va_list args;
   int rc;
 
-#ifdef _DIRENT_HAVE_D_TYPE
+#if defined _DIRENT_HAVE_D_TYPE && defined DT_DIR
   if (dent && dent->d_type == DT_DIR)
     return 1;
 #endif
