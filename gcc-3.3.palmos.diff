@@ -1,8 +1,8 @@
-diff -urN orig-gcc-3.2.2/configure.in gcc-3.2.2/configure.in
---- orig-gcc-3.2.2/configure.in	Mon Jul  8 12:00:57 2002
-+++ gcc-3.2.2/configure.in	Wed Aug 28 06:39:04 2002
-@@ -73,7 +73,7 @@
- 		target-librx \
+diff -urN orig-gcc-3.3/configure.in gcc-3.3/configure.in
+--- orig-gcc-3.3/configure.in	Sun Mar  9 18:05:46 2003
++++ gcc-3.3/configure.in	Fri May 16 01:06:29 2003
+@@ -66,7 +66,7 @@
+ 		target-newlib \
  		${libstdcxx_version} \
  		target-libf2c \
 -		${libgcj}
@@ -10,19 +10,19 @@ diff -urN orig-gcc-3.2.2/configure.in gcc-3.2.2/configure.in
  		target-libobjc"
  
  # these tools are built using the target libs, and are intended to run only
-@@ -709,6 +709,9 @@
-   arm-*-oabi*)
-     noconfigdirs="$noconfigdirs target-libgloss ${libgcj}"
+@@ -361,6 +361,9 @@
+   arm-*-riscix*)
+     noconfigdirs="$noconfigdirs ld target-libgloss ${libgcj}"
      ;;
 +  arm-*-palmos*)
 +    noconfigdirs="$noconfigdirs ${target_libs} ${target_tools}"
 +    ;;
-   c4x-*-*)
-     noconfigdirs="$noconfigdirs ${libstdcxx_version} target-librx target-libgloss ${libgcj}"
+   avr-*-*)
+     noconfigdirs="$noconfigdirs target-libiberty ${libstdcxx_version} ${libgcj}"
      ;;
-diff -urN orig-gcc-3.2.2/gcc/Makefile.in gcc-3.2.2/gcc/Makefile.in
---- orig-gcc-3.2.2/gcc/Makefile.in	Tue Jan 28 22:54:07 2003
-+++ gcc-3.2.2/gcc/Makefile.in	Wed Feb  5 14:50:22 2003
+diff -urN orig-gcc-3.3/gcc/Makefile.in gcc-3.3/gcc/Makefile.in
+--- orig-gcc-3.3/gcc/Makefile.in	Tue Apr 22 17:50:48 2003
++++ gcc-3.3/gcc/Makefile.in	Fri May 16 01:03:57 2003
 @@ -47,7 +47,7 @@
  # Selection of languages to be made.
  # This is overridden by configure.
@@ -32,7 +32,7 @@ diff -urN orig-gcc-3.2.2/gcc/Makefile.in gcc-3.2.2/gcc/Makefile.in
  
  # Selection of languages to be made during stage1 build.
  # This is overridden by configure.
-@@ -1964,7 +1964,7 @@
+@@ -2194,7 +2194,7 @@
    -DGPLUSPLUS_TOOL_INCLUDE_DIR=\"$(gcc_gxx_include_dir)/$(target_alias)\" \
    -DGPLUSPLUS_BACKWARD_INCLUDE_DIR=\"$(gcc_gxx_include_dir)/backward\" \
    -DLOCAL_INCLUDE_DIR=\"$(local_includedir)\" \
@@ -40,19 +40,19 @@ diff -urN orig-gcc-3.2.2/gcc/Makefile.in gcc-3.2.2/gcc/Makefile.in
 +  -DCROSS_INCLUDE_DIR=\"$(CROSS_SYSTEM_HEADER_DIR)\" \
    -DTOOL_INCLUDE_DIR=\"$(gcc_tooldir)/include\"
  
- LIBCPP_OBJS =	cpplib.o cpplex.o cppmacro.o cppexp.o cppfiles.o \
-@@ -2628,7 +2628,6 @@
+ LIBCPP_OBJS =	cpplib.o cpplex.o cppmacro.o cppexp.o cppfiles.o cpptrad.o \
+@@ -2833,7 +2833,6 @@
  	    rm -f $(DESTDIR)$(bindir)/gcov$(exeext); \
  	    $(INSTALL_PROGRAM) gcov$(exeext) $(DESTDIR)$(bindir)/$(GCOV_INSTALL_NAME)$(exeext); \
  	fi
 -	$(INSTALL_SCRIPT) gccbug $(DESTDIR)$(bindir)/$(GCCBUG_INSTALL_NAME)
  
- # Install the driver program as $(target_alias)-gcc
- # and also as either gcc (if native) or $(gcc_tooldir)/bin/gcc.
-diff -urN orig-gcc-3.2.2/gcc/config.gcc gcc-3.2.2/gcc/config.gcc
---- orig-gcc-3.2.2/gcc/config.gcc	Thu Jan 30 15:03:42 2003
-+++ gcc-3.2.2/gcc/config.gcc	Wed Feb  5 14:50:36 2003
-@@ -763,6 +763,10 @@
+ # Install the driver program as $(target_alias)-gcc, 
+ # $(target-alias)-gcc-$(version)
+diff -urN orig-gcc-3.3/gcc/config.gcc gcc-3.3/gcc/config.gcc
+--- orig-gcc-3.3/gcc/config.gcc	Tue Apr 29 20:47:04 2003
++++ gcc-3.3/gcc/config.gcc	Fri May 16 01:03:57 2003
+@@ -740,6 +740,10 @@
  	tm_file="arm/unknown-elf-oabi.h dbxelf.h elfos.h arm/unknown-elf.h arm/elf.h arm/aout.h arm/arm.h"
  	tmake_file=arm/t-arm-elf
  	;;
@@ -63,9 +63,9 @@ diff -urN orig-gcc-3.2.2/gcc/config.gcc gcc-3.2.2/gcc/config.gcc
  arm-*-pe*)
  	tm_file="arm/semi.h arm/aout.h arm/arm.h arm/coff.h arm/pe.h"
  	tmake_file=arm/t-pe
-diff -urN orig-gcc-3.2.2/gcc/config/arm/palmos.h gcc-3.2.2/gcc/config/arm/palmos.h
---- orig-gcc-3.2.2/gcc/config/arm/palmos.h	Thu Jan  1 00:00:00 1970
-+++ gcc-3.2.2/gcc/config/arm/palmos.h	Wed Dec 18 11:20:43 2002
+diff -urN orig-gcc-3.3/gcc/config/arm/palmos.h gcc-3.3/gcc/config/arm/palmos.h
+--- orig-gcc-3.3/gcc/config/arm/palmos.h	Thu Jan  1 00:00:00 1970
++++ gcc-3.3/gcc/config/arm/palmos.h	Fri May 16 02:39:07 2003
 @@ -0,0 +1,45 @@
 +/* Definitions for Palm OS on ARM.
 +   Copyright 2002 John Marshall.  (Until it is contributed.)
@@ -112,9 +112,9 @@ diff -urN orig-gcc-3.2.2/gcc/config/arm/palmos.h gcc-3.2.2/gcc/config/arm/palmos
 +#undef USE_CONST_SECTION
 +#undef CONST_SECTION_ASM_OP
 +#undef CONST_SECTION_FUNCTION
-diff -urN orig-gcc-3.2.2/gcc/config/palmos.h gcc-3.2.2/gcc/config/palmos.h
---- orig-gcc-3.2.2/gcc/config/palmos.h	Thu Jan  1 00:00:00 1970
-+++ gcc-3.2.2/gcc/config/palmos.h	Tue Dec 17 22:58:32 2002
+diff -urN orig-gcc-3.3/gcc/config/palmos.h gcc-3.3/gcc/config/palmos.h
+--- orig-gcc-3.3/gcc/config/palmos.h	Thu Jan  1 00:00:00 1970
++++ gcc-3.3/gcc/config/palmos.h	Fri May 16 02:33:53 2003
 @@ -0,0 +1,41 @@
 +/* Definitions for Palm OS.
 +   Copyright 2002 John Marshall.  (Until it is contributed.)
@@ -157,9 +157,9 @@ diff -urN orig-gcc-3.2.2/gcc/config/palmos.h gcc-3.2.2/gcc/config/palmos.h
 +/* Add Palm OS-related predefines to any generic ones.  */
 +#undef CPP_PREDEFINES
 +#define CPP_PREDEFINES "-D__palmos__ -Asystem=palmos"
-diff -urN orig-gcc-3.2.2/gcc/config/t-palmos gcc-3.2.2/gcc/config/t-palmos
---- orig-gcc-3.2.2/gcc/config/t-palmos	Thu Jan  1 00:00:00 1970
-+++ gcc-3.2.2/gcc/config/t-palmos	Wed Aug 28 06:30:55 2002
+diff -urN orig-gcc-3.3/gcc/config/t-palmos gcc-3.3/gcc/config/t-palmos
+--- orig-gcc-3.3/gcc/config/t-palmos	Thu Jan  1 00:00:00 1970
++++ gcc-3.3/gcc/config/t-palmos	Fri May 16 01:03:57 2003
 @@ -0,0 +1,7 @@
 +# Some Palm OS-related headers can be found here, and the remainder are in
 +# directories that will be found via custom specs.
@@ -168,10 +168,10 @@ diff -urN orig-gcc-3.2.2/gcc/config/t-palmos gcc-3.2.2/gcc/config/t-palmos
 +# But these headers are generally not yet installed while building GCC,
 +# so there's no point trying to fix them.
 +STMP_FIXPROTO =
-diff -urN orig-gcc-3.2.2/gcc/defaults.h gcc-3.2.2/gcc/defaults.h
---- orig-gcc-3.2.2/gcc/defaults.h	Fri Jun  7 19:11:34 2002
-+++ gcc-3.2.2/gcc/defaults.h	Sun Oct 27 14:49:35 2002
-@@ -346,9 +346,7 @@
+diff -urN orig-gcc-3.3/gcc/defaults.h gcc-3.3/gcc/defaults.h
+--- orig-gcc-3.3/gcc/defaults.h	Mon Dec  9 18:54:03 2002
++++ gcc-3.3/gcc/defaults.h	Fri May 16 01:03:57 2003
+@@ -405,9 +405,7 @@
  /* By default, the preprocessor should be invoked the same way in C++
     as in C.  */
  #ifndef CPLUSPLUS_CPP_SPEC
@@ -182,12 +182,15 @@ diff -urN orig-gcc-3.2.2/gcc/defaults.h gcc-3.2.2/gcc/defaults.h
  #endif
  
  #ifndef ACCUMULATE_OUTGOING_ARGS
-diff -urN orig-gcc-3.2.2/gcc/version.c gcc-3.2.2/gcc/version.c
---- orig-gcc-3.2.2/gcc/version.c	Wed Feb  5 04:02:26 2003
-+++ gcc-3.2.2/gcc/version.c	Wed Feb  5 14:50:04 2003
-@@ -1,4 +1,4 @@
- #include "ansidecl.h"
- #include "version.h"
+diff -urN orig-gcc-3.3/gcc/version.c gcc-3.3/gcc/version.c
+--- orig-gcc-3.3/gcc/version.c	Tue May 13 23:26:03 2003
++++ gcc-3.3/gcc/version.c	Fri May 16 01:10:39 2003
+@@ -6,7 +6,7 @@
+    please modify this string to indicate that, e.g. by putting your
+    organization's name in parentheses at the end of the string.  */
  
--const char *const version_string = "3.2.2";
-+const char *const version_string = "3.2.2 (prc-tools)";
+-const char version_string[] = "3.3";
++const char version_string[] = "3.3 (prc-tools)";
+ 
+ /* This is the location of the online document giving instructions for
+    reporting bugs.  If you distribute a modified version of GCC,
