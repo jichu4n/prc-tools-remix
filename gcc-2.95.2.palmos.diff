@@ -761,6 +761,71 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/fpexcept.c gcc-2.95.2/gcc/config/m68k/
 +}
 +
 +
+diff -urN orig/gcc-2.95.2/gcc/config/m68k/fpgnulib.c gcc-2.95.2/gcc/config/m68k/fpgnulib.c
+--- orig/gcc-2.95.2/gcc/config/m68k/fpgnulib.c	Mon Nov  1 10:30:38 1999
++++ gcc-2.95.2/gcc/config/m68k/fpgnulib.c	Wed Mar  8 04:03:55 2000
+@@ -107,7 +107,7 @@
+ 
+ /* convert int to double */
+ double
+-__floatsidf (int a1)
++__floatsidf (long a1)
+ {
+   long sign = 0, exp = 31 + EXCESSD;
+   union double_long dl;
+@@ -124,7 +124,7 @@
+       a1 = -a1;
+       if (a1 < 0)
+ 	{
+-	  dl.l.upper = SIGNBIT | ((32 + EXCESSD) << 20L);
++	  dl.l.upper = SIGNBIT | ((32L + EXCESSD) << 20L);
+ 	  dl.l.lower = 0;
+ 	  return dl.d;
+         }
+@@ -153,7 +153,7 @@
+ 
+ /* convert int to float */
+ float
+-__floatsisf (int l)
++__floatsisf (long l)
+ {
+   double foo = __floatsidf (l);
+   return foo;
+@@ -222,7 +222,7 @@
+ }
+ 
+ /* convert double to int */
+-int
++long
+ __fixdfsi (double a1)
+ {
+   register union double_long dl1;
+@@ -254,7 +254,7 @@
+ }
+ 
+ /* convert float to int */
+-int
++long
+ __fixsfsi (float a1)
+ {
+   double foo = a1;
+@@ -268,12 +268,12 @@
+    We assume all numbers are normalized, don't do any rounding, etc.  */
+ 
+ /* Prototypes for the above in case we use them.  */
+-double __floatsidf (int);
+-float __floatsisf (int);
++double __floatsidf (long);
++float __floatsisf (long);
+ double __extendsfdf2 (float);
+ float __truncdfsf2 (double);
+-int __fixdfsi (double);
+-int __fixsfsi (float);
++long __fixdfsi (double);
++long __fixsfsi (float);
+ 
+ /* convert double to long double */
+ long double
 diff -urN orig/gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm
 --- orig/gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm	Wed Dec 31 16:00:00 1969
 +++ gcc-2.95.2/gcc/config/m68k/lb1sf68palmos.asm	Mon Nov  1 11:07:23 1999
@@ -4851,8 +4916,8 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68k.md gcc-2.95.2/gcc/config/m68k/m68
  ;; This is the first machine-dependent peephole optimization.
 diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68k/m68kpalmos.h
 --- orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Wed Dec 31 16:00:00 1969
-+++ gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Fri Jan 21 23:27:58 2000
-@@ -0,0 +1,326 @@
++++ gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Sun Mar 12 01:35:57 2000
+@@ -0,0 +1,328 @@
 +/* Definitions of target machine for GNU compiler.  "naked" 68020,
 +   COFF object files and debugging, version.
 +   Copyright (C) 1994 Free Software Foundation, Inc.
@@ -5050,6 +5115,9 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68
 +-isystem %(palmdev_prefix)%(palm_sdk)/include/Core/System/Unix \
 +-remap"
 +
++#define PALMDEV_INCLUDES "\
++-isystem %(palmdev_prefix)include"
++
 +/* Alas, "sdk%{palmos*:-%*}" doesn't work, because you end up with a space:
 +   ".../sdk%{palmos*:-%*}/include" -palmos3.5 -> ".../sdk-3.5 /include".  */
 +
@@ -5057,11 +5125,10 @@ diff -urN orig/gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68
 +#define SUBTARGET_EXTRA_SPECS						\
 +  { "palmdev_prefix", PALMDEV_PREFIX },					\
 +  { "full_target_machine", FULL_TARGET_MACHINE },			\
-+  { "palmdev_includes",							\
-+    "-isystem %(palmdev_prefix)include" },				\
++  { "palmdev_includes", PALMDEV_INCLUDES },				\
 +  { "palm_sdk", "\
 +sdk%{palmos1*:-1}%{palmos2*:-2}\
-+%{palmos3|palmos3.0:-3}%{palmos3.1:-3.1}%{palmos3.5:-3.5}" },
++%{palmos3:-3}%{palmos3.0:-3}%{palmos3.1:-3.1}%{palmos3.5:-3.5}" },
 +
 +extern int palmos_valid_machine_decl_attribute ();
 +#define VALID_MACHINE_DECL_ATTRIBUTE(DECL, ATTRIBUTES, ID, ARGS)	\

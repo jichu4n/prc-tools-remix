@@ -1,0 +1,15 @@
+(BTW, we're depending on alphabetical order here: this patch has to be
+applied *after* gcc-2.95.2.palmos.diff.)
+
+--- gcc-2.95.2/gcc/config/m68k/m68kpalmos.h.orig	Sun Mar 12 01:35:57 2000
++++ gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Sun Mar 12 01:36:41 2000
+@@ -196,7 +196,8 @@
+ -remap"
+ 
+ #define PALMDEV_INCLUDES "\
+--isystem %(palmdev_prefix)include"
++-isystem %(palmdev_prefix)include \
++-isystem %(palmdev_prefix)include/Handspring"
+ 
+ /* Alas, "sdk%{palmos*:-%*}" doesn't work, because you end up with a space:
+    ".../sdk%{palmos*:-%*}/include" -palmos3.5 -> ".../sdk-3.5 /include".  */
