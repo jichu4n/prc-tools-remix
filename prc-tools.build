@@ -60,11 +60,13 @@ cp -p README COPYING $DESTDIR$docdir
 #policy
 : ${exec_prefix=$prefix}
 : ${bindir:=$exec_prefix/bin} ${libdir:=$exec_prefix/lib}
-: ${infodir:=$prefix/info} ${datadir:=$prefix/share}
+: ${mandir:=$prefix/man} ${infodir:=$prefix/info} ${datadir:=$prefix/share}
 
 strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/*/bin/*
 # This picks up all the executable backends, but avoids crt*.o files and such
 strip $DESTDIR$libdir/gcc-lib/*/*/*[012]*
+
+gzip -9 $DESTDIR$infodir/* $DESTDIR$mandir/*/*
 
 #package
 : ${PKGBASE:=`pwd`/prc-tools} ${PKGSHORTTAIL:=-binary} ${PKGTAIL:=$PKGSHORTTAIL}
@@ -79,6 +81,8 @@ rm -f $PKGBASE$PKGTAIL.tar* $PKGBASE-arm$PKGTAIL.tar* \
     $libdir/gcc-lib/m68k*
     $datadir/prc-tools
     $infodir/prc-tools*
+    $mandir/man1/build-prc*
+    $mandir/man1/palmdev-prep*
     $docdir/COPYING
     $docdir/README
   " | sed 's:^ */::' | sort`)
