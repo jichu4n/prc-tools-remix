@@ -1,6 +1,6 @@
 /* obj-res.cpp: extract resources from a bfd executable.
 
-   Copyright 1998, 1999, 2001, 2002 John Marshall.
+   Copyright 1998, 1999, 2001, 2002, 2003 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 
 static void
 usage() {
-  printf ("Usage: %s [-l] [-L export.file] [-v] [-z #] bfd.file\n", progname);
+  printf ("Usage: %s [-l] [-L export.file] [-z #] bfd.file\n", progname);
   printf ("Options:\n");
   propt_tab = 16;
   propt ("-l", "Generate GLib resources");
