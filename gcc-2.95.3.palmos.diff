@@ -120,26 +120,31 @@ diff -urN orig-gcc-2.95.3/gcc/cp/Make-lang.in gcc-2.95.3/gcc/cp/Make-lang.in
  	    $(INSTALL_PROGRAM) g++$(exeext) $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
 diff -urN orig-gcc-2.95.3/config.sub gcc-2.95.3/config.sub
 --- orig-gcc-2.95.3/config.sub	Wed Aug  4 10:09:26 1999
-+++ gcc-2.95.3/config.sub	Mon Mar 19 18:11:44 2001
-@@ -94,7 +94,7 @@
- 	-convergent* | -ncr* | -news | -32* | -3600* | -3100* | -hitachi* |\
- 	-c[123]* | -convex* | -sun | -crds | -omron* | -dg | -ultra | -tti* | \
- 	-harris | -dolphin | -highlevel | -gould | -cbm | -ns | -masscomp | \
--	-apple)
-+	-apple | -palmos)
- 		os=
- 		basic_machine=$1
++++ gcc-2.95.3/config.sub	Wed May 29 18:46:39 2002
+@@ -937,7 +937,7 @@
+ 	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
+ 	      | -cygwin* | -pe* | -psos* | -moss* | -proelf* | -rtems* \
+ 	      | -mingw32* | -linux-gnu* | -uxpv* | -beos* | -mpeix* | -udk* \
+-	      | -interix* | -uwin* )
++	      | -interix* | -uwin* | -palmos* )
+ 	# Remember, each alternative MUST END IN *, to match a version number.
  		;;
-@@ -1167,6 +1167,9 @@
- 	*-apple)					# EGCS LOCAL
- 		os=-macos
- 		;;
-+	m68k-palmos)
-+		os=-coff
-+		;;
- 	*)
- 		os=-none
- 		;;
+ 	# EGCS LOCAL
+@@ -1215,6 +1215,14 @@
+ 			-mvs*)
+ 				vendor=ibm
+ 				;;
++			-palmos*)
++				case $basic_machine in
++					m68k-*)
++						basic_machine=m68k-palmos
++						os=-coff
++						;;
++				esac
++				;;
+ 			-ptx*)
+ 				vendor=sequent
+ 				;;
 diff -urN orig-gcc-2.95.3/gcc/ChangeLog.palmos gcc-2.95.3/gcc/ChangeLog.palmos
 --- orig-gcc-2.95.3/gcc/ChangeLog.palmos	Thu Jan  1 00:00:00 1970
 +++ gcc-2.95.3/gcc/ChangeLog.palmos	Mon Mar 19 18:11:44 2001
