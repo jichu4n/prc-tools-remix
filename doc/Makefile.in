@@ -39,7 +39,7 @@ install: install-info @install_htmldocs_enabled@
 
 install-info: info
 	$(INSTALL) -d $(infodir)
-	rm -f $(infodir)/prc-tools.info*
+	-rm -f $(infodir)/prc-tools.info*
 	for f in prc-tools.info*; do \
 	  $(INSTALL_DATA) $${f} $(infodir)/$${f}; \
 	done
