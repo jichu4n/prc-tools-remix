@@ -1112,8 +1112,8 @@ Numbers may be in decimal (@samp{37}), octal (@samp{045}), or hexadecimal
 Strings are enclosed in either single (@samp{'Hello'}) or double
 (@samp{"world"}) quotes, and may contain the usual C escape sequences
 (@samp{\t}, @samp{\n}, @samp{\'}, @samp{\"}, @samp{\\}, @samp{\177},
-@samp{\x7F}, @dots{}).  If a string contains no spaces and does not
-conflict with a keyword, the quotes may be omitted.
+@samp{\x7F}, @dots{}).  If a string contains only alphanumeric characters
+and does not conflict with a keyword, the quotes may be omitted.
 
 @item
 Both C style (@samp{/* comment */}) and C++ style (@samp{// until end
