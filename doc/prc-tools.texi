@@ -4,9 +4,9 @@
 @settitle Using PRC-Tools
 @c @footnotestyle separate
 
-@set update-month February 2000
-@set update-date 6 @value{update-month}
-@set prc-tools-version 2.0
+@set update-month March 2001
+@set update-date 27 @value{update-month}
+@set prc-tools-version 2.0.90
 
 @c %**end of header
 
@@ -53,7 +53,6 @@ by the Free Software Foundation.
 @end titlepage
 
 
-@ifnottex
 @node Top
 @top Using PRC-Tools
 
@@ -68,6 +67,7 @@ last modified on @value{update-date}.
 * Multiple code resources::
                       Writing applications with more than 32K of code.
 * Definition files::  Using a project definition file.
+* Debugging::         Enabling and using a debugger.
 
 * Post-linker tools:: The following are specific to Palm OS:
 
@@ -80,7 +80,6 @@ last modified on @value{update-date}.
 
 @c * Index::
 @end menu
-@end ifnottex
 
 
 @node GCC on Palm OS
@@ -111,7 +110,7 @@ by default in the specs file; don't ever turn it off!
 
 @item -mdebug-labels
 Put each function's name into the text section immediately after the function's
-code, in Macsbug format.
+code, in MacsBug format.
 
 @item -mextralogues
 Activate @code{extralogue} attributes.  @xref{Entry points}.
@@ -974,6 +973,111 @@ code @var{id} <@var{filename}>
 @end smallexample
 
 It may be that it is better simply to list these on the command line.
+
+
+@node Debugging
+@chapter Using a debugger
+
+@c @@@ JWM write something here
+
+@menu
+* Enabling debugging::
+* Palm OS-specific GDB features::
+@end menu
+
+
+@node Enabling debugging
+@section Building an application with debugging enabled
+
+As on any other platform, you instruct GCC to produce debugging information
+by compiling with the @samp{-g} option.
+
+Some debuggers targeting Palm OS, notably GDB, also need your application
+to have a special stub (called @code{_GdbStartDebug}) in its startup code so
+that they can attach to the running application successfully.
+
+To include this stub, you also need to @emph{link} with @samp{-g}.
+
+By default, the stub is disabled and your application runs normally.
+When the stub sees that a @code{gdbS} #0 feature exists and has the value
+0x12BEEF34, it is enabled and will trigger a special breakpoint which tells
+the debugger where in memory to find the application.
+
+There are two convenient ways to set this feature and enable the stub:
+
+@itemize @bullet
+@item
+The Palm OS Emulator (version 2.1d22 or greater) sets the feature
+automatically whenever there is a debugger connected to its debugger port.
+Thus there is no need to do anything yourself to enable debugging on Poser.
+
+@item
+Gdb Panel, in the
+@uref{http://sourceforge.net/project/showfiles.php?group_id=4429&release_id=24287, prc-tools samples},
+is a small Palm OS application which sets this feature.  You need to use it
+or something similar when debugging on a real device.
+@end itemize
+
+
+@node Palm OS-specific GDB features
+@section Palm OS-specific GDB features
+
+@findex target
+
+To debug Palm OS applications, GDB needs to load symbolic information from
+the bfd executable corresponding to your application, and to be connected
+to the Palm OS device where the application is running.  You generally
+specify the bfd executable on the command line (for example, to debug an
+application @file{myapp.prc})
+
+@smallexample
+$ m68k-palmos-gdb myapp
+@end smallexample
+
+@noindent
+and connect using the @samp{target} command.
+
+@table @code
+@item target palmos @var{port}
+@itemx target pilot @var{port}
+Connects the GDB host environment to a Palm OS device via @var{port}, using
+the Palm debugger protocol.  The argument @var{port} may be a device such
+as @file{/dev/ttyS0} to connect to a real device over a serial line, or a
+socket such as @samp{localhost:2000} to connect to the Palm OS Emulator.
+
+Using @code{pilot} is equivalent to @code{palmos}, and is provided for
+compatibility with earlier releases.  If @var{port} is omitted, GDB will
+attempt to connect to @samp{localhost:2000} by default.
+
+@c @@@ remove this note when 2.1 is available
+(The prc-tools 2.0 release only supported the @code{pilot} keyword, and
+@var{port} was not optional.)
+@end table
+
+After you have connected to the device, you should enable the debugger
+stub (@pxref{Enabling debugging}), which is done automatically if you
+are connecting to Poser, and start your application, which you've compiled
+and linked with @samp{-g}.
+
+When your application starts up, GDB receives a special breakpoint from the
+debugger stub telling it how to correlate the bfd executable's debugging
+information with where in memory the application has been loaded.  Because
+of this, you need to ensure that the debugging information has been loaded
+@emph{before} the breakpoint is received---hence typically the bfd file of
+debugging information is specified on the GDB command line.
+
+There are some other features and limitations:
+
+@itemize @bullet
+@item
+As a last resort before printing @samp{??} for a function name, GDB will
+try to get the (mangled) name by querying the target for a MacsBug symbol.
+For example, this makes backtraces containing the stack frames of functions
+in the Palm OS ROM more informative.
+
+@item
+At present, GDB won't work well with applications with multiple code resources.
+@end itemize
 
 
 @node Post-linker tools
