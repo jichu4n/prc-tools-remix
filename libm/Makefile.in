@@ -20,10 +20,7 @@ CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
-SDK = @build_sdk@
-SDK_NUMBER = @build_sdk_number@
-CFLAGS = -O2 -Wall -msoft-float -fno-builtin \
-	 -DSDK_VERSION=$(SDK_NUMBER) -palmos$(SDK)
+CFLAGS = -O2 -Wall -msoft-float -fno-builtin
 
 INCS= mconf.h
 OBJS= acoshf.o airyf.o asinf.o asinhf.o atanf.o \

@@ -7,7 +7,7 @@
 #include "stdlib.h"
 
 #include <MemoryMgr.h>
-#include "sdktypes.h"
+#include "NewTypes.h"
 
 /* This is a global variable.  So atexit functions are only called for
    launch codes with globals (surprise!).  This isn't too bad because

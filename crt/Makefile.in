@@ -22,12 +22,9 @@ CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
-SDK = @build_sdk@
-SDK_NUMBER = @build_sdk_number@
 # Don't use -fomit-frame-pointer just now: it's broken
 # CFLAGS = -O5 -fomit-frame-pointer -fno-builtin -Wall -W
-CFLAGS = -O5 -fno-builtin -Wall -W \
-	 -DSDK_VERSION=$(SDK_NUMBER) -palmos$(SDK)
+CFLAGS = -O5 -fno-builtin -Wall -W -I$(srcdir)/../include
 
 #INSTALL_FILES = crt0.o gcrt0.o scrt0.o libcrt.a libscrt.a libnoexcept.a
 INSTALL_FILES = crt0.o gcrt0.o libcrt.a libnoexcept.a
@@ -51,23 +48,23 @@ install: $(INSTALL_FILES)
 	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib; \
 	done
 
-crt0.o: crt0.c sdktypes.h crt.h
+crt0.o: crt0.c ../include/NewTypes.h crt.h
 
-gcrt0.o: crt0.c sdktypes.h crt.h
+gcrt0.o: crt0.c ../include/NewTypes.h crt.h
 	$(CC) $(CFLAGS) -DDASHG -c -o $@ $(srcdir)/crt0.c
 
 scrt0.o: scrt0.c
 
-hooks.o: hooks.c sdktypes.h crt.h
+hooks.o: hooks.c ../include/NewTypes.h crt.h
 gdbstub.o: gdbstub.c
 palmos_GLib.o: palmos_GLib.c palmos_GLib.h
 
 single_dreloc.o multi_dreloc.o \
-multi_free.o reloc_chain.o: dreloc.c sdktypes.h crt.h
+multi_free.o reloc_chain.o: dreloc.c ../include/NewTypes.h crt.h
 	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/dreloc.c
 
 ssingle_dreloc.o smulti_dreloc.o \
-smulti_free.o sreloc_chain.o: dreloc.c sdktypes.h crt.h
+smulti_free.o sreloc_chain.o: dreloc.c ../include/NewTypes.h crt.h
 	$(CC) $(CFLAGS) -mown-gp -c -o $@ -DL`basename $@ .o | sed -e s/^s//` $(srcdir)/dreloc.c
 
 libcrt.a: $(CRTLIB_OBJS)

@@ -8,13 +8,11 @@
  *  Modified 19981104 by John Marshall  <jmarshall@acm.org>
  */
 
-#if defined(SDK_VERSION) && SDK_VERSION < 35
-#include <Common.h>
-#else
-#include <PalmTypes.h>
-#endif
+/* All we really want is Common.h/PalmTypes.h.  This is a header which gives
+   us that and not too much else.  */
+#include <ErrorMgr.h>
 
-#include "sdktypes.h"
+#include "NewTypes.h"
 #include "crt.h"
 
 void

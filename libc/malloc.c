@@ -7,7 +7,7 @@
 #include "stdlib.h"
 
 #include <MemoryMgr.h>
-#include "sdktypes.h"
+#include "NewTypes.h"
 
 #ifdef Lmalloc
 

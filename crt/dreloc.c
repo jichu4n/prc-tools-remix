@@ -12,7 +12,7 @@
 #include <MemoryMgr.h>
 #include <DataMgr.h>
 
-#include "sdktypes.h"
+#include "NewTypes.h"
 #include "crt.h"
 
 extern char data_start;

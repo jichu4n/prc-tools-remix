@@ -11,7 +11,7 @@
 #include <SystemMgr.h>
 #include <FeatureMgr.h>
 
-#include "sdktypes.h"
+#include "NewTypes.h"
 #include "crt.h"
 
 int

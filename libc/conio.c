@@ -12,6 +12,8 @@
 #include <Rect.h>
 #include <Window.h>
 
+#include "NewTypes.h"
+
 #if SDK_VERSION < 35
 #define winUp  up
 #endif

@@ -11,12 +11,13 @@
 #include <SystemMgr.h>
 #include <SoundMgr.h>
 
-#if defined(SDK_VERSION) && SDK_VERSION < 35
+#include "NewTypes.h"
+
+#if SDK_VERSION < 35
 #define NON_PORTABLE
 #include <SystemPrv.h>
 #endif
 
-#include "sdktypes.h"
 #include "crt.h"
 
 UInt32

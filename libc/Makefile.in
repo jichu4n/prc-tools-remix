@@ -25,12 +25,9 @@ CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
-SDK = @build_sdk@
-SDK_NUMBER = @build_sdk_number@
 # PRINT_FLOATS huh?
 CFLAGS = -Wall -O2 -fno-builtin -DPRINT_FLOATS \
-	 -I$(srcdir)/include -I$(srcdir)/../crt \
-	 -DSDK_VERSION=$(SDK_NUMBER) -palmos$(SDK)
+	 -I$(srcdir)/include -I$(srcdir)/../include
 
 INSTALL_DIR = $(exec_prefix)/$(target_alias)
 
@@ -160,7 +157,7 @@ distclean: clean
 #div.o ldiv.o: division.c
 #	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $<
 
-malloc.o free.o calloc.o realloc.o: malloc.c include/stdlib.h ../crt/sdktypes.h
+malloc.o free.o calloc.o realloc.o: malloc.c include/stdlib.h ../include/NewTypes.h
 	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/malloc.c
 
 #rand.o srand.o: random.c
@@ -172,4 +169,6 @@ malloc.o free.o calloc.o realloc.o: malloc.c include/stdlib.h ../crt/sdktypes.h
 #strtol.o strtoul.o atoil.o: strtonum.S
 #	$(CC) $(ASFLAGS) -c -o $@ -DL`basename $@ .o` $<
 
-atexit.o: atexit.c include/stdlib.h ../crt/sdktypes.h
+atexit.o: atexit.c include/stdlib.h ../include/NewTypes.h
+
+conio.o: conio.c ../include/NewTypes.h
