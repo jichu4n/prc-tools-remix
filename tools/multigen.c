@@ -83,16 +83,13 @@ write_stub_file (FILE *f, const char *fname) {
 
   fprintf (f, "\
 \n\
-\t.globl\t__code_section_count\n\
-\t.equ\t__code_section_count,%d\n\
-\n\
 .text\n\
 \t.globl\t_GccRelocateData\n\
 _GccRelocateData:\n\
 \tbra.w\t_GccLoadCodeAndRelocateData\n\
 \n\
 .section ehook\n\
-\t.long\t_GccReleaseCode\n", n);
+\t.long\t_GccReleaseCode\n");
   }
 
 void

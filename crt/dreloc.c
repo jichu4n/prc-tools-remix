@@ -6,6 +6,7 @@
  *
  *  Modified 19971111 by Ian Goldberg <iang@cs.berkeley.edu>
  *  Modified 19981104 by John Marshall  <jmarshall@acm.org>
+ *  Modified 20000425 by John Marshall  <john_w_marshall@palm.com>
  */
 
 #include <SystemMgr.h>
@@ -28,7 +29,7 @@ _GccRelocateData ()
       Int16 *chain = MemHandleLock (relocH);
 
       _RelocateChain (*chain++, &data_start);
-      _RelocateChain (*chain++, &start);
+      _RelocateChain (*chain++, (void *) &start);
 
       MemHandleUnlock (relocH);
       DmReleaseResource (relocH);
@@ -43,31 +44,23 @@ extern void *__text__;
 void
 _GccLoadCodeAndRelocateData ()
 {
-  MemHandle relocH = DmGet1Resource ('rloc', 0);
-  Int16 *chain = (relocH)? MemHandleLock (relocH) : NULL;
   void **basep = &__text__;
-  int resno, ncoderes;
+  MemHandle codeH, relocH;
+  int resno;
 
-  *basep = &start;
+  *basep++ = (void *) &start;
+  for (resno = 2; (codeH = DmGet1Resource ('code', resno)) != NULL; resno++)
+    *basep++ = MemHandleLock (codeH);
 
-  if (chain)
+  if ((relocH = DmGet1Resource ('rloc', 0)) != NULL) 
     {
+      Int16 *chain = MemHandleLock (relocH);
+      void **baselim = basep;
+
       _RelocateChain (*chain++, &data_start);
-      _RelocateChain (*chain++, &start);
-    }
-
-  asm ("move.w #__code_section_count,%0" : "=g" (ncoderes) : : "cc");
-
-  for (resno = 2; resno <= ncoderes; resno++)
-    {
-      MemHandle codeH = DmGet1Resource ('code', resno);
-      *++basep = MemHandleLock (codeH);
-      if (chain)
+      for (basep = &__text__; basep < baselim; basep++)
 	_RelocateChain (*chain++, *basep);
-    }
 
-  if (relocH)
-    {
       MemHandleUnlock (relocH);
       DmReleaseResource (relocH);
     }
@@ -76,23 +69,18 @@ _GccLoadCodeAndRelocateData ()
 #endif
 #ifdef Lmulti_free
 
-extern void *__text__;
-
 void
 _GccReleaseCode (UInt16 cmd UNUSED_PARAM, void *pbp UNUSED_PARAM, UInt16 flags)
 {
   if (flags & sysAppLaunchFlagNewGlobals)
     {
-      void **basep = &__text__;
-      int ncoderes;
+      MemHandle codeH;
+      int resno;
 
-      asm ("move.w #__code_section_count,%0" : "=g" (ncoderes) : : "cc");
-
-      for (resno = 2; resno <= ncoderes; resno++)
+      for (resno = 2; (codeH = DmGet1Resource ('code', resno)) != NULL; resno++)
 	{
-	  MemHandle hnd = DmGet1Resource ('code', resno);
-	  MemHandleUnlock (hnd);
-	  DmReleaseResource (hnd);
+	  MemHandleUnlock (codeH);
+	  DmReleaseResource (codeH);
 	}
     }
 }

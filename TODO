@@ -25,5 +25,3 @@ internals hacking needed here.
 (like in the ROM, for example).
 
 * sort out GLibs and integrate Michael's stuff.
-
-* finish changing dreloc.c and maybe get rid of the count.
