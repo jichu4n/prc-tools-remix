@@ -1417,8 +1417,16 @@ diff -urN orig-binutils-2.12.1/include/coff/internal.h binutils-2.12.1/include/c
     address.  The linker tries to turn insns with this reloc into
 diff -urN orig-binutils-2.12.1/ld/Makefile.am binutils-2.12.1/ld/Makefile.am
 --- orig-binutils-2.12.1/ld/Makefile.am	Thu May  9 16:50:49 2002
-+++ binutils-2.12.1/ld/Makefile.am	Mon Jun  3 12:13:06 2002
-@@ -216,6 +216,7 @@
++++ binutils-2.12.1/ld/Makefile.am	Thu Aug 15 02:47:13 2002
+@@ -122,6 +122,7 @@
+ 	earmelf_nbsd.o \
+ 	earmelf_oabi.o \
+ 	earmnbsd.o \
++	earmpalmos.o \
+ 	earmpe.o \
+ 	eavr1200.o \
+ 	eavr23xx.o \
+@@ -216,6 +217,7 @@
  	em68klinux.o \
  	em68klynx.o \
  	em68knbsd.o \
@@ -1426,7 +1434,17 @@ diff -urN orig-binutils-2.12.1/ld/Makefile.am binutils-2.12.1/ld/Makefile.am
  	em68kpsos.o \
  	em88kbcs.o \
  	emcorepe.o \
-@@ -799,6 +800,9 @@
+@@ -404,6 +406,9 @@
+ earmpe.c: $(srcdir)/emulparams/armpe.sh \
+   $(srcdir)/emultempl/pe.em $(srcdir)/scripttempl/pe.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} armpe "$(tdir_armpe)"
++earmpalmos.c: $(srcdir)/emulparams/armpalmos.sh $(srcdir)/emulparams/armelf.sh \
++  $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/armpalmos.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} armpalmos "$(tdir_armpalmos)"
+ eavr85xx.c: $(srcdir)/emulparams/avr85xx.sh \
+   $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/elf32avr.sc \
+   ${GEN_DEPENDS}
+@@ -799,6 +804,9 @@
  em68knbsd.c:	$(srcdir)/emulparams/m68knbsd.sh \
    $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/aout.sc ${GEN_DEPENDS}
  	${GENSCRIPTS} m68knbsd "$(tdir_m68knbsd)"
@@ -1438,8 +1456,16 @@ diff -urN orig-binutils-2.12.1/ld/Makefile.am binutils-2.12.1/ld/Makefile.am
  	${GENSCRIPTS} m68kpsos "$(tdir_m68kpsos)"
 diff -urN orig-binutils-2.12.1/ld/Makefile.in binutils-2.12.1/ld/Makefile.in
 --- orig-binutils-2.12.1/ld/Makefile.in	Thu May  9 16:50:49 2002
-+++ binutils-2.12.1/ld/Makefile.in	Mon Jun  3 12:13:24 2002
-@@ -325,6 +325,7 @@
++++ binutils-2.12.1/ld/Makefile.in	Thu Aug 15 02:47:24 2002
+@@ -231,6 +231,7 @@
+ 	earmelf_nbsd.o \
+ 	earmelf_oabi.o \
+ 	earmnbsd.o \
++	earmpalmos.o \
+ 	earmpe.o \
+ 	eavr1200.o \
+ 	eavr23xx.o \
+@@ -325,6 +326,7 @@
  	em68klinux.o \
  	em68klynx.o \
  	em68knbsd.o \
@@ -1447,7 +1473,17 @@ diff -urN orig-binutils-2.12.1/ld/Makefile.in binutils-2.12.1/ld/Makefile.in
  	em68kpsos.o \
  	em88kbcs.o \
  	emcorepe.o \
-@@ -1520,6 +1521,9 @@
+@@ -1125,6 +1127,9 @@
+ earmpe.c: $(srcdir)/emulparams/armpe.sh \
+   $(srcdir)/emultempl/pe.em $(srcdir)/scripttempl/pe.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} armpe "$(tdir_armpe)"
++earmpalmos.c: $(srcdir)/emulparams/armpalmos.sh $(srcdir)/emulparams/armelf.sh \
++  $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/armpalmos.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} armpalmos "$(tdir_armpalmos)"
+ eavr85xx.c: $(srcdir)/emulparams/avr85xx.sh \
+   $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/elf32avr.sc \
+   ${GEN_DEPENDS}
+@@ -1520,6 +1525,9 @@
  em68knbsd.c:	$(srcdir)/emulparams/m68knbsd.sh \
    $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/aout.sc ${GEN_DEPENDS}
  	${GENSCRIPTS} m68knbsd "$(tdir_m68knbsd)"
@@ -1459,12 +1495,12 @@ diff -urN orig-binutils-2.12.1/ld/Makefile.in binutils-2.12.1/ld/Makefile.in
  	${GENSCRIPTS} m68kpsos "$(tdir_m68kpsos)"
 diff -urN orig-binutils-2.12.1/ld/configure.tgt binutils-2.12.1/ld/configure.tgt
 --- orig-binutils-2.12.1/ld/configure.tgt	Tue Apr  2 03:29:20 2002
-+++ binutils-2.12.1/ld/configure.tgt	Mon Jun  3 16:06:29 2002
++++ binutils-2.12.1/ld/configure.tgt	Sun Aug 11 15:10:02 2002
 @@ -229,6 +229,7 @@
  arm*-*-linux-gnu*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
  arm*-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
  arm*-*-conix*)		targ_emul=armelf ;;
-+arm*-*-palmos*)		targ_emul=armelf ;;
++arm*-*-palmos*)		targ_emul=armpalmos; targ_extra_emuls=armelf ;;
  thumb-*-linux-gnu* | thumb-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
  strongarm-*-coff)	targ_emul=armcoff ;;
  strongarm-*-elf)	targ_emul=armelf ;;
@@ -1476,6 +1512,15 @@ diff -urN orig-binutils-2.12.1/ld/configure.tgt binutils-2.12.1/ld/configure.tgt
  hppa*64*-*-linux-gnu*)	targ_emul=hppa64linux ;;
  hppa*64*-*)		targ_emul=elf64hppa ;;
  hppa*-*-linux-gnu*)	targ_emul=hppalinux ;;
+diff -urN orig-binutils-2.12.1/ld/emulparams/armpalmos.sh binutils-2.12.1/ld/emulparams/armpalmos.sh
+--- orig-binutils-2.12.1/ld/emulparams/armpalmos.sh	Thu Jan  1 00:00:00 1970
++++ binutils-2.12.1/ld/emulparams/armpalmos.sh	Thu Aug 15 06:09:01 2002
+@@ -0,0 +1,5 @@
++. ${srcdir}/emulparams/armelf.sh
++SCRIPT_NAME=armpalmos
++
++unset GENERATE_SHLIB_SCRIPT
++unset ENTRY
 diff -urN orig-binutils-2.12.1/ld/emulparams/m68kpalmos.sh binutils-2.12.1/ld/emulparams/m68kpalmos.sh
 --- orig-binutils-2.12.1/ld/emulparams/m68kpalmos.sh	Thu Jan  1 00:00:00 1970
 +++ binutils-2.12.1/ld/emulparams/m68kpalmos.sh	Mon Jun  3 12:15:20 2002
@@ -1527,6 +1572,32 @@ diff -urN orig-binutils-2.12.1/ld/emultempl/m68kcoff.em binutils-2.12.1/ld/emult
        ASSERT (relsec != NULL);
  
        if (! bfd_m68k_coff_create_embedded_relocs (abfd, &link_info,
+diff -urN orig-binutils-2.12.1/ld/scripttempl/armpalmos.sc binutils-2.12.1/ld/scripttempl/armpalmos.sc
+--- orig-binutils-2.12.1/ld/scripttempl/armpalmos.sc	Thu Jan  1 00:00:00 1970
++++ binutils-2.12.1/ld/scripttempl/armpalmos.sc	Thu Aug 15 06:07:33 2002
+@@ -0,0 +1,22 @@
++cat <<EOF
++OUTPUT_FORMAT ("${OUTPUT_FORMAT}", "${BIG_OUTPUT_FORMAT}",
++	       "${LITTLE_OUTPUT_FORMAT}")
++OUTPUT_ARCH ("${ARCH}")
++	
++${RELOCATING+${LIB_SEARCH_DIRS}}
++	
++/* This is a pathetically simple linker script that is only of use for
++   building Palm OS 5 armlets, namely stand-alone code that has no global
++   data or other complications.  */
++	
++SECTIONS
++{
++    .text :
++    {
++	*(.text .rodata)
++	${RELOCATING+${OTHER_TEXT_SECTIONS}}
++    }
++	
++    .disposn : { *(.disposn) }
++}
++EOF
 diff -urN orig-binutils-2.12.1/ld/scripttempl/m68kpalmos.sc binutils-2.12.1/ld/scripttempl/m68kpalmos.sc
 --- orig-binutils-2.12.1/ld/scripttempl/m68kpalmos.sc	Thu Jan  1 00:00:00 1970
 +++ binutils-2.12.1/ld/scripttempl/m68kpalmos.sc	Thu Jun  6 17:14:30 2002
