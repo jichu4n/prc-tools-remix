@@ -36,7 +36,7 @@
 #include "def.tab.h"
 #include "pfdheader.h"
 
-static char *dup(const char *s);
+static char *sdup(const char *s);
 %}
 
 %x comment
@@ -75,14 +75,14 @@ ALNUM	[^ \t\n!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
 
 <sstr>\'		|
 <dstr>\"		{ BEGIN(INITIAL); *strp = '\0';
-			  yylval.str = dup(str_buffer); return STR; }
+			  yylval.str = sdup(str_buffer); return STR; }
 
 <sstr,dstr>\\\n		lineno++;
 <sstr,dstr>\n		{ einfo(E_FILELINE | E_WARNING,
 				"string constant terminated by end of line");
 			  lineno++;
 			  BEGIN(INITIAL); *strp = '\0';
-			  yylval.str = dup(str_buffer); return STR; }
+			  yylval.str = sdup(str_buffer); return STR; }
 
 <sstr,dstr>\\[0-7]{1,3}	*strp++ = (char)strtol(&yytext[1], NULL, 8);
 
@@ -105,13 +105,13 @@ ALNUM	[^ \t\n!"#$%&'()*+,\-./:;<=>?@[\\\]^`{|}~]
 \<			{ strp = str_buffer; BEGIN(fstr); }
 
 <fstr>\>		{ BEGIN(INITIAL); *strp = '\0';
-			  yylval.str = dup (str_buffer); return FNAME; }
+			  yylval.str = sdup (str_buffer); return FNAME; }
 
 <fstr>\n		{ einfo (E_FILELINE | E_WARNING,
 				 "filename terminated by end of line");
 			  lineno++;
 			  BEGIN(INITIAL); *strp = '\0';
-			  yylval.str = dup (str_buffer); return FNAME; }
+			  yylval.str = sdup (str_buffer); return FNAME; }
 
 <fstr>[^\n\>]+		{ strcpy (strp, yytext); strp += yyleng; }
 
@@ -161,7 +161,7 @@ launchable{_}data	return LAUNCHABLE_DATA;
 
 	/* Other words ("identifiers", but for us they're unquoted strings): */
 
-{ALNUM}+		{ yylval.str = dup(yytext); return STR; }
+{ALNUM}+		{ yylval.str = sdup(yytext); return STR; }
 
 	/* Punctuation: */
 
@@ -177,6 +177,6 @@ yywrap() {
 extern struct string_store *lexer_store;
 
 static char *
-dup(const char *s) {
+sdup(const char *s) {
   return insert_string(lexer_store, s);
   }
