@@ -1308,7 +1308,7 @@ Thus there is no need to do anything yourself to enable debugging on Poser.
 @set samplesurl  http://sourceforge.net/project/showfiles.php?group_id=4429
 GDB Panel, in the
 @ifnottex
-@uref{@value{samplesurl}, prc-tools-samples},
+@uref{@value{samplesurl}, prc-tools samples},
 @end ifnottex
 @iftex
 prc-tools samples@footnote{@url{@value{samplesurl}}},
