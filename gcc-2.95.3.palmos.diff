@@ -1,13 +1,22 @@
 diff -urN orig-gcc-2.95.3/configure.in gcc-2.95.3/configure.in
 --- orig-gcc-2.95.3/configure.in	Wed Jun 23 00:44:40 1999
-+++ gcc-2.95.3/configure.in	Mon Mar 19 18:11:44 2001
-@@ -729,6 +729,10 @@
++++ gcc-2.95.3/configure.in	Thu May 30 12:01:45 2002
+@@ -597,6 +597,9 @@
+            target_configdirs="${target_configdirs} target-bsp target-libstub target-cygmon"
+     fi
+     ;;
++  arm-*-palmos*)
++    noconfigdirs="$noconfigdirs target-libiberty target-libgloss target-newlib target-libio target-librx target-libstdc++ target-libg++ target-examples"
++    ;;
+   c4x-*-*)
+     noconfigdirs="$noconfigdirs target-libg++ target-libstdc++ target-libio target-librx target-libgloss"
+     ;;
+@@ -729,6 +732,9 @@
    m68k-apollo-*)
      noconfigdirs="$noconfigdirs ld binutils gprof target-libgloss"
      ;;
 +  m68k-palmos-*)
 +    noconfigdirs="$noconfigdirs target-libiberty target-libgloss target-newlib target-libio target-librx target-libstdc++ target-libg++ target-examples"
-+    #noconfigdirs="$noconfigdirs target-libio"
 +    ;;
    mips*-*-irix5*)
      # The GNU linker does not support shared libraries.
@@ -89,8 +98,19 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
  # Install float.h for cross compiler.
 diff -urN orig-gcc-2.95.3/gcc/configure.in gcc-2.95.3/gcc/configure.in
 --- orig-gcc-2.95.3/gcc/configure.in	Thu Jan 25 15:03:02 2001
-+++ gcc-2.95.3/gcc/configure.in	Tue Apr 23 00:54:03 2002
-@@ -2019,6 +2019,13 @@
++++ gcc-2.95.3/gcc/configure.in	Wed May 29 19:31:03 2002
+@@ -807,6 +807,10 @@
+ 		tm_file=arm/unknown-elf-oabi.h
+ 		tmake_file=arm/t-arm-elf
+ 		;;
++	arm*-*-palmos*)
++		tm_file=arm/unknown-elf.h
++		tmake_file=arm/t-arm-elf
++		;;
+ 	c1-convex-*)			# Convex C1
+ 		target_cpu_default=1
+ 		use_collect2=yes
+@@ -2019,6 +2023,13 @@
  		extra_headers=math-68881.h
  		float_format=m68k
  		;;
@@ -5253,8 +5273,19 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/xm-m68kpalmos.h gcc-2.95.3/gcc/config/
 +#define FATAL_EXIT_CODE 33
 diff -urN orig-gcc-2.95.3/gcc/configure gcc-2.95.3/gcc/configure
 --- orig-gcc-2.95.3/gcc/configure	Fri Mar 16 15:13:48 2001
-+++ gcc-2.95.3/gcc/configure	Tue Apr 23 00:55:26 2002
-@@ -4347,6 +4347,13 @@
++++ gcc-2.95.3/gcc/configure	Mon Jun  3 13:54:33 2002
+@@ -3235,6 +3235,10 @@
+ 		tm_file=arm/unknown-elf-oabi.h
+ 		tmake_file=arm/t-arm-elf
+ 		;;
++	arm*-*-palmos*)
++		tm_file=arm/unknown-elf.h
++		tmake_file=arm/t-arm-elf
++		;;
+ 	c1-convex-*)			# Convex C1
+ 		target_cpu_default=1
+ 		use_collect2=yes
+@@ -4347,6 +4351,13 @@
  		extra_headers=math-68881.h
  		float_format=m68k
  		;;
