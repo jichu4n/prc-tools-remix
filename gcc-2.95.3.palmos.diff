@@ -117,7 +117,7 @@ diff -urN orig-gcc-2.95.3/gcc/Makefile.in gcc-2.95.3/gcc/Makefile.in
  # Install float.h for cross compiler.
 diff -urN orig-gcc-2.95.3/gcc/configure.in gcc-2.95.3/gcc/configure.in
 --- orig-gcc-2.95.3/gcc/configure.in	Thu Jan 25 15:03:02 2001
-+++ gcc-2.95.3/gcc/configure.in	Thu Aug 15 02:22:30 2002
++++ gcc-2.95.3/gcc/configure.in	Tue Dec  3 14:38:50 2002
 @@ -807,6 +807,10 @@
  		tm_file=arm/unknown-elf-oabi.h
  		tmake_file=arm/t-arm-elf
@@ -143,6 +143,16 @@ diff -urN orig-gcc-2.95.3/gcc/configure.in gcc-2.95.3/gcc/configure.in
  	m68k-*-coff*)
  		tmake_file=m68k/t-m68kbare
  		tm_file="m68k/m68k-coff.h dbx.h libgloss.h"
+@@ -2763,6 +2774,9 @@
+ 		tmake_file=rs6000/t-beos
+ 		xmake_file=rs6000/x-beos
+ 		;;
++	powerpc-*-darwin*)
++		xmake_file=rs6000/x-darwin
++		;;
+ 	powerpc-*-sysv* | powerpc-*-elf*)
+ 		tm_file=rs6000/sysv4.h
+ 		xm_file="xm-siglist.h rs6000/xm-sysv4.h"
 diff -urN orig-gcc-2.95.3/gcc/cp/Make-lang.in gcc-2.95.3/gcc/cp/Make-lang.in
 --- orig-gcc-2.95.3/gcc/cp/Make-lang.in	Tue Apr 27 01:50:36 1999
 +++ gcc-2.95.3/gcc/cp/Make-lang.in	Tue Apr 23 00:54:26 2002
@@ -157,15 +167,28 @@ diff -urN orig-gcc-2.95.3/gcc/cp/Make-lang.in gcc-2.95.3/gcc/cp/Make-lang.in
  	  else \
  	    rm -f $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
  	    $(INSTALL_PROGRAM) g++$(exeext) $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
+diff -urN orig-gcc-2.95.3/config.guess gcc-2.95.3/config.guess
+--- orig-gcc-2.95.3/config.guess	Wed Mar  8 05:52:57 2000
++++ gcc-2.95.3/config.guess	Tue Dec  3 14:37:12 2002
+@@ -874,6 +874,9 @@
+     BePC:BeOS:*:*)	# BeOS running on Intel PC compatible.
+ 	echo i586-pc-beos
+ 	exit 0 ;;
++    *:Darwin:*:*)
++	echo `uname -p`-apple-darwin${UNAME_RELEASE}
++	exit 0 ;;
+ esac
+ 
+ #echo '(No uname command or uname output not recognized.)' 1>&2
 diff -urN orig-gcc-2.95.3/config.sub gcc-2.95.3/config.sub
 --- orig-gcc-2.95.3/config.sub	Wed Aug  4 10:09:26 1999
-+++ gcc-2.95.3/config.sub	Wed May 29 18:46:39 2002
++++ gcc-2.95.3/config.sub	Tue Dec  3 14:37:42 2002
 @@ -937,7 +937,7 @@
  	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
  	      | -cygwin* | -pe* | -psos* | -moss* | -proelf* | -rtems* \
  	      | -mingw32* | -linux-gnu* | -uxpv* | -beos* | -mpeix* | -udk* \
 -	      | -interix* | -uwin* )
-+	      | -interix* | -uwin* | -palmos* )
++	      | -interix* | -uwin* | -darwin* | -palmos* )
  	# Remember, each alternative MUST END IN *, to match a version number.
  		;;
  	# EGCS LOCAL
@@ -5353,6 +5376,14 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/xm-m68kpalmos.h gcc-2.95.3/gcc/config/
 +/* Arguments to use with `exit'.  */
 +#define SUCCESS_EXIT_CODE 0
 +#define FATAL_EXIT_CODE 33
+diff -urN orig-gcc-2.95.3/gcc/config/rs6000/x-darwin gcc-2.95.3/gcc/config/rs6000/x-darwin
+--- orig-gcc-2.95.3/gcc/config/rs6000/x-darwin	Thu Jan  1 00:00:00 1970
++++ gcc-2.95.3/gcc/config/rs6000/x-darwin	Tue Dec  3 14:40:46 2002
+@@ -0,0 +1,4 @@
++# configuration for PowerPC running Darwin (Mac OS X)
++
++# Show we need to use the C version of ALLOCA
++ALLOCA=alloca.o
 diff -urN orig-gcc-2.95.3/gcc/config/t-palmos gcc-2.95.3/gcc/config/t-palmos
 --- orig-gcc-2.95.3/gcc/config/t-palmos	Thu Jan  1 00:00:00 1970
 +++ gcc-2.95.3/gcc/config/t-palmos	Thu Aug 15 02:37:38 2002
@@ -5365,7 +5396,7 @@ diff -urN orig-gcc-2.95.3/gcc/config/t-palmos gcc-2.95.3/gcc/config/t-palmos
 +STMP_FIXPROTO =
 diff -urN orig-gcc-2.95.3/gcc/configure gcc-2.95.3/gcc/configure
 --- orig-gcc-2.95.3/gcc/configure	Fri Mar 16 15:13:48 2001
-+++ gcc-2.95.3/gcc/configure	Thu Aug 15 02:22:39 2002
++++ gcc-2.95.3/gcc/configure	Tue Dec  3 14:39:13 2002
 @@ -3235,6 +3235,10 @@
  		tm_file=arm/unknown-elf-oabi.h
  		tmake_file=arm/t-arm-elf
@@ -5391,6 +5422,16 @@ diff -urN orig-gcc-2.95.3/gcc/configure gcc-2.95.3/gcc/configure
  	m68k-*-coff*)
  		tmake_file=m68k/t-m68kbare
  		tm_file="m68k/m68k-coff.h dbx.h libgloss.h"
+@@ -5079,6 +5090,9 @@
+ 		tmake_file=rs6000/t-beos
+ 		xmake_file=rs6000/x-beos
+ 		;;
++	powerpc-*-darwin*)
++		xmake_file=rs6000/x-darwin
++		;;
+ 	powerpc-*-sysv* | powerpc-*-elf*)
+ 		tm_file=rs6000/sysv4.h
+ 		xm_file="xm-siglist.h rs6000/xm-sysv4.h"
 diff -urN orig-gcc-2.95.3/gcc/cp/decl2.c gcc-2.95.3/gcc/cp/decl2.c
 --- orig-gcc-2.95.3/gcc/cp/decl2.c	Sat Jun 10 02:06:44 2000
 +++ gcc-2.95.3/gcc/cp/decl2.c	Mon Mar 19 18:11:44 2001
@@ -5824,3 +5865,22 @@ diff -urN orig-gcc-2.95.3/gcc/version.c gcc-2.95.3/gcc/version.c
 @@ -1 +1 @@
 -char *version_string = "2.95.3 20010315 (release)";
 +char *version_string = "2.95.3-kgpd 20010315 (release)";
+diff -urN orig-gcc-2.95.3/libiberty/strerror.c gcc-2.95.3/libiberty/strerror.c
+--- orig-gcc-2.95.3/libiberty/strerror.c	Sat May 16 01:42:41 1998
++++ gcc-2.95.3/libiberty/strerror.c	Wed Dec 11 13:15:27 2002
+@@ -13,6 +13,7 @@
+    incompatible with our later declaration, perhaps by using const
+    attributes.  So we hide the declaration in errno.h (if any) using a
+    macro. */
++#define sys_nerr sys_nerr__
+ #define sys_errlist sys_errlist__
+ #endif
+ 
+@@ -20,6 +21,7 @@
+ #include <errno.h>
+ 
+ #ifdef HAVE_SYS_ERRLIST
++#undef sys_nerr
+ #undef sys_errlist
+ #endif
+ 

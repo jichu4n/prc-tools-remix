@@ -1428,6 +1428,19 @@ diff -urN orig-binutils-2.13.1/include/coff/internal.h binutils-2.13.1/include/c
  
  /* This reloc identifies mov.b instructions with a 16bit absolute
     address.  The linker tries to turn insns with this reloc into
+diff -urN orig-binutils-2.13.1/include/getopt.h binutils-2.13.1/include/getopt.h
+--- orig-binutils-2.13.1/include/getopt.h	Mon Jun 24 19:39:28 2002
++++ binutils-2.13.1/include/getopt.h	Tue Dec  3 13:50:24 2002
+@@ -112,7 +112,9 @@
+    errors, only prototype getopt for the GNU C library.  */
+ extern int getopt (int argc, char *const *argv, const char *shortopts);
+ #else
++#ifndef __cplusplus
+ extern int getopt ();
++#endif /* __cplusplus */
+ #endif
+ #endif /* !HAVE_DECL_GETOPT */
+ 
 diff -urN orig-binutils-2.13.1/ld/Makefile.am binutils-2.13.1/ld/Makefile.am
 --- orig-binutils-2.13.1/ld/Makefile.am	Tue Jul  9 04:42:13 2002
 +++ binutils-2.13.1/ld/Makefile.am	Thu Aug 15 02:47:13 2002
