@@ -76,8 +76,9 @@ cd $RPM_BUILD_DIR/build-prc-tools
   --with-palmdev-prefix=%{palmdev_prefix} \
   --with-palmdev-extra-path=/usr/local/palmdev
 
-cd $RPM_BUILD_DIR/build-prc-tools/doc
-make html
+## FIXME
+## cd $RPM_BUILD_DIR/build-prc-tools/doc
+## make html
 
 %install
 [ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
@@ -88,8 +89,9 @@ make html
 cd $RPM_BUILD_DIR/build-prc-tools
 make all-install
 
-cd $RPM_BUILD_DIR/build-prc-tools/doc
-make install-html
+## FIXME
+## cd $RPM_BUILD_DIR/build-prc-tools/doc
+## make install-html
 
 %post
 if /bin/sh -c 'install-info --version' >/dev/null 2>&1; then
@@ -197,12 +199,4 @@ fi
 %doc COPYING README
 
 %files htmldocs
-%doc %{palmdev_prefix}/doc/index.html
-%doc %{palmdev_prefix}/doc/texi/as_*
-%doc %{palmdev_prefix}/doc/texi/binutils_*
-%doc %{palmdev_prefix}/doc/texi/cpp_*
-%doc %{palmdev_prefix}/doc/texi/gcc_*
-%doc %{palmdev_prefix}/doc/texi/gdb_*
-%doc %{palmdev_prefix}/doc/texi/ld_*
-%doc %{palmdev_prefix}/doc/texi/make_*
-%doc %{palmdev_prefix}/doc/texi/prc-tools_*
+## FIXME
