@@ -4959,8 +4959,8 @@ diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68k.md gcc-2.95.2/gcc/config/m68k/m68
  ;; This is the first machine-dependent peephole optimization.
 diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68k/m68kpalmos.h
 --- orig-gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Wed Dec 31 16:00:00 1969
-+++ gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Tue Dec 12 17:43:20 2000
-@@ -0,0 +1,339 @@
++++ gcc-2.95.2/gcc/config/m68k/m68kpalmos.h	Fri Dec 15 03:38:35 2000
+@@ -0,0 +1,345 @@
 +/* Definitions of target machine for GNU compiler.  "naked" 68020,
 +   COFF object files and debugging, version.
 +   Copyright (C) 1994 Free Software Foundation, Inc.
@@ -5038,12 +5038,13 @@ diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68
 +   are returned in A0.  We do so because CodeWarrior does.  */
 +#undef FUNCTION_VALUE
 +#define FUNCTION_VALUE(VALTYPE, FUNC)  \
-+  gen_rtx_REG (TYPE_MODE (VALTYPE), POINTER_TYPE_P(VALTYPE) ? 8 : 0)
++  gen_rtx_REG (TYPE_MODE (VALTYPE),    \
++	       (POINTER_TYPE_P(VALTYPE) && TARGET_RET_PTRS_A0) ? 8 : 0)
 +
 +/* 1 if N is a possible register number for a function value.
 +   On the 68000, D0/A0 are the only registers thus used.  */
 +#undef FUNCTION_VALUE_REGNO_P
-+#define FUNCTION_VALUE_REGNO_P(N) ((N) == 0 || (N) == 8)
++#define FUNCTION_VALUE_REGNO_P(N) ((N) == 0 || ((N) == 8 && TARGET_RET_PTRS_A0))
 +
 +/* Functions which return large structures get the address
 +   to place the wanted value from a hidden parameter.  */
@@ -5066,6 +5067,9 @@ diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68
 +#define MASK_EXTRALOGUES	65536
 +#define TARGET_EXTRALOGUES	(target_flags & MASK_EXTRALOGUES)
 +
++#define MASK_RET_PTRS_A0	131072
++#define TARGET_RET_PTRS_A0	(target_flags & MASK_RET_PTRS_A0)
++
 +#undef SUBTARGET_SWITCHES
 +#define SUBTARGET_SWITCHES			\
 +   { "debug-labels", MASK_DEBUG_LABELS },	\
@@ -5075,11 +5079,13 @@ diff -urN orig-gcc-2.95.2/gcc/config/m68k/m68kpalmos.h gcc-2.95.2/gcc/config/m68
 +   { "own-gp", MASK_OWN_GP },			\
 +   { "no-own-gp", -MASK_OWN_GP },		\
 +   { "extralogues", MASK_EXTRALOGUES },		\
-+   { "no-extralogues", -MASK_EXTRALOGUES },
++   { "no-extralogues", -MASK_EXTRALOGUES },	\
++   { "experimental-return-reg-d0", -MASK_RET_PTRS_A0 }, \
++   { "no-experimental-return-reg-d0", MASK_RET_PTRS_A0 },
 +
 +/* Target defaults are -mpcrel -mshort -m68000 -msoft-float.  */
 +#undef TARGET_DEFAULT
-+#define TARGET_DEFAULT	(MASK_SHORT | MASK_PCREL)
++#define TARGET_DEFAULT	(MASK_SHORT | MASK_PCREL | MASK_RET_PTRS_A0)
 +
 +#undef SUBTARGET_OVERRIDE_OPTIONS
 +#define SUBTARGET_OVERRIDE_OPTIONS					\
