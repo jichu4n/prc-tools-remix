@@ -18,7 +18,6 @@ exec_prefix = @exec_prefix@
 bindir = @bindir@
 target = @target@
 target_alias = @target_alias@
-palmdev_prefix = @palmdev_prefix@
 exeext = @EXEEXT@
 tooldir = $(exec_prefix)/$(target_alias)
 
@@ -33,7 +32,7 @@ target_subdirs = crt libc libm include
 # or if you're on an unprotected file system like Windows.
 
 all-install: all-host install-host all-gcc install-gcc install-wrappers \
-             install-palmdev all-target install-target
+             all-target install-target
 
 all-host:
 	for dir in `echo $(host_subdirs) | sed -e 's/gcc//' -e 's/make//'`; do \
@@ -125,11 +124,6 @@ clean:
 	  fi; \
 	done
 
-install-palmdev:
-	$(INSTALL) -d $(palmdev_prefix)/doc
-	$(INSTALL) -d $(palmdev_prefix)/include
-	$(INSTALL) -d $(palmdev_prefix)/lib/$(target)
-
 
 distdir = prc-tools-@prc_tools_version@
 nondistpat = ^(binutils|gcc|gdb|make)$$
@@ -155,7 +149,7 @@ dist: $(srcdir)/configure
 	| (cd $(distdir) && tar xf -)
 	-rm -rf `find $(distdir) -name CVS -print`
 	for dir in `find $(distdir) -type d -print`; do \
-	  chmod a+rw $${dir}/*; \
+	  (cd $${dir} && chmod a+rw *); \
 	done
 	-rm -f $(distdir).tar $(distdir).tar.gz
 	tar cf $(distdir).tar $(distdir)
