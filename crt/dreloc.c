@@ -88,9 +88,9 @@ _GccReleaseCode (UInt16 cmd UNUSED_PARAM, void *pbp UNUSED_PARAM, UInt16 flags)
 
       asm ("move.w #__code_section_count,%0" : "=g" (ncoderes) : : "cc");
 
-      while (--ncoderes > 0)
+      for (resno = 2; resno <= ncoderes; resno++)
 	{
-	  MemHandle hnd = MemPtrRecoverHandle (*++basep);
+	  MemHandle hnd = DmGet1Resource ('code', resno);
 	  MemHandleUnlock (hnd);
 	  DmReleaseResource (hnd);
 	}
