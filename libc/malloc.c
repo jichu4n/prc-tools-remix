@@ -17,7 +17,12 @@
 
 void *
 malloc (size_t size) {
-  return MemPtrNew (size? size : 1);
+  /* MemPtrNew(0) returns NULL (quietly) on all the Palm OS versions tested,
+     but there is evidence that this may not be the case on *all* versions.
+     It seems wise not to depend on it in the future either.  */
+  void *p = NULL;
+  if (size)  p = MemPtrNew (size);
+  return p;
   }
 
 #endif
@@ -25,6 +30,7 @@ malloc (size_t size) {
 
 void
 free (void *ptr) {
+  /* MemPtrFree(NULL) aborts with a fatal alert, so we need to check.  */
   if (ptr)  MemPtrFree (ptr);
   }
 
@@ -33,8 +39,8 @@ free (void *ptr) {
 
 void *
 calloc (size_t nmemb, size_t memb_size) {
-  UInt32 size = nmemb * memb_size;
-  void *ptr = MemPtrNew (size);
+  size_t size = nmemb * memb_size;
+  void *ptr = malloc (size);
   if (ptr)
     MemSet (ptr, size, 0);
   return ptr;
@@ -46,9 +52,9 @@ calloc (size_t nmemb, size_t memb_size) {
 void *
 realloc (void *ptr, size_t size) {
   if (ptr == NULL)
-    return MemPtrNew (size);
+    return malloc (size);
   else if (size == 0) {
-    if (ptr)  MemPtrFree (ptr);
+    MemPtrFree (ptr);  /* At this point, we know that PTR is non-null.  */
     return NULL;
     }
   else if (MemPtrResize (ptr, size) == 0)
