@@ -142,7 +142,7 @@ $(srcdir)/configure: $(srcdir)/configure.in
 #    likely be read-only.  We want them to be read-write in the tarball.
 
 dist: $(srcdir)/configure
-	-rm -rf $(distdir)
+	-rm -rf $(distdir) $(distdir).tar $(distdir).tar.gz
 	mkdir $(distdir)
 	-chmod 777 $(distdir)
 	(cd $(srcdir) && tar cf - `ls | egrep -v '$(nondistpat)'`) \
@@ -151,7 +151,6 @@ dist: $(srcdir)/configure
 	for dir in `find $(distdir) -type d -print`; do \
 	  (cd $${dir} && chmod a+rw *); \
 	done
-	-rm -f $(distdir).tar $(distdir).tar.gz
 	tar cf $(distdir).tar $(distdir)
 	gzip -9 $(distdir).tar
 	-rm -rf $(distdir)
