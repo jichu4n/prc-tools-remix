@@ -121,6 +121,12 @@ make %{make_opts}
 [ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
 %makeinstall htmldir=$RPM_BUILD_ROOT%{palmdev_prefix}/doc %{make_opts}
 
+# These files are installed by the various packages, but are not to be packaged
+(cd ${RPM_BUILD_ROOT}%{_libdir}  && rm -f lib*.a)
+(cd ${RPM_BUILD_ROOT}%{_infodir} && rm -f [!p]*)
+(cd ${RPM_BUILD_ROOT}%{_datadir} && rm -f locale/*/LC_MESSAGES/*)
+(cd ${RPM_BUILD_ROOT}%{_mandir}  && rm -f man1/[!bp]* man7/*)
+
 %clean
 [ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
 
