@@ -1429,7 +1429,8 @@ build-prc [ -l ] [ -L ] [ -t @var{type} ] @var{prcfile} @var{app-name} @var{crid
 build-prc [ -o @var{file} | --output @var{file} ]
           [ -a @var{file} | --appinfo @var{file} ]
           [ -s @var{file} | --sortinfo @var{file} ]
-          [ -l ] [ -L ] [ -t @var{type} | --type @var{type} ]
+          [ -l ] [ -L ] [ -H | --hack ]
+          [ -t @var{type} | --type @var{type} ]
           [ -c @var{crid} | --creator @var{crid} ]
           [ -n @var{name} | --name @var{name} ]
           [ -m @var{num} | --modification-number @var{num} ]
@@ -1511,10 +1512,23 @@ Set the database's type to @var{type}, overriding any type it may get from
 a definition file or elsewhere.
 
 @item -l
-Equivalent to @code{-t GLib}.
+Build a GLib shared library; this is equivalent to specifying a project
+kind of ``glib'' in a definition file.  In particular, it changes the
+default database type and the disposition of code and data sections in
+the bfd executable, and influences resource checking.
 
 @item -L
-Equivalent to @code{-t libr}---i.e., build a system library.
+Build a system shared library; this is equivalent to specifying a project
+kind of ``syslib'' in a definition file.  In particular, it changes the
+default database type and the disposition of code (and data) sections in
+the bfd executable, and influences resource checking.
+
+@item -H
+@itemx --hack
+Build a HackMaster hack; this is equivalent to specifying a project kind
+of ``hack'' in a definition file.  In particular, it changes the default
+database type, requires all bfd executables to be marked as stand-alone,
+and influences resource checking.
 
 @item -c @var{crid}
 @itemx --creator @var{crid}

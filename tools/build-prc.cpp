@@ -57,6 +57,7 @@ usage () {
   propt ("-o FILE, --output FILE",
 	 "Set output .prc file name (new-style only)");
   propt ("-l, -L", "Build a GLib or a system library respectively");
+  propt ("-H, --hack", "Build a HackMaster hack");
   propt ("-a FILE, --appinfo FILE", "Add an AppInfo block");
   propt ("-s FILE, --sortinfo FILE", "Add a SortInfo block");
   propt ("-t TYPE, --type TYPE", "Set database type");
@@ -103,7 +104,7 @@ enum {
   OPTION_VERSION
   };
 
-static const char shortopts[] = "o:lLa:s:t:c:n:m:v:z:";
+static const char shortopts[] = "o:lLHa:s:t:c:n:m:v:z:";
 
 static struct option longopts[] = {
   { "output", required_argument, NULL, 'o' },
@@ -116,6 +117,7 @@ static struct option longopts[] = {
   { "version-number", required_argument, NULL, 'v' },
   { "provenance", no_argument, NULL, 'x' },
   { "compress-data", required_argument, NULL, 'z' },
+  { "hack", no_argument, NULL, 'H' },
 
   { "readonly", no_argument, NULL, OPTION_READONLY },
   { "read-only", no_argument, NULL, OPTION_READONLY },
@@ -379,7 +381,7 @@ static const char* deffname;
 static void
 db_header (database_kind kind, const struct database_header* h) {
   if (!set_db_kind (kind, def_default_pri))
-    error ("'-l' and '-L' options conflict with definition file");
+    error ("'-l'/'-L'/'-H'/'--hack' options conflict with definition file");
 
   if (superior (db.name, def_default_pri))
     strncpy (db.name, h->name, 32);
@@ -511,6 +513,11 @@ main (int argc, char** argv) {
     case 'L':
       if (superior (db.type, option_pri))  strncpy (db.type, "libr", 4);
       set_db_kind (DK_SYSLIB, option_pri);
+      break;
+
+    case 'H':
+      if (superior (db.type, option_pri))  strncpy (db.type, "HACK", 4);
+      set_db_kind (DK_HACK, option_pri);
       break;
 
     case 'a':
