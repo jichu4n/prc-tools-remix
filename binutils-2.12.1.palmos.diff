@@ -743,8 +743,8 @@ diff -urN orig-binutils-2.12.1/ld/emultempl/m68kcoff.em binutils-2.12.1/ld/emult
        if (! bfd_m68k_coff_create_embedded_relocs (abfd, &link_info,
 diff -urN orig-binutils-2.12.1/ld/scripttempl/m68kpalmos.sc binutils-2.12.1/ld/scripttempl/m68kpalmos.sc
 --- orig-binutils-2.12.1/ld/scripttempl/m68kpalmos.sc	Thu Jan  1 00:00:00 1970
-+++ binutils-2.12.1/ld/scripttempl/m68kpalmos.sc	Wed Jun  5 16:23:07 2002
-@@ -0,0 +1,70 @@
++++ binutils-2.12.1/ld/scripttempl/m68kpalmos.sc	Thu Jun  6 17:14:30 2002
+@@ -0,0 +1,76 @@
 +# Note that genscripts.sh strips blank lines, but converts lines
 +# matching ^\t$ into blank lines on output.  So we use the latter here.
 +
@@ -770,6 +770,9 @@ diff -urN orig-binutils-2.12.1/ld/scripttempl/m68kpalmos.sc binutils-2.12.1/ld/s
 +{
 +    coderes : ORIGIN = 0x0, LENGTH = 32770
 +    datares : ORIGIN = 0x0, LENGTH = 32767
++	
++    trap_region :	 ORIGIN = 0x1000000, LENGTH = 2
++    disposition_region : ORIGIN = 0x1000010, LENGTH = 6
 +}
 +	
 +SECTIONS
@@ -813,5 +816,8 @@ diff -urN orig-binutils-2.12.1/ld/scripttempl/m68kpalmos.sc binutils-2.12.1/ld/s
 +    } > datares
 +    end = ALIGN( 4 );
 +    edata = ALIGN( 4 );
++	
++    .trap : { *(.trap) } > trap_region
++    .disposn : { *(.disposn) } > disposition_region
 +}
 +EOF

@@ -462,12 +462,20 @@ make_data (const bfd_byte* raw_data, size_t data_size, size_t total_data_size,
   return res (0, datap - data);
   }
 
+static const char*
+arch_code_resource_type (bfd* abfd) {
+  switch (bfd_get_arch (abfd)) {
+  case bfd_arch_m68k:	return "code";
+  case bfd_arch_arm:	return "armc";
+  default:		return NULL;
+    }
+  }
 
 ResourceDatabase
-process_binary_file (const char* fname, binary_file_info& info) {
+process_binary_file (const char* fname, binary_file_info& normal_info) {
   static bool bfd_inited = false;
 
-  if (!bfd_inited) {
+  if (! bfd_inited) {
     bfd_init ();
     bfd_set_error_program_name (progname);
     bfd_inited = true;
@@ -475,10 +483,20 @@ process_binary_file (const char* fname, binary_file_info& info) {
 
   ResourceDatabase db;
 
+  bool opened = false;
   bfd* abfd = bfd_openr (fname, NULL);
 
-  if (!abfd || !bfd_check_format (abfd, bfd_object)) {
+  if (abfd == NULL)
     error ("can't open '%s': %s", fname, bfd_errmsg (bfd_get_error ()));
+  else if (! bfd_check_format (abfd, bfd_object))
+    error ("[%s] %s", fname, bfd_errmsg (bfd_get_error ()));
+  else if (! arch_code_resource_type (abfd))
+    error ("[%s] binary target '%s' is unsupported", fname,
+	   bfd_get_target (abfd));
+  else
+    opened = true;
+
+  if (! opened) {
     if (abfd)
       bfd_close (abfd);
     return db;
@@ -486,6 +504,44 @@ process_binary_file (const char* fname, binary_file_info& info) {
 
   if (! (bfd_get_file_flags (abfd) & EXEC_P))
     warning ("[%s] object file has not been linked", fname);
+
+  asection* disp_sec = bfd_get_section_by_name (abfd, ".disposn");
+  asection* trap_sec = bfd_get_section_by_name (abfd, ".trap");
+
+  binary_file_info info;
+  if (disp_sec || trap_sec) {
+    /* We're to be mapped into a standalone code resource; only the .text
+       section will be mapped, so we'll override most of normal_info.  */
+
+    bfd_size_type disp_size = disp_sec? bfd_section_size (abfd, disp_sec) : 0;
+    bfd_byte disp[6];
+
+    const char* type = arch_code_resource_type (abfd);
+    unsigned int id = normal_info.maincode.id;
+
+    if (disp_size >= 2 && get_section_contents (abfd, disp_sec, disp, 0,
+					    (disp_size < 6)? disp_size : 6)) {
+      id = bfd_get_16 (abfd, &disp[0]);
+      if (disp_size >= 6)
+	type = reinterpret_cast<const char*>(&disp[2]);
+      }
+
+    info.maincode = ResKey (type, id);
+    // info.extracode was constructed as empty
+    info.emit_appl_extras = info.emit_data = false;
+
+    if (trap_sec) {
+      Datablock trap (2);
+      if (get_section_contents (abfd, trap_sec, trap.writable_contents(), 0, 2))
+	db[ResKey ("TRAP", info.maincode.id)] = trap;
+
+      normal_info.maincode.id = info.maincode.id + 1;
+      }
+    }
+  else {
+    /* We're a normal binary file; apply all of normal_info.  */
+    info = normal_info;
+    }
 
   asection* data_sec = bfd_get_section_by_name (abfd, ".data");
   asection* bss_sec  = bfd_get_section_by_name (abfd, ".bss");
