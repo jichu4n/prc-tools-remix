@@ -1,0 +1,10 @@
+This one's especially messy.  Sorry.
+Probably all those functions written in asm aren't a great idea.  :-)
+
+The GLib stuff here won't build.
+
+Just get as far as libc.a and copy that into
+
+	/usr/local/m68k-palmos-coff/lib
+
+and that'll be enough to test with.

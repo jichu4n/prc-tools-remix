@@ -1,37 +1,57 @@
-TARGETFLAGS =
-DEFINES =
+CC = m68k-palmos-coff-gcc
+CFLAGS = -O5 -fomit-frame-pointer -fno-builtin -Wall
 
-CC = $(TOOLDIR)/m68k-palmos-coff-gcc
-AR = $(TOOLDIR)/m68k-palmos-coff-ar -cur
-RANLIB = $(TOOLDIR)/m68k-palmos-coff-ranlib
-NM = $(TOOLDIR)/m68k-palmos-coff-nm
-INCLUDES = -I../$(LIBCDIR)/include \
--I../PalmOS1 -I../PalmOS1/UI -I../PalmOS1/System -I../PalmOS1/Hardware
+#INSTALL = ../install-sh
+INSTALL = /usr/bin/install -c
+INSTALL_DATA = ${INSTALL} -m 644
+INSTALL_DIR = /usr/local/m68k-palmos-coff/lib
 
-CFLAGS = -O2 -g -fno-builtin $(TARGETFLAGS) $(DEFINES) $(INCLUDES)
+INSTALL_FILES = crt0.o gcrt0.o scrt0.o libcrt.a libscrt.a
 
-all: crt0.o gcrt0.o scrt0.o libGLib.a
+CRTLIB_OBJS = \
+  single_dreloc.o multi_dreloc.o multi_free.o reloc_chain.o \
+  hooks.o gdbstub.o
 
-install: all
-	cp -f libGLib.a $(PREFIX)/m68k-palmos-coff/lib
-	chmod 644 $(PREFIX)/m68k-palmos-coff/lib/libGLib.a
-	cp -f crt0.o $(PREFIX)/m68k-palmos-coff/lib
-	chmod 644 $(PREFIX)/m68k-palmos-coff/lib/crt0.o
-	cp -f gcrt0.o $(PREFIX)/m68k-palmos-coff/lib
-	chmod 644 $(PREFIX)/m68k-palmos-coff/lib/gcrt0.o
-	cp -f scrt0.o $(PREFIX)/m68k-palmos-coff/lib
-	chmod 644 $(PREFIX)/m68k-palmos-coff/lib/scrt0.o
+SCRTLIB_OBJS = \
+  palmos_GLib.o \
+  ssingle_dreloc.o smulti_dreloc.o smulti_free.o sreloc_chain.o \
+  hooks.o decompress.o
 
-.c.s:
-	$(CC) $(CFLAGS) -S $<
+all: $(INSTALL_FILES)
 
-libGLib.a: palmos_GLib.o
-	rm -f libGLib.a
-	$(AR) libGLib.a palmos_GLib.o
-	$(RANLIB) libGLib.a
+install: $(INSTALL_FILES)
+	$(INSTALL) -d $(INSTALL_DIR)
+	for f in $+; do \
+	  echo $${f}; \
+	  $(INSTALL) -m a+r $${f} $(INSTALL_DIR); \
+	done
 
-.S.o:
-	$(CC) $(TARGETFLAGS) $(DEFINES) -c $<
+crt0.o: crt0.c
+
+gcrt0.o: crt0.c
+	$(CC) $(CFLAGS) -DDASHG -c -o $@ $<
+
+scrt0.o: scrt0.c
+
+hooks.o: hooks.c crt.h
+gdbstub.o: gdbstub.c
+palmos_GLib.o: palmos_GLib.c palmos_GLib.h
+
+single_dreloc.o multi_dreloc.o multi_free.o reloc_chain.o: dreloc.c
+	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $<
+
+ssingle_dreloc.o smulti_dreloc.o smulti_free.o sreloc_chain.o: dreloc.c
+	$(CC) $(CFLAGS) -mown-gp -c -o $@ -DL`basename $@ .o | sed -e s/^s//` $<
+
+libcrt.a: $(CRTLIB_OBJS)
+	rm -f $@
+	m68k-palmos-coff-ar cr $@ $+
+	m68k-palmos-coff-ranlib $@
+
+libscrt.a: $(SCRTLIB_OBJS)
+	rm -f $@
+	m68k-palmos-coff-ar cr $@ $+
+	m68k-palmos-coff-ranlib $@
 
 clean:
-	rm -f *.[oa]
+	-rm *.o

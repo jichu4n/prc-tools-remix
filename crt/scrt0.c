@@ -11,12 +11,14 @@ typedef struct {
 } SaveEntry;
 
 void jmptable();
-static void GccRelocateData ();
+static void GccRelocateData(void);
 static void AllocSaveTable(void);
 static void clean(UInt,struct LibRef *);
 void crt0_trampoline(void);
 static void do_bhook(Word,Ptr,Word);
 static void do_ehook(Word,Ptr,Word);
+static void do_ctors(void);
+static void do_dtors(void);
 
 register void *reg_a4 asm("%a4");
 
@@ -138,6 +140,7 @@ ULong start(UInt ref, struct LibRef *libref,
     DmReleaseResource(dataH);
     reg_a4 = libref->globals;
     GccRelocateData();
+    do_ctors();
     AllocSaveTable();
     do_bhook(0, NULL, 0);
     reg_a4 = save_a4;
@@ -233,6 +236,7 @@ static void clean(UInt dummy, struct LibRef *libref)
     MemHandleUnlock(savetableHand);
     MemHandleFree(savetableHand);
     do_ehook(0, NULL, 0);
+    do_dtors();
     reg_a4 = save_a4;
 #ifdef USE_DYNAMIC_MEM_ONLY
     MemPtrFree(libref->globals);
@@ -350,31 +354,61 @@ void *crt0GetEntry(void **retpcP)
 }
 
 static void do_bhook(Word cmd, Ptr PBP, Word flags)
-{   
+{
     void **hookend, **hookptr;
     unsigned long text = (unsigned long)&start;
     asm ("sub.l #start, %0" : "=g" (text) : "0" (text));
 
-    asm ("lea bhook_start(%%pc),%0" : "=a" (hookptr) :);
-    asm ("lea bhook_end(%%pc),%0" : "=a" (hookend) :);
+    asm ("lea bhook_start,%0; add.l %1,%0" : "=a" (hookptr) : "g" (text));
+    asm ("lea bhook_end,%0; add.l %1,%0" : "=a" (hookend) : "g" (text));
 
     while (hookptr < hookend) {
-        void (*fptr)(Word,Ptr,Word) = (*(hookptr++)) + text;
-        fptr(cmd,PBP,flags);
+	void (*fptr)(Word,Ptr,Word) = (*(hookptr++)) + text;
+	fptr(cmd,PBP,flags);
     }
 }
 
 static void do_ehook(Word cmd, Ptr PBP, Word flags)
-{   
+{
     void **hookstart, **hookptr;
     unsigned long text = (unsigned long)&start;
     asm ("sub.l #start, %0" : "=g" (text) : "0" (text));
 
-    asm ("lea ehook_start(%%pc),%0" : "=a" (hookstart) :);
-    asm ("lea ehook_end(%%pc),%0" : "=a" (hookptr) :);
+    asm ("lea ehook_start,%0; add.l %1,%0" : "=a" (hookstart) : "g" (text));
+    asm ("lea ehook_end,%0; add.l %1,%0" : "=a" (hookptr) : "g" (text));
 
     while (hookptr > hookstart) {
-        void (*fptr)(Word,Ptr,Word) = (*(--hookptr)) + text;
-        fptr(cmd,PBP,flags);
+	void (*fptr)(Word,Ptr,Word) = (*(--hookptr)) + text;
+	fptr(cmd,PBP,flags);
+    }
+}
+
+static void do_ctors(void)
+{
+    void **hookend, **hookptr;
+    unsigned long text = (unsigned long)&start;
+    asm ("sub.l #start, %0" : "=g" (text) : "0" (text));
+
+    asm ("lea ctors_start,%0; add.l %1,%0" : "=a" (hookptr) : "g" (text));
+    asm ("lea ctors_end,%0; add.l %1,%0" : "=a" (hookend) : "g" (text));
+
+    while (hookptr < hookend) {
+	void (*fptr)(void) = (*(hookptr++)) + text;
+	fptr();
+    }
+}
+
+static void do_dtors(void)
+{
+    void **hookstart, **hookptr;
+    unsigned long text = (unsigned long)&start;
+    asm ("sub.l #start, %0" : "=g" (text) : "0" (text));
+
+    asm ("lea dtors_start,%0; add.l %1,%0" : "=a" (hookstart) : "g" (text));
+    asm ("lea dtors_end,%0; add.l %1,%0" : "=a" (hookptr) : "g" (text));
+
+    while (hookptr > hookstart) {
+	void (*fptr)(void) = (*(--hookptr)) + text;
+	fptr();
     }
 }
