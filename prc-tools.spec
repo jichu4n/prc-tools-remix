@@ -7,13 +7,13 @@ Summary: GCC and related tools for Palm OS development
 License: GPL
 URL: http://prc-tools.sourceforge.net/
 Group: Development/Palm OS
-Source0: http://prdownloads.sourceforge.net/prc-tools/%{name}-%{version}.tar.gz
+Source0: http://dl.sourceforge.net/prc-tools/prc-tools-%{version}.tar.gz
 Source1: ftp://ftp.gnu.org/pub/gnu/binutils/binutils-2.14.tar.bz2
-Source2: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.3/gcc-2.95.3.tar.gz
-Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-3.3.1/gcc-core-3.3.1.tar.bz2
-Source4: ftp://gcc.gnu.org/pub/gcc/releases/gcc-3.3.1/gcc-g++-3.3.1.tar.bz2
-Source5: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.3.tar.bz2
-Source6: ftp://ftp.gnu.org/pub/gnu/make/make-3.80.tar.bz2
+Source2: ftp://gcc.gnu.org/pub/gcc/releases/gcc-3.3.1/gcc-core-3.3.1.tar.bz2
+Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-3.3.1/gcc-g++-3.3.1.tar.bz2
+Source4: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.3.tar.bz2
+Source5: ftp://ftp.gnu.org/pub/gnu/make/make-3.80.tar.bz2
+Source6: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.3/gcc-2.95.3.tar.gz
 NoSource: 1
 NoSource: 2
 NoSource: 3
@@ -77,11 +77,11 @@ relocation facilities of your RPM installation tool.
 %prep
 %setup -q -a 1 -a 2 -a 3 -a 4 -a 5 -a 6
 
-cat *.palmos.diff | patch -p0
+cat *.diff | patch -p0
 
 mv gcc-2.95.3 gcc295
 # Rename each "package-x.y.z" directory to just "package"
-for dir in *-*[0-9]; do mv $dir `echo $dir | sed 's/-[^-]*$//'`; done
+for dir in *-*[0-9]; do mv $dir ${dir%%-*}; done
 
 mkdir static-libs
 
