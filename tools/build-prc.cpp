@@ -1,6 +1,6 @@
 /* build-prc.cpp: build a .prc from a pile of files.
 
-   Copyright (c) 1998, 1999 Palm Computing, Inc. or its subsidiaries.
+   Copyright (c) 1998-2000 Palm Computing, Inc. or its subsidiaries.
    All rights reserved.
 
    This is free software; you can redistribute it and/or modify
@@ -135,11 +135,9 @@ static struct option longopts[] = {
 
 typedef map<ResKey, string> ResourceProvenance;
 
+static database_kind db_kind;
 static ResourceDatabase db;
 static ResourceProvenance prov;
-
-bool version_flag_present = false;
-bool modnum_flag_present = false;
 
 
 void
@@ -191,76 +189,65 @@ slurp_file_as_datablock (const char* fname) {
   }
 
 
+struct parameter_state {
+  database_kind kind;
+  struct database_header db;
+  bool kind_present, version_present, modnum_present;
+
+  parameter_state ();
+  };
+
+parameter_state::parameter_state () {
+  init_database_header (&db);
+  kind_present = version_present = modnum_present = false;
+  }
+
+void
+merge_state (const parameter_state& s) {
+  if (s.kind_present)  db_kind = s.kind;
+
+  if (s.db.name[0] != '\0')  strncpy (db.name, s.db.name, 32);
+  if (s.db.type[0] != '\0')  strncpy (db.type, s.db.type, 4);
+  if (s.db.creator[0] != '\0')  strncpy (db.creator, s.db.creator, 4);
+
+  db.readonly |= s.db.readonly;
+  db.appinfo_dirty |= s.db.appinfo_dirty;
+  db.backup |= s.db.backup;
+  db.ok_to_install_newer |= s.db.ok_to_install_newer;
+  db.reset_after_install |= s.db.reset_after_install;
+  db.copy_prevention |= s.db.copy_prevention;
+  db.stream |= s.db.stream;
+  db.hidden |= s.db.hidden;
+  db.launchable_data |= s.db.launchable_data;
+
+  if (s.version_present)  db.version = s.db.version;
+  if (s.modnum_present)  db.modnum = s.db.modnum;
+
+  if (palmostime_of_tm (&s.db.created))  db.created = s.db.created;
+  if (palmostime_of_tm (&s.db.modified))  db.modified = s.db.modified;
+  if (palmostime_of_tm (&s.db.backedup))  db.backedup = s.db.backedup;
+  }
+
+
 static struct binary_file_info bininfo;
 
-static void
-set_bininfo (database_kind kind) {
-  switch (kind) {
-  case DK_APPLICATION:
-    bininfo.maincode = ResKey ("code", 1);
-    bininfo.emit_appl_extras = true;
-    bininfo.emit_data = true;
-    break;
-
-  case DK_GLIB:
-    bininfo.maincode = ResKey ("GLib", 0);
-    bininfo.emit_appl_extras = false;
-    bininfo.emit_data = true;
-    break;
-
-  case DK_SYSLIB:
-    bininfo.maincode = ResKey ("libr", 0);
-    bininfo.emit_appl_extras = false;
-    bininfo.emit_data = false;
-    break;
-
-  case DK_HACK:
-    bininfo.maincode = ResKey ("code", 1000);
-    bininfo.emit_appl_extras = false;
-    bininfo.emit_data = false;
-    break;
-
-  case DK_GENERIC:
-    bininfo.maincode = ResKey ("code", 0);
-    bininfo.emit_appl_extras = false;
-    bininfo.emit_data = false;
-    break;
-    }
-  }
 
 // I'm not sure I really understand how to do this, but we'll try:
 extern "C" {
 
 static void
 db_header (database_kind kind, const struct database_header* h) {
-  set_bininfo (kind);
+  parameter_state s;
 
-  // Update header fields from the .def file if they weren't given values
-  // on the command line.  Only version and modnum need X_present indicators,
-  // because only they are likely to be explicitly set to zero.
+  s.kind = kind;
+  s.db = *h;
+  // Since the .def file is always merged onto the built-in defaults, which
+  // never have a version or modnum, pretending these are always present is
+  // a good enough approximation.
+  s.kind_present = s.version_present = s.modnum_present = true;
 
-  if (db.name[0] == '\0')  strncpy (db.name, h->name, 32);
-  if (db.type[0] == '\0')  strncpy (db.type, h->type, 4);
-  if (db.creator[0] == '\0')  strncpy (db.creator, h->creator, 4);
-
-  db.readonly |= h->readonly;
-  db.appinfo_dirty |= h->appinfo_dirty;
-  db.backup |= h->backup;
-  db.ok_to_install_newer |= h->ok_to_install_newer;
-  db.reset_after_install |= h->reset_after_install;
-  db.copy_prevention |= h->copy_prevention;
-  db.stream |= h->stream;
-  db.hidden |= h->hidden;
-  db.launchable_data |= h->launchable_data;
-
-  if (!version_flag_present)  db.version = h->version;
-  if (!modnum_flag_present)  db.modnum = h->modnum;
-
-  if (!palmostime_of_tm (&db.created))  db.created = h->created;
-  if (!palmostime_of_tm (&db.modified))  db.modified = h->modified;
-  if (!palmostime_of_tm (&db.backedup))  db.backedup = h->backedup;
+  merge_state (s);
   }
-
 
 static void
 multicode_section (const char* secname) {
@@ -309,12 +296,13 @@ main (int argc, char** argv) {
   bool work_desired = true;
 
   char* output_fname = NULL;
+  parameter_state opts;
 
   progname = argv[0];
 
+  db_kind = DK_APPLICATION;
   init_database_header (&db);
-
-  database_kind oldstyle_db_kind = DK_APPLICATION;
+  strncpy (db.type, "appl", 4);
 
   bininfo.stack_size = 4096;
   bininfo.force_rloc = false;
@@ -327,13 +315,15 @@ main (int argc, char** argv) {
       break;
 
     case 'l':
-      strncpy (db.type, "GLib", 4);
-      oldstyle_db_kind = DK_GLIB;
+      strncpy (opts.db.type, "GLib", 4);
+      opts.kind = DK_GLIB;
+      opts.kind_present = true;
       break;
 
     case 'L':
-      strncpy (db.type, "libr", 4);
-      oldstyle_db_kind = DK_SYSLIB;
+      strncpy (opts.db.type, "libr", 4);
+      opts.kind = DK_SYSLIB;
+      opts.kind_present = true;
       break;
 
     case 'a':
@@ -345,25 +335,25 @@ main (int argc, char** argv) {
       break;
 
     case 't':
-      strncpy (db.type, optarg, 4);
+      strncpy (opts.db.type, optarg, 4);
       break;
 
     case 'c':
-      strncpy (db.creator, optarg, 4);
+      strncpy (opts.db.creator, optarg, 4);
       break;
 
     case 'n':
-      strncpy (db.name, optarg, 32);
+      strncpy (opts.db.name, optarg, 32);
       break;
 
     case 'm':
-      db.modnum = strtoul (optarg, NULL, 0);
-      modnum_flag_present = true;
+      opts.db.modnum = strtoul (optarg, NULL, 0);
+      opts.modnum_present = true;
       break;
 
     case 'v':
-      db.version = strtoul (optarg, NULL, 0);
-      version_flag_present = true;
+      opts.db.version = strtoul (optarg, NULL, 0);
+      opts.version_present = true;
       break;
 
     case 'z':
@@ -371,39 +361,39 @@ main (int argc, char** argv) {
       break;
 
     case OPTION_READONLY:
-      db.readonly = true;
+      opts.db.readonly = true;
       break;
 
     case OPTION_APPINFO_DIRTY:
-      db.appinfo_dirty = true;
+      opts.db.appinfo_dirty = true;
       break;
 
     case OPTION_BACKUP:
-      db.backup = true;
+      opts.db.backup = true;
       break;
 
     case OPTION_OK_TO_INSTALL_NEWER:
-      db.ok_to_install_newer = true;
+      opts.db.ok_to_install_newer = true;
       break;
 
     case OPTION_RESET_AFTER_INSTALL:
-      db.reset_after_install = true;
+      opts.db.reset_after_install = true;
       break;
 
     case OPTION_COPY_PREVENTION:
-      db.copy_prevention = true;
+      opts.db.copy_prevention = true;
       break;
 
     case OPTION_STREAM:
-      db.stream = true;
+      opts.db.stream = true;
       break;
 
     case OPTION_HIDDEN:
-      db.hidden = true;
+      opts.db.hidden = true;
       break;
 
     case OPTION_LAUNCHABLE_DATA:
-      db.launchable_data = true;
+      opts.db.launchable_data = true;
       break;
 
     case OPTION_HELP:
@@ -420,59 +410,94 @@ main (int argc, char** argv) {
   if (!work_desired)
     return EXIT_SUCCESS;
 
-  bool deffile_present = argc > optind && file_type (argv[optind]) == FT_DEF;
+  if (optind >= argc) {
+    usage();
+    return EXIT_FAILURE;
+    }
+  
+  enum file_type first = file_type (argv[optind]);
 
-  for (int i = optind+1; i < argc; i++)
-      if (file_type (argv[i]) == FT_DEF)
-	if (deffile_present)
-	  einfo (E_NOFILE, "only one .def file can be used");
-	else
-	  einfo (E_NOFILE, "the .def file must come first");
+  if (first == FT_PRC && !output_fname) {  // Old-style arguments
+    if (argc - optind >= 3) {
+      parameter_state s;
+      output_fname = argv[optind++];
+      strncpy (s.db.name, argv[optind++], 32);
+      strncpy (s.db.creator, argv[optind++], 4);
+      merge_state (s);
 
-  if (output_fname || deffile_present) {  // New-style arguments
-    if (deffile_present && 0 /* -l or -L */)
-      einfo (E_NOFILE, "`-l' and `-L' options conflict with definition file");
-
+      if (opts.db.creator[0] != '\0' || opts.db.name[0] != '\0')
+	einfo (E_NOFILE,
+	       "`-o', `-n', '-c' options conflict with old-style arguments");
+      }
+    else {
+      usage();
+      nerrors++;
+      }
+    }
+  else {  // New-style arguments
     if (!output_fname) {
       static char fname[FILENAME_MAX];
       strcpy (fname, argv[optind]);
       output_fname = basename_with_changed_extension (fname, ".prc");
       }
     }
-  else {  // Old-style arguments
-    if (output_fname || db.creator[0] != '\0' || db.name[0] != '\0')
-      einfo (E_NOFILE,
-	     "`-o', `-n', '-c' options conflict with old-style arguments");
-    if (argc - optind >= 3) {
-      output_fname = argv[optind++];
 
-      strncpy (db.name, argv[optind++], 32);
-      if (db.type[0] == '\0')  strncpy (db.type, "appl", 4);
-      strncpy (db.creator, argv[optind++], 4);
+  if (first == FT_DEF) {
+    struct def_callbacks def_funcs = default_def_callbacks;
+    def_funcs.db_header = db_header;
+    def_funcs.multicode_section = multicode_section;
+    def_funcs.stack = stack;
+    def_funcs.trap = trap;
+    def_funcs.version_resource = version_resource;
+    read_def_file (argv[optind++], &def_funcs);
 
-      set_bininfo (oldstyle_db_kind);
-      }
-    else
-      nerrors++;
+    if (opts.kind_present)
+      einfo (E_NOFILE, "`-l' and `-L' options conflict with definition file");
     }
 
-  if (nerrors) {
-    usage();
+  merge_state (opts);
+
+  if (nerrors)
     return EXIT_FAILURE;
-    }
 
-  struct def_callbacks def_funcs;
-  def_funcs = default_def_callbacks;
-  def_funcs.db_header = db_header;
-  def_funcs.multicode_section = multicode_section;
-  def_funcs.stack = stack;
-  def_funcs.trap = trap;
-  def_funcs.version_resource = version_resource;
+  switch (db_kind) {
+  case DK_APPLICATION:
+    bininfo.maincode = ResKey ("code", 1);
+    bininfo.emit_appl_extras = true;
+    bininfo.emit_data = true;
+    break;
+
+  case DK_GLIB:
+    bininfo.maincode = ResKey ("GLib", 0);
+    bininfo.emit_appl_extras = false;
+    bininfo.emit_data = true;
+    break;
+
+  case DK_SYSLIB:
+    bininfo.maincode = ResKey ("libr", 0);
+    bininfo.emit_appl_extras = false;
+    bininfo.emit_data = false;
+    break;
+
+  case DK_HACK:
+    bininfo.maincode = ResKey ("code", 1000);
+    bininfo.emit_appl_extras = false;
+    bininfo.emit_data = false;
+    break;
+
+  case DK_GENERIC:
+    bininfo.maincode = ResKey ("code", 0);
+    bininfo.emit_appl_extras = false;
+    bininfo.emit_data = false;
+    break;
+    }
 
   for (int i = optind; i < argc; i++)
     switch (file_type (argv[i])) {
     case FT_DEF:
-      read_def_file (argv[i], &def_funcs);
+      einfo (E_NOFILE,
+	     (first == FT_DEF)? "only one definition file may be used"
+			      : "the definition file must come first");
       break;
 
     case FT_RAW: {
@@ -511,10 +536,19 @@ main (int argc, char** argv) {
 
     case FT_PRC:
       // @@@ implement this later
+      einfo (E_NOFILE | E_WARNING,
+	     "`%s' ignored: PRC reading not yet implemented", argv[i]);
       break;
       }
 
   if (nerrors == 0) {
+    if (db.name[0] == '\0')
+      einfo (E_NOFILE | E_WARNING,
+	     "creating `%s' without a name", output_fname);
+    if (db.creator[0] == '\0')
+      einfo (E_NOFILE | E_WARNING,
+	     "creating `%s' without a creator id", output_fname);
+
     FILE* f = fopen (output_fname, "wb");
     if (f) {
       time_t now = time (NULL);
