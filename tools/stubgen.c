@@ -17,8 +17,6 @@
 #include "def.h"
 #include "pfdheader.h"
 
-const char progversion[] = "1.2";
-
 void
 usage() {
   printf ("\
@@ -121,7 +119,7 @@ main (int argc, char **argv) {
   funcs.db_header = db_header_func;
   funcs.export_function = export_function;
 
-  progname = argv[0];
+  set_progname (argv[0]);
 
   while ((c = getopt_long (argc, argv, shortopts, longopts, &longind)) != -1)
     switch (c) {
@@ -135,7 +133,7 @@ main (int argc, char **argv) {
       break;
 
     case OPTION_VERSION:
-      printf ("%s version %s\n", progname, progversion);
+      print_version ("stubgen", "=Jp");
       work_desired = 0;
       break;
       }

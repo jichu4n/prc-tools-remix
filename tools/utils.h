@@ -15,9 +15,10 @@
 extern "C" {
 #endif
 
-/* This one must be defined by the main program.  */
-extern const char progversion[];
+/* Use "set_progname (argv[0])" near the start of main().  The name given
+   is available thereafter via the global PROGNAME.  */
 
+void set_progname (const char *progname0);
 extern const char *progname;
 
 extern int nerrors, nwarnings;
@@ -51,6 +52,19 @@ void warning (const char *format, ...) PRINTF_FUNC (1, 2);
 
 extern int propt_tab;
 void propt (const char *optname, const char *meaning);
+
+/* Print a version line (using the general prc-tools version number from
+   prc-tools.spec) and various copyright messages.  CANONICAL_PROGNAME may
+   differ from PROGNAME -- see the GNU coding standard, standards.info.
+
+   FLAGS contains mainly letters [A-Za-z] indicating copyright holders to be
+   printed.  Upper case letters are printed with "Copyright", lower case with
+   "Portions copyright".  See the function for valid letters.
+
+   The character "=" in FLAGS means print "(TARGET_ALIAS prc-tools)" instead
+   of plain "(prc-tools)" on the version line.  */
+
+void print_version (const char *canonical_progname, const char *flags);
 
 
 /* If NEWEXT is non-NULL, strips off any extension (a final '.' and all

@@ -8,17 +8,28 @@
    the Free Software Foundation; either version 2, or (at your option)
    any later version.  */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "libiberty.h"
 
 #include "utils.h"
 
 const char *progname;
+
+void
+set_progname (const char *progname0) {
+  /* FIXME: possibly might want to do a basename() here.  */
+  progname = progname0;
+  xmalloc_set_program_name (progname);
+  }
+
 
 int nerrors = 0;
 int nwarnings = 0;
@@ -106,6 +117,42 @@ propt (const char *optname, const char *meaning) {
       printf ("  %s\n  %*s%s\n", optname, propt_tab, "", meaning);
   else
     printf ("  %s\n", optname);
+  }
+
+
+void
+print_version (const char *canonical_progname, const char *flags) {
+  static const struct holder { char key; const char *name; } holders[] = {
+    { 'g', "Free Software Foundation, Inc" },
+    { 'j', "John Marshall" },
+    { 'p', "Palm, Inc. or its subsidiaries" },
+    { '\0', NULL }
+    };
+
+  static const int year = 2001;
+
+  const char *s;
+
+  printf ("%s (", canonical_progname);
+  if (strchr (flags, '='))
+    printf ("%s ", TARGET_ALIAS);
+  printf ("prc-tools) %s\n", PRC_TOOLS_VERSION);
+
+  for (s = flags; *s; s++) {
+    char holder_key = tolower (*s);
+    const struct holder *h;
+    for (h = holders; h->key; h++)
+      if (h->key == holder_key) {
+	printf ("%s %d %s.\n",
+		(isupper (*s))? "Copyright" : "Portions copyright", year,
+		h->name);
+	break;
+	}
+    }
+
+  printf (
+"This program is free software; you may redistribute it under the terms of\n"
+"the GNU General Public License.  This program has absolutely no warranty.\n");
   }
 
 
@@ -225,7 +272,7 @@ generate_file_from_template (const char *fname, const char *const *tmpl,
 
   for (str = tmpl; *str; str++)
     if (strcmp (*str, "@progname@") == 0)
-      fprintf (f, "%s v%s", progname, progversion);
+      fprintf (f, "%s v%s", progname, PRC_TOOLS_VERSION);
     else if (strcmp (*str, "@fname@") == 0)
       fprintf (f, "%s", fname);
     else if (filter (f, *str))

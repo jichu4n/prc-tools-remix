@@ -24,11 +24,6 @@
 
 #include "utils.h"
 
-
-const char *progname = "sdkfind";
-const char progversion[] = "1.1";
-
-
 char **args = NULL, **arglim = NULL, **argmax = NULL;
 struct string_store *store;
 
@@ -170,7 +165,9 @@ main (int argc, char **argv) {
   int verbose_seen, print_search_dirs_seen, palmos_seen, retcode, i;
   const char *subcmd;
 
-  xmalloc_set_program_name (progname);
+  /* This is constant rather than argv[0] so that error messages are not
+     confusing when we're masquerading as the compiler.  */
+  set_progname ("sdkfind");
   retcode = EXIT_SUCCESS;
 
   subcmd = basename (argv[0]);

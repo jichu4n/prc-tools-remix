@@ -125,7 +125,7 @@ stubgen.o: stubgen.c glib-jumps-s.str glib-stubs-c.str syslib-dispatch-s.str \
 	   utils.h def.h
 sdkfind.o: sdkfind.c utils.h
 binres.o: binres.cpp binres.hpp pfd.hpp pfdheader.h pfdio.hpp utils.h
-utils.o: utils.c utils.h
+utils.o: utils.c config.h utils.h
 
 def.yy.o: def.yy.c def.tab.h utils.h pfdheader.h
 def.tab.o: def.tab.c config.h utils.h def.h pfdheader.h

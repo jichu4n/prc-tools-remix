@@ -11,4 +11,5 @@
 #undef TARGET_ALIAS
 #undef PALMDEV_PREFIX
 #undef PALMDEV_PATH
+#undef PRC_TOOLS_VERSION
 #undef EXEEXT

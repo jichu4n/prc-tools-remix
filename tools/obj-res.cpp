@@ -32,8 +32,6 @@
 #include "pfd.hpp"
 #include "utils.h"
 
-const char progversion[] = "2.0";
-
 static void
 usage() {
   printf ("Usage: %s [-l] [-L export.file] [-v] [-z #] bfd.file\n", progname);
@@ -65,7 +63,7 @@ main (int argc, char** argv) {
   bool work_desired = true;
   bool verbose = false;
 
-  progname = argv[0];
+  set_progname (argv[0]);
 
   struct binary_file_info info;
 
@@ -106,7 +104,7 @@ main (int argc, char** argv) {
       break;
 
     case OPTION_VERSION:
-      printf ("%s version %s\n", progname, progversion);
+      print_version ("obj-res", "=Jpg");
       work_desired = false;
       break;
       }

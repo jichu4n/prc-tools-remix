@@ -17,8 +17,6 @@
 #include "libiberty.h"
 #include "utils.h"
 
-const char progversion[] = "1.0";
-
 const char **trapname;
 unsigned int mintrap, maxtrap;
 
@@ -67,7 +65,7 @@ main (int argc, char **argv) {
   FILE *f;
   int i;
 
-  progname = argv[0];
+  set_progname (argv[0]);
 
   sprintf (systrap_fname, "%s/lib/trapnumbers", PALMDEV_PREFIX);
 

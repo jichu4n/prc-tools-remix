@@ -17,8 +17,6 @@
 #include "utils.h"
 #include "def.h"
 
-const char progversion[] = "1.2";
-
 void
 usage() {
   printf ("\
@@ -111,7 +109,7 @@ main (int argc, char **argv) {
   struct def_callbacks funcs = default_def_callbacks;
   funcs.multicode_section = section;
 
-  progname = argv[0];
+  set_progname (argv[0]);
 
   while ((c = getopt_long (argc, argv, shortopts, longopts, &longind)) != -1)
     switch (c) {
@@ -125,7 +123,7 @@ main (int argc, char **argv) {
       break;
 
     case OPTION_VERSION:
-      printf ("%s version %s\n", progname, progversion);
+      print_version ("multigen", "=Jp");
       work_desired = 0;
       break;
       }

@@ -44,8 +44,6 @@
 #include "pfd.hpp"
 #include "pfdio.hpp"
 
-const char progversion[] = "2.1";
-
 void
 usage() {
   printf ("\
@@ -401,7 +399,7 @@ main (int argc, char** argv) {
 
   char* output_fname = NULL;
 
-  progname = argv[0];
+  set_progname (argv[0]);
 
   set_db_kind (DK_APPLICATION, default_pri);
   init_database_header (&db);
@@ -514,7 +512,7 @@ main (int argc, char** argv) {
       break;
 
     case OPTION_VERSION:
-      printf ("%s version %s\n", progname, progversion);
+      print_version ("build-prc", "Jpg");
       work_desired = false;
       break;
       }
