@@ -1,7 +1,6 @@
 # Makefile for prc-tools include files.
 #
-# Copyright (c) 2000 Palm Computing, Inc. or its subsidiaries.
-# All rights reserved.
+# Copyright 2002 John Marshall.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,21 +13,33 @@ VPATH = @srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 target_alias = @target_alias@
+headerdir = $(exec_prefix)/$(target_alias)/include
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 
-INSTALL_FILES = EntryPoints.h NewTypes.h
+all: Pilot.fake PalmOS.fake
 
-all: $(INSTALL_FILES)
+install: all
+	$(INSTALL) -d $(headerdir)
+	$(INSTALL_DATA) $(srcdir)/EntryPoints.h $(headerdir)/EntryPoints.h
+	$(INSTALL_DATA) $(srcdir)/NewTypes.h $(headerdir)/NewTypes.h
+	$(INSTALL_DATA) Pilot.fake $(headerdir)/Pilot.h
+	$(INSTALL_DATA) PalmOS.fake $(headerdir)/PalmOS.h
 
-header_dir = $(exec_prefix)/$(target_alias)/include
+.PHONY: all install clean
 
-install: $(INSTALL_FILES)
-	$(INSTALL) -d $(header_dir)
-	for f in $(INSTALL_FILES); do \
-	  echo $${f}; \
-	  $(INSTALL_DATA) $(srcdir)/$${f} $(header_dir)/$${f}; \
-	done
+
+# We build these under false names; if they were here under their real names
+# there'd be scope for confusion when building ../crt etc because those
+# directories do their builds with a -I../include pointing to here.
+
+Pilot.fake: missing-sdk.h
+	sed -e 's/^<//' -e '/^>/d' $(srcdir)/missing-sdk.h > $@
+
+PalmOS.fake: missing-sdk.h
+	sed -e 's/^>//' -e '/^</d' $(srcdir)/missing-sdk.h > $@
+
 
 clean:
+	-rm -f *.fake
