@@ -19,10 +19,6 @@ NoSource: 4
 BuildRoot: %{_tmppath}/%{name}-root
 BuildRequires: texinfo
 
-# The target used to be 'm68k-palmos-coff'.  Some people may want to leave
-# it thus to avoid changing their makefiles a little bit.
-%define target m68k-palmos
-
 # This is the canonical place to look for Palm OS-related header files and
 # such on Unix-like file systems.
 %define palmdev_prefix /opt/palmdev
@@ -34,6 +30,19 @@ with various post-linker tools to produce Palm OS .prc files.
 
 You will also need a Palm OS SDK and some way of creating resources, such as
 PilRC.
+
+%package arm
+Summary: GCC and related tools for ARM targeted Palm OS development
+Group: Development/Palm OS
+Requires: prc-tools >= 2.1.90
+%description arm
+A compiler tool chain for building Palm OS armlets in C or C++.
+Includes (patched versions of) binutils 2.12.1 and GCC 2.95.3, and requires
+the various post-linker tools from a corresponding prc-tools package.
+
+Note that this version of ARM prc-tools does not provide startup code or
+other niceties:  by itself, it is only useful for building stand-alone
+code resources such as armlets.
 
 %package htmldocs
 Summary: GCC, GDB, binutils, make, and prc-tools documentation as HTML
@@ -80,10 +89,13 @@ cd build
 rm -f static-libs/*
 ln -s `${CXX:-g++} -print-file-name=libstdc++.a` static-libs/libstdc++.a
 
+# The m68k target used to be 'm68k-palmos-coff'.  Some people may want to
+# leave it thus to avoid changing their makefiles a little bit.
+
 # The --with-headers bit is a nasty hack to try to make fixinc happy on
 # Solaris and simultaneously stop it from doing anything.
 LDFLAGS=-L`pwd`/static-libs ../configure \
-  --target=%{target} \
+  --enable-targets=m68k-palmos,arm-palmos \
   --enable-languages=c,c++ \
   --with-headers=`pwd`/empty \
   --with-palmdev-prefix=%{palmdev_prefix} \
@@ -121,15 +133,21 @@ fi
 
 %files
 %defattr(-, root, root)
-%{_bindir}/*
-%{_exec_prefix}/%{target}
-%{_libdir}/gcc-lib/%{target}
+%{_bindir}/[b-z]*
+%{_exec_prefix}/m68k*
+%{_libdir}/gcc-lib/m68k*
 # Native packages provide gcc.info* etc, so we limit ourselves to this one
 %doc %{_infodir}/prc-tools*
 # Similarly, the native packages have already provided equivalent manpages
 #%doc %{_mandir}/man1/*
 
 %doc COPYING README
+
+%files arm
+%defattr(-, root, root)
+%{_bindir}/arm*
+%{_exec_prefix}/arm*
+%{_libdir}/gcc-lib/arm*
 
 %files htmldocs
 %defattr(-, root, root)
