@@ -93,7 +93,8 @@ canonical_path (const char *path) {
    A series of analyze_palmdev_tree() calls creates two linked lists of
    roots:  GENERIC_ROOT_LIST is an ordered list of the generic ones, while
    SDK_ROOT_LIST contains the ones that are real SDKs and is really a
-   table accessed with find().  The KEY field is only used by the latter.  */
+   table accessed with find().  The KEY and BASE fields are only used by
+   the latter.  */
 
 enum sub_kind { include, lib };
 
@@ -102,11 +103,13 @@ struct root {
   const char *prefix;	/* Full path of the root directory.  */
   const char *sub[2];	/* Names of the headers & libraries subdirectories.  */
   const char *key;	/* Canonical SDK key, in the case of a SDK root.  */
+  const char *base;	/* Key of SDK upon which this SDK is based, if any.  */
   };
 
 struct root *
-make_root (const char *path_format, ...) {
+make_root (int base_allowed, const char *path_format, ...) {
   char path[FILENAME_MAX];
+  FILE *basef;
   va_list args;
   struct root *root = xmalloc (sizeof (struct root));
 
@@ -122,6 +125,18 @@ make_root (const char *path_format, ...) {
   root->sub[lib] = is_dir ("%s/lib", path)? "lib"
 		 : is_dir ("%s/GCC Libraries", path)? "GCC Libraries"
 		 : NULL;
+
+  root->base = NULL;
+  strcat (path, "/base");
+  if (base_allowed && (basef = fopen (path, "r")) != NULL) {
+    char text[80];
+    if (fgets (text, sizeof text, basef)) {
+      char *nl = strchr (text, '\n');
+      if (nl)  *nl = '\0';
+      root->base = canonical_key (text);
+      }
+    fclose (basef);
+    }
 
   return root;
   }
@@ -151,6 +166,15 @@ free_root_list (struct root *list) {
 
 struct root *generic_root_list, *sdk_root_list;
 
+int
+sdk_valid (const struct root *sdk) {
+  /* An SDK is valid if you can see some headers through it, either directly
+     or via a base SDK.  If it has a base, we merely assume that (somewhere
+     down the line) the base is valid; if not, we'll get a warning for the
+     most basic base.  */
+  return sdk->sub[include] || sdk->base;
+  }
+
 void
 print_report (const char *name, const struct root *root,
 	      const struct root *overriding_root, int headers_required) {
@@ -158,18 +182,21 @@ print_report (const char *name, const struct root *root,
 
   if (overriding_root)
     printf ("UNUSED -- hidden by %s", overriding_root->prefix);
-  else if (headers_required && ! root->sub[include])
+  else if (headers_required && ! sdk_valid (root))
     printf ("INVALID -- no headers");
   else {
     if (root->sub[include])
-      printf ("headers in '%s', ", root->sub[include]);
+      printf ("headers in '%s'", root->sub[include]);
     else
-      printf ("no headers, ");
+      printf ("no headers");
 
     if (root->sub[lib])
-      printf ("libraries in '%s'", root->sub[lib]);
+      printf (", libraries in '%s'", root->sub[lib]);
     else
-      printf ("no libraries");
+      printf (", no libraries");
+
+    if (root->base)
+      printf (", based on sdk-%s", root->base);
     }
 
   printf ("\n");
@@ -199,14 +226,14 @@ analyze_palmdev_tree (const char *prefix_as_given, int report) {
 	if (overriding_sdk)
 	  root = NULL;
 	else
-	  root = make_root ("%s/%s", prefix, e->d_name);
+	  root = make_root (1, "%s/%s", prefix, e->d_name);
 
 	n++;
 	if (report)
 	  print_report (e->d_name, root, overriding_sdk, 1);
 
 	if (root) {
-	  if (root->sub[include]) {
+	  if (sdk_valid (root)) {
 	    root->key = key;
 	    root->next = sdk_root_list;
 	    sdk_root_list = root;
@@ -221,7 +248,7 @@ analyze_palmdev_tree (const char *prefix_as_given, int report) {
     if (report && n == 0)
       printf ("  (none)\n");
 
-    root = make_root ("%s", prefix);
+    root = make_root (0, "%s", prefix);
     if (root->sub[include] || root->sub[lib]) {
       if (report) {
 	printf ("  and material in %s used regardless of SDK choice\n",
@@ -229,7 +256,7 @@ analyze_palmdev_tree (const char *prefix_as_given, int report) {
 	print_report ("  (common)", root, NULL, 0);
 	}
 
-      *last_generic_root = make_root ("%s", prefix);
+      *last_generic_root = make_root (0, "%s", prefix);
       last_generic_root = &((*last_generic_root)->next);
       }
     else
@@ -278,6 +305,8 @@ write_sdk_spec (FILE *f, struct root *sdk, const char *target,
 		enum sub_kind kind) {
   fprintf (f, "*%s_sdk_%s:\n", spec[kind], sdk->key);
   write_dirtree (f, sdk, target, kind);
+  if (sdk->base)
+    fprintf (f, " %%(%s_sdk_%s)", spec[kind], sdk->base);
   fprintf (f, "\n\n");
   }
 
@@ -530,6 +559,7 @@ main (int argc, char **argv) {
     }
   else {
     struct root *default_sdk = NULL;
+    struct root *sdk;
 
     store = new_string_store ();
 
@@ -540,6 +570,12 @@ main (int argc, char **argv) {
       else
 	warning ("can't open '%s': @P", argv[optind]);
 
+    for (sdk = sdk_root_list; sdk; sdk = sdk->next)
+      if (sdk->base && ! find (sdk_root_list, sdk->base)) {
+	warning ("[%s/base] base SDK '%s' not found", sdk->prefix, sdk->base);
+	sdk->base = NULL;
+	}
+
     if (default_sdk_name) {
       default_sdk = find (sdk_root_list, canonical_key (default_sdk_name));
       if (default_sdk == NULL)
@@ -548,8 +584,6 @@ main (int argc, char **argv) {
       }
 
     if (default_sdk == NULL && sdk_root_list) {
-      struct root *sdk;
-
       /* Find the SDK with the alphabetically highest key.  */
       default_sdk = sdk_root_list;
       for (sdk = sdk_root_list; sdk; sdk = sdk->next)

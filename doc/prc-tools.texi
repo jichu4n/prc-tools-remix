@@ -1710,7 +1710,7 @@ palmdev-prep [ -d @var{sdk} | --default @var{sdk} ]
 
 Most Palm OS programs use functions from the Palm OS API, so need to
 @code{#include} various Palm OS header files and perhaps also to link
-with static libraries such as @file{PalmOSGlue}.
+with static libraries such as Palm OS Glue.
 The preprocessor and the linker need to be told, one directory at a time,
 where to search for these files, via options such as @code{-I},
 @code{-isystem}, and @code{-L} (@pxref{Directory Options, options,
@@ -1732,6 +1732,33 @@ The ``standard PalmDev location'' is determined when prc-tools is configured;
 typically on Unix it is @file{/opt/palmdev} and on Cygwin it is typically
 @file{/PalmDev}, which typically corresponds to the Windows directory
 @file{C:\PalmDev}.
+
+In detail:  first @code{palmdev-prep} looks in each root directory given
+for (immediate) subdirectories whose names start with @file{sdk-}, which it
+calls ``SDK directories''.
+
+It then examines each SDK directory in turn.  If an SDK directory contains a
+directory named @file{include} or @file{Incs}, GCC's preprocessor will be
+instructed to search for header files within @emph{all} subdirectories nested
+thereunder.
+Similarly, if an SDK directory contains a directory named @file{lib} or
+@file{GCC Libraries}, the linker will be instructed to search for libraries in
+the directories (immediately) thereunder corresponding to the particular target
+architecture in use.
+
+If an SDK directory contains a file named @file{base}, then that file should
+contain a single line (e.g.@: @samp{sdk-3.5} or simply @samp{4}) specifying
+another SDK upon which this SDK is based.  The preprocessor and linker will
+then be instructed to search also the directories given by the base SDK, and
+to do so @emph{after} searching those from @emph{this} SDK.  This can be used
+to have replacement files from an ``SDK Update'' override files from the SDK
+that is being updated, while also allowing the use of the pristine original
+SDK.
+
+It also detects @file{include}, @file{Incs}, @file{lib}, and
+@file{GCC Libraries} directories immediately within each root directory
+specified, causing them to be searched @emph{after} all those corresponding to the
+particular SDK in use.
 
 @table @code
 @item -d @var{sdk}
