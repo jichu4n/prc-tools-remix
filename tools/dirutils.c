@@ -59,48 +59,6 @@ is_dir_dirent (struct dirent *dent, const char *pathformat, ...) {
   }
 
 
-static void
-for_each_subdir_aux (int (*process) (const char *, const char *),
-		     const char *path, const char *base) {
-  DIR *dir = opendir (path);
-  if (dir == NULL)
-    return;
-
-  if (base == NULL || process (path, base)) {
-    struct dirent *e;
-    while ((e = readdir (dir)) != NULL)
-      if (e->d_name[0] != '.' && is_dir_dirent (e, "%s/%s", path, e->d_name)) {
-	char fullname[FILENAME_MAX];
-	sprintf (fullname, "%s/%s", path, e->d_name);
-	for_each_subdir_aux (process, fullname, e->d_name);
-	}
-    }
-
-  closedir (dir);
-  }
-
-void
-for_each_subdir (int (*process) (const char *, const char *),
-		 int process_top, const char *pathformat, ...) {
-  char path[FILENAME_MAX];
-  const char *base;
-  va_list args;
-
-  va_start (args, pathformat);
-  vsprintf (path, pathformat, args);
-  va_end (args);
-
-  if (process_top) {
-    const char *sep = strrchr (path, '/');
-    base = sep? sep + 1 : path;
-    }
-  else
-    base = NULL;
-
-  for_each_subdir_aux (process, path, base);
-  }
-
-
 struct directory_node {
   struct directory_node *next;
   char path[FILENAME_MAX];

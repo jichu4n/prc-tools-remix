@@ -58,16 +58,6 @@ int is_dir (const char *pathformat, ...) PRINTF_FUNC (1, 2);
 int is_dir_dirent (struct dirent *dent, const char *pathformat, ...)
   PRINTF_FUNC (2, 3);
 
-/* Applies PROCESS to each subdirectory under the formatted base pathname,
-   including the base directory itself if PROCESS_TOP is non-zero.  The
-   function is given both the subdirectory's full PATH and its BASE name,
-   and should return non-zero to indicate that the subdirectory should
-   be recursed into.  */
-
-void for_each_subdir (int (*process) (const char *path, const char *base),
-		      int process_top, const char *path_format, ...)
-  PRINTF_FUNC (3, 4);
-
 
 /* These functions are used similarly to opendir/readdir/closedir, but
    iterate over all files or directories or both (as determined by FLAGS)
