@@ -1305,10 +1305,16 @@ automatically whenever there is a debugger connected to its debugger port.
 Thus there is no need to do anything yourself to enable debugging on Poser.
 
 @item
-Gdb Panel, in the
-@uref{http://sourceforge.net/project/showfiles.php?group_id=4429&release_id=24287, prc-tools samples},
-is a small Palm OS application which sets this feature.  You need to use it
-or something similar when debugging on a real device.
+@set samplesurl  http://sourceforge.net/project/showfiles.php?group_id=4429
+GDB Panel, in the
+@ifnottex
+@uref{@value{samplesurl}, prc-tools-samples},
+@end ifnottex
+@iftex
+prc-tools samples@footnote{@url{@value{samplesurl}}},
+@end iftex
+is a small Palm OS application which sets this feature.  You need to use it or
+something similar when debugging on a real device or on the Palm OS Simulator.
 @end itemize
 
 
