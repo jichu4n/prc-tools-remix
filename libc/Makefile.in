@@ -38,7 +38,7 @@ CFLAGS = -Wall -O2 -fno-builtin -DPRINT_FLOATS \
 
 INCDIR = $(srcdir)/include
 INSTALL_HFILES = $(INCDIR)/errno.h $(INCDIR)/malloc.h \
-		 $(INCDIR)/setjmp.h $(INCDIR)/stdio.h $(INCDIR)/string.h \
+		 $(INCDIR)/setjmp.h $(INCDIR)/stdio.h \
 		 $(INCDIR)/sys/types.h
 
 
@@ -49,7 +49,7 @@ INSTALL_LIBS_m68k    = libc.a mown-gp/libc.a libg.a mown-gp/libg.a libstdc++.a
 LIBC_OBJS_m68k = \
 	conio.o vsprintf.o printf.o setjmp.o \
 	bcopy.o memmove.o strchr.o strncat.o strspn.o \
-	memscan.o strcmp.o strncmp.o strstr.o \
+	strcmp.o strncmp.o strstr.o \
 	memset.o strcpy.o strncpy.o strtok.o \
 	ctype.o isalnum.o isalpha.o isblank.o iscntrl.o isdigit.o isgraph.o \
 	islower.o isprint.o ispunct.o isspace.o isupper.o isxdigit.o \
@@ -58,7 +58,7 @@ LIBC_OBJS_m68k = \
 	_Strtoul.o _Strtoull.o strtol.o strtoll.o strtoul.o strtoull.o \
 	malloc.o free.o realloc.o calloc.o \
 	abs.o labs.o llabs.o div.o ldiv.o lldiv.o \
-	memcmp.o strnlen.o \
+	memcmp.o \
 	memcpy.o strcat.o strlen.o strpbrk.o \
 	abort.o atexit.o bzero.o
 

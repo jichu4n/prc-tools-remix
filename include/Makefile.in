@@ -21,11 +21,10 @@ all: Pilot.fake PalmOS.fake
 
 install: all
 	$(INSTALL) -d $(headerdir)
-	$(INSTALL_DATA) $(srcdir)/EntryPoints.h $(headerdir)/EntryPoints.h
-	$(INSTALL_DATA) $(srcdir)/NewTypes.h $(headerdir)/NewTypes.h
-	$(INSTALL_DATA) $(srcdir)/Standalone.h $(headerdir)/Standalone.h
-	$(INSTALL_DATA) $(srcdir)/ctype.h $(headerdir)/ctype.h
-	$(INSTALL_DATA) $(srcdir)/stdlib.h $(headerdir)/stdlib.h
+	for f in EntryPoints.h NewTypes.h Standalone.h \
+		 ctype.h stdlib.h string.h; do \
+	  $(INSTALL_DATA) $(srcdir)/$$f $(headerdir)/$$f; \
+	done
 	$(INSTALL_DATA) Pilot.fake $(headerdir)/Pilot.h
 	$(INSTALL_DATA) PalmOS.fake $(headerdir)/PalmOS.h
 
