@@ -61,12 +61,6 @@ add_L (const char *path) {
 
 
 int
-is_dir (const char *path) {
-  struct stat st;
-  return stat (path, &st) == 0 && S_ISDIR (st.st_mode);
-  }
-
-int
 add_tree (void (*addf) (const char *), const char *dirname) {
   DIR *dir;
 

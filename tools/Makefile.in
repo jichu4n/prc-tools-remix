@@ -113,7 +113,7 @@ stubgen_objs = stubgen.o utils.o def.yy.o def.tab.o
 stubgen$(exeext): $(stubgen_objs) $(PFD)
 	$(CC) $(ALL_LDFLAGS) -o $@ $(stubgen_objs) -liberty -lpfd
 
-sdkfind_objs = sdkfind.o utils.o
+sdkfind_objs = sdkfind.o utils.o dirutils.o
 sdkfind$(exeext): $(sdkfind_objs)
 	$(CC) $(ALL_LDFLAGS) -o $@ $(sdkfind_objs) -liberty
 
@@ -126,6 +126,7 @@ stubgen.o: stubgen.c glib-jumps-s.str glib-stubs-c.str syslib-dispatch-s.str \
 sdkfind.o: sdkfind.c utils.h
 binres.o: binres.cpp binres.hpp pfd.hpp pfdheader.h pfdio.hpp utils.h
 utils.o: utils.c config.h utils.h
+dirutils.o: dirutils.c utils.h
 
 def.yy.o: def.yy.c def.tab.h utils.h pfdheader.h
 def.tab.o: def.tab.c config.h utils.h def.h pfdheader.h

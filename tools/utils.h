@@ -1,6 +1,6 @@
 /* utils.h: various utilities.
 
-   Copyright (c) 1998, 1999, 2001 by John Marshall.
+   Copyright 1998, 1999, 2001, 2002 by John Marshall.
    <jmarshall@acm.org>
 
    This is free software; you can redistribute it and/or modify
@@ -47,6 +47,26 @@ extern int nerrors, nwarnings;
 
 void error   (const char *format, ...) PRINTF_FUNC (1, 2);
 void warning (const char *format, ...) PRINTF_FUNC (1, 2);
+
+/* These stat the formatted pathname and return non-zero if it is a
+   directory.  DENT, if non-NULL, is presumed to refer to the same pathname
+   and will be used to avoid the stat call if it indicates that the dirent
+   is a directory.  */
+
+struct dirent;
+int is_dir (const char *pathformat, ...) PRINTF_FUNC (1, 2);
+int is_dir_dirent (struct dirent *dent, const char *pathformat, ...)
+  PRINTF_FUNC (2, 3);
+
+/* Applies PROCESS to each subdirectory under the formatted base pathname,
+   including the base directory itself if PROCESS_TOP is non-zero.  The
+   function is given both the subdirectory's full PATH and its BASE name,
+   and should return non-zero to indicate that the subdirectory should
+   be recursed into.  */
+
+void for_each_subdir (int (*process) (const char *path, const char *base),
+		      int process_top, const char *path_format, ...)
+  PRINTF_FUNC (3, 4);
 
 #undef PRINTF_FUNC
 
