@@ -12,8 +12,6 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.13)
 AC_INIT(prc-tools.spec)
 
-AC_CONFIG_SUBDIRS(binutils gdb gcc make)
-
 
 palmdev_prefix=/opt/palmdev
 
@@ -62,6 +60,34 @@ AC_SUBST(install_htmldocs_enabled)
 
 AC_CANONICAL_SYSTEM
 
+AC_ARG_ENABLE(generic,
+[  --disable-generic       omit tools etc that are not target-specific])
+
+config_subdirs=""
+output_files="Makefile"
+
+if false
+  # FIXME handle "top level configury"
+else
+  case "$target_cpu" in
+  m68k)	config_subdirs="$config_subdirs binutils gcc gdb"
+  	output_files="$output_files crt/Makefile libc/Makefile libm/Makefile"
+	;;
+  arm)	config_subdirs="$config_subdirs binutils gcc"
+  	output_files="$output_files"
+	;;
+  *)	AC_MSG_ERROR($target is not supported as a Palm OS target)
+  	;;
+  esac
+fi
+
+if test x$enable_generic != xno; then
+  config_subdirs="$config_subdirs make"
+  output_files="$output_files doc/Makefile doc/version.texi include/Makefile
+		tools/Makefile"
+fi
+
+
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
@@ -91,4 +117,5 @@ fi
 AC_MSG_RESULT($prc_tools_version)
 AC_SUBST(prc_tools_version)
 
-AC_OUTPUT(Makefile crt/Makefile doc/Makefile doc/version.texi include/Makefile libc/Makefile libm/Makefile tools/Makefile)
+AC_CONFIG_SUBDIRS($config_subdirs)
+AC_OUTPUT($output_files)
