@@ -148,7 +148,7 @@ add_trees (const char *sdk_version) {
       einfo (E_NOFILE|E_WARNING, "%s does not contain an SDK", winning_sdk);
     }
   else
-    einfo (E_NOFILE|E_WARNING, "%s not found in %s", sdk, PALMDEV_PATH);
+    einfo (E_NOFILE|E_WARNING, "'%s' not found in %s", sdk, PALMDEV_PATH);
   }
 
 
