@@ -13,8 +13,8 @@
    might be covered by such a license (such as the use of functions from
    other header files that are so-covered).  */
 
-#ifndef NEWTYPES_H
-#define NEWTYPES_H
+#ifndef _PRC_TOOLS_NEWTYPES_H
+#define _PRC_TOOLS_NEWTYPES_H
 
 #ifndef SDK_VERSION
 
@@ -39,9 +39,19 @@
 #elif defined PALMOS_SDK_VERSION
 #define SDK_VERSION  50
 
-/* 4.0 introduced tracing.  */
+/* 4.0 and its Update 1 introduced tracing, but there were no reliable
+   differences between their BuildDefaults.h or BuildDefines.h (the only
+   actual difference was in DO_NOT_ALLOW_ACCESS_TO_INTERNALS_OF_STRUCTS,
+   but developers were encouraged to edit that themselves), so we have to
+   look further afield to distinguish between the two.  */
 #elif defined TRACE_OUTPUT_ON
+
+#include <Chars.h>
+#ifndef vchrHardEarbud
+#define SDK_VERSION  41
+#else
 #define SDK_VERSION  40
+#endif
 
 /* 3.5 hinted at the conceivability of a Simulator running on Unix.  */
 #elif defined EMULATION_UNIX
