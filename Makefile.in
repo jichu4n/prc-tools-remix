@@ -19,7 +19,7 @@ INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 
 host_subdirs = $(configured_subdirs) doc tools
-target_subdirs = crt libc libm
+target_subdirs = crt libc libm include
 
 # This target will only work if you are willing to do all your building as
 # a user who can write to your install directory, i.e., if you build as root

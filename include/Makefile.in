@@ -1,0 +1,32 @@
+# Makefile for prc-tools include files.
+#
+# Copyright (c) 2000 Palm Computing, Inc. or its subsidiaries.
+# All rights reserved.
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+palmdev_prefix = @sharedstatedir@
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+
+INSTALL_FILES = EntryPoints.h NewTypes.h
+
+all: $(INSTALL_FILES)
+
+install: $(INSTALL_FILES)
+	$(INSTALL) -d $(palmdev_prefix)/include
+	for f in $(INSTALL_FILES); do \
+	  echo $${f}; \
+	  $(INSTALL_DATA) $(srcdir)/$${f} $(palmdev_prefix)/include/$${f}; \
+	done
+
+clean:
