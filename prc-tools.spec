@@ -6,7 +6,7 @@ Release: 1
 Summary: GCC and related tools for Palm OS development
 License: GPL
 URL: http://prc-tools.sourceforge.net/
-Group: Development/Tools
+Group: Development/Palm OS
 Source0: http://prdownloads.sourceforge.net/prc-tools/%{name}-%{version}.tar.gz
 Source1: ftp://sources.redhat.com/pub/binutils/releases/binutils-2.11.2.tar.gz
 Source2: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.0.tar.gz
@@ -35,8 +35,8 @@ You will also need a Palm OS SDK and some way of creating resources, such as
 PilRC.
 
 %package htmldocs
-Summary: GCC, binutils, gdb, and general prc-tools documentation in HTML format
-Group: Development/Tools
+Summary: GCC, binutils, gdb, and general prc-tools documentation as HTML
+Group: Development/Palm OS
 %description htmldocs
 GCC, binutils, gdb, and general prc-tools documentation in HTML format
 
