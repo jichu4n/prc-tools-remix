@@ -84,7 +84,7 @@ diff -urN orig-binutils-2.11.2/ChangeLogs.palmos binutils-2.11.2/ChangeLogs.palm
 +      generic.em.
 +      * Makefile.in (em68kcoff.c): Likewise.
 diff -urN orig-binutils-2.11.2/bfd/coff-m68k.c binutils-2.11.2/bfd/coff-m68k.c
---- orig-binutils-2.11.2/bfd/coff-m68k.c	Thu Jun  7 03:08:23 2001
+--- orig-binutils-2.11.2/bfd/coff-m68k.c	Thu Jun  7 05:08:23 2001
 +++ binutils-2.11.2/bfd/coff-m68k.c	Wed Jan  9 11:32:52 2002
 @@ -106,6 +106,7 @@
    HOWTO(R_PCRWORD,	       0,  1, 	16, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP16",   true, 0x0000ffff,0x0000ffff, false),
@@ -206,7 +206,7 @@ diff -urN orig-binutils-2.11.2/bfd/coff-m68k.c binutils-2.11.2/bfd/coff-m68k.c
    if (sym != NULL && sym->n_scnum == 0 && sym->n_value != 0)
      {
        /* This is a common symbol.  The section contents include the
-@@ -499,20 +548,193 @@
+@@ -499,21 +548,194 @@
  	    targetsec = NULL;
  	}
  
@@ -398,13 +398,14 @@ diff -urN orig-binutils-2.11.2/bfd/coff-m68k.c binutils-2.11.2/bfd/coff-m68k.c
  #define coff_bfd_is_local_label_name m68k_coff_is_local_label_name
  
  #define coff_relocate_section _bfd_coff_generic_relocate_section
-+
-+#define coff_bfd_print_private_bfd_data coff_m68k_bfd_print_private_bfd_data
  
++#define coff_bfd_print_private_bfd_data coff_m68k_bfd_print_private_bfd_data
++
  #include "coffcode.h"
  
+ #ifndef TARGET_SYM
 diff -urN orig-binutils-2.11.2/bfd/config.bfd binutils-2.11.2/bfd/config.bfd
---- orig-binutils-2.11.2/bfd/config.bfd	Thu Jun 14 11:16:59 2001
+--- orig-binutils-2.11.2/bfd/config.bfd	Thu Jun 14 13:16:59 2001
 +++ binutils-2.11.2/bfd/config.bfd	Wed Jan  2 14:05:07 2002
 @@ -161,6 +161,10 @@
      targ_defvec=bfd_elf32_littlearm_oabi_vec
@@ -417,18 +418,18 @@ diff -urN orig-binutils-2.11.2/bfd/config.bfd binutils-2.11.2/bfd/config.bfd
  
    thumb-*-coff)
      targ_defvec=armcoff_little_vec
-@@ -566,6 +570,9 @@
-     targ_defvec=bfd_elf32_m68k_vec
+@@ -567,6 +571,9 @@
      targ_selvecs=ieee_vec
      targ_underscore=yes
-+    ;;
+     ;;
 +  m68*-*-palmos*)
 +    targ_defvec=m68kcoff_vec
-     ;;
++    ;;
  
    m88*-harris-cxux* | m88*-*-dgux* | m88*-*-sysv4*)
+     targ_defvec=bfd_elf32_m88k_vec
 diff -urN orig-binutils-2.11.2/config.sub binutils-2.11.2/config.sub
---- orig-binutils-2.11.2/config.sub	Thu Mar 22 11:12:23 2001
+--- orig-binutils-2.11.2/config.sub	Thu Mar 22 12:12:23 2001
 +++ binutils-2.11.2/config.sub	Wed Jan  2 14:05:07 2002
 @@ -255,6 +255,10 @@
  		echo Invalid configuration \`$1\': machine \`$basic_machine\' not recognized 1>&2
@@ -450,7 +451,7 @@ diff -urN orig-binutils-2.11.2/config.sub binutils-2.11.2/config.sub
  	# Remember, each alternative MUST END IN *, to match a version number.
  		;;
 diff -urN orig-binutils-2.11.2/gas/config/m68k-parse.h binutils-2.11.2/gas/config/m68k-parse.h
---- orig-binutils-2.11.2/gas/config/m68k-parse.h	Thu Jun  7 03:15:26 2001
+--- orig-binutils-2.11.2/gas/config/m68k-parse.h	Thu Jun  7 05:15:26 2001
 +++ binutils-2.11.2/gas/config/m68k-parse.h	Thu Jan  3 12:58:31 2002
 @@ -240,12 +240,13 @@
    int scale;
@@ -477,7 +478,7 @@ diff -urN orig-binutils-2.11.2/gas/config/m68k-parse.h binutils-2.11.2/gas/confi
    enum pic_relocation pic_reloc;
  #endif
 diff -urN orig-binutils-2.11.2/gas/config/m68k-parse.y binutils-2.11.2/gas/config/m68k-parse.y
---- orig-binutils-2.11.2/gas/config/m68k-parse.y	Thu Jun  7 03:15:26 2001
+--- orig-binutils-2.11.2/gas/config/m68k-parse.y	Thu Jun  7 05:15:26 2001
 +++ binutils-2.11.2/gas/config/m68k-parse.y	Mon Jan  7 16:24:32 2002
 @@ -973,7 +973,7 @@
  	tail = 2;
@@ -501,7 +502,7 @@ diff -urN orig-binutils-2.11.2/gas/config/m68k-parse.y binutils-2.11.2/gas/confi
    }
  #endif
 diff -urN orig-binutils-2.11.2/gas/config/obj-coff.h binutils-2.11.2/gas/config/obj-coff.h
---- orig-binutils-2.11.2/gas/config/obj-coff.h	Thu Jun  7 03:15:26 2001
+--- orig-binutils-2.11.2/gas/config/obj-coff.h	Thu Jun  7 05:15:26 2001
 +++ binutils-2.11.2/gas/config/obj-coff.h	Tue Jan  8 10:06:39 2002
 @@ -25,6 +25,9 @@
  
@@ -514,7 +515,7 @@ diff -urN orig-binutils-2.11.2/gas/config/obj-coff.h binutils-2.11.2/gas/config/
  
  #define WORKING_DOT_WORD
 diff -urN orig-binutils-2.11.2/gas/config/tc-m68k.c binutils-2.11.2/gas/config/tc-m68k.c
---- orig-binutils-2.11.2/gas/config/tc-m68k.c	Mon Jun 11 10:04:48 2001
+--- orig-binutils-2.11.2/gas/config/tc-m68k.c	Mon Jun 11 12:04:48 2001
 +++ binutils-2.11.2/gas/config/tc-m68k.c	Mon Jan  7 16:40:42 2002
 @@ -215,7 +215,7 @@
  	 significance of some values (in the branch instruction, for
@@ -561,7 +562,7 @@ diff -urN orig-binutils-2.11.2/gas/config/tc-m68k.c binutils-2.11.2/gas/config/t
  #define relaxable_symbol(symbol) 1
  
 diff -urN orig-binutils-2.11.2/gas/configure.in binutils-2.11.2/gas/configure.in
---- orig-binutils-2.11.2/gas/configure.in	Mon Jun 11 10:04:44 2001
+--- orig-binutils-2.11.2/gas/configure.in	Mon Jun 11 12:04:44 2001
 +++ binutils-2.11.2/gas/configure.in	Wed Jan  2 14:05:07 2002
 @@ -196,6 +196,7 @@
        arm-*-pe | thumb-*-pe)            fmt=coff em=pe ;;
@@ -580,7 +581,7 @@ diff -urN orig-binutils-2.11.2/gas/configure.in binutils-2.11.2/gas/configure.in
        m88k-motorola-sysv3*) fmt=coff em=delt88 ;;
        m88k-*-coff*)         fmt=coff ;;
 diff -urN orig-binutils-2.11.2/gas/configure binutils-2.11.2/gas/configure
---- orig-binutils-2.11.2/gas/configure	Mon Jun 11 10:04:38 2001
+--- orig-binutils-2.11.2/gas/configure	Mon Jun 11 12:04:38 2001
 +++ binutils-2.11.2/gas/configure	Wed Jan  2 14:05:07 2002
 @@ -2312,6 +2312,7 @@
        arm-*-pe | thumb-*-pe)            fmt=coff em=pe ;;
@@ -599,7 +600,7 @@ diff -urN orig-binutils-2.11.2/gas/configure binutils-2.11.2/gas/configure
        m88k-motorola-sysv3*) fmt=coff em=delt88 ;;
        m88k-*-coff*)         fmt=coff ;;
 diff -urN orig-binutils-2.11.2/gas/m68k-parse.c binutils-2.11.2/gas/m68k-parse.c
---- orig-binutils-2.11.2/gas/m68k-parse.c	Sun Jun 10 15:37:29 2001
+--- orig-binutils-2.11.2/gas/m68k-parse.c	Sun Jun 10 17:37:29 2001
 +++ binutils-2.11.2/gas/m68k-parse.c	Mon Jan  7 16:24:35 2002
 @@ -1978,7 +1978,7 @@
  	tail = 2;
@@ -623,7 +624,7 @@ diff -urN orig-binutils-2.11.2/gas/m68k-parse.c binutils-2.11.2/gas/m68k-parse.c
    }
  #endif
 diff -urN orig-binutils-2.11.2/include/coff/internal.h binutils-2.11.2/include/coff/internal.h
---- orig-binutils-2.11.2/include/coff/internal.h	Thu Jun  7 03:21:39 2001
+--- orig-binutils-2.11.2/include/coff/internal.h	Thu Jun  7 05:21:39 2001
 +++ binutils-2.11.2/include/coff/internal.h	Wed Jan  9 10:24:19 2002
 @@ -632,6 +632,10 @@
  #define R_LVRT16       132
@@ -637,7 +638,7 @@ diff -urN orig-binutils-2.11.2/include/coff/internal.h binutils-2.11.2/include/c
  /* This reloc identifies mov.b instructions with a 16bit absolute
     address.  The linker tries to turn insns with this reloc into
 diff -urN orig-binutils-2.11.2/ld/configure.tgt binutils-2.11.2/ld/configure.tgt
---- orig-binutils-2.11.2/ld/configure.tgt	Mon Jun 11 10:05:08 2001
+--- orig-binutils-2.11.2/ld/configure.tgt	Mon Jun 11 12:05:08 2001
 +++ binutils-2.11.2/ld/configure.tgt	Wed Jan  2 14:05:07 2002
 @@ -191,6 +191,7 @@
  arm*-*-linux-gnu*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
@@ -656,7 +657,7 @@ diff -urN orig-binutils-2.11.2/ld/configure.tgt binutils-2.11.2/ld/configure.tgt
  hppa*-*-linux-gnu*)	targ_emul=hppalinux ;;
  hppa*-*-*elf*)		targ_emul=hppaelf ;;
 diff -urN orig-binutils-2.11.2/ld/emultempl/m68kcoff.em binutils-2.11.2/ld/emultempl/m68kcoff.em
---- orig-binutils-2.11.2/ld/emultempl/m68kcoff.em	Thu Jun  7 03:17:16 2001
+--- orig-binutils-2.11.2/ld/emultempl/m68kcoff.em	Thu Jun  7 05:17:16 2001
 +++ binutils-2.11.2/ld/emultempl/m68kcoff.em	Tue Jan  8 13:53:01 2002
 @@ -88,22 +88,25 @@
  	{
