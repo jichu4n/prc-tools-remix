@@ -130,8 +130,7 @@ print_version (const char *canonical_progname, const char *flags) {
 
   const char *s;
 
-  printf ("%s (", canonical_progname);
-  printf ("prc-tools) %s\n", PRC_TOOLS_VERSION);
+  printf ("%s (prc-tools) %s\n", canonical_progname, PRC_TOOLS_VERSION);
 
   for (s = flags; *s; s++) {
     char holder_key = tolower (*s);
