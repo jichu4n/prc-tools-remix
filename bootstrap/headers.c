@@ -1,7 +1,6 @@
 /* headers.c: output declarations of some Palm OS API functions.
 
-   Copyright 2001 by John Marshall.
-   <jmarshall@acm.org>
+   Copyright 2001 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
