@@ -66,7 +66,7 @@ diff -urN orig-gcc-3.3/gcc/config.gcc gcc-3.3/gcc/config.gcc
 diff -urN orig-gcc-3.3/gcc/config/arm/palmos.h gcc-3.3/gcc/config/arm/palmos.h
 --- orig-gcc-3.3/gcc/config/arm/palmos.h	Thu Jan  1 00:00:00 1970
 +++ gcc-3.3/gcc/config/arm/palmos.h	Fri May 16 02:39:07 2003
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,43 @@
 +/* Definitions for Palm OS on ARM.
 +   Copyright 2002 John Marshall.  (Until it is contributed.)
 +
@@ -106,8 +106,6 @@ diff -urN orig-gcc-3.3/gcc/config/arm/palmos.h gcc-3.3/gcc/config/arm/palmos.h
 +#undef EXTRA_SECTIONS
 +#undef EXTRA_SECTION_FUNCTIONS
 +#undef READONLY_DATA_SECTION
-+#undef SELECT_SECTION
-+#undef SELECT_RTX_SECTION
 +
 +#undef USE_CONST_SECTION
 +#undef CONST_SECTION_ASM_OP
@@ -151,8 +149,8 @@ diff -urN orig-gcc-3.3/gcc/config/palmos.h gcc-3.3/gcc/config/palmos.h
 +#define NO_IMPLICIT_EXTERN_C
 +
 +/* Palm OS programmers enjoy (ab)using all kinds of packing pragmas.  */
-+#define HANDLE_SYSV_PRAGMA
-+#define HANDLE_PRAGMA_PACK_PUSH_POP
++#define HANDLE_SYSV_PRAGMA 1
++#define HANDLE_PRAGMA_PACK_PUSH_POP 1
 +
 +/* Add Palm OS-related predefines to any generic ones.  */
 +#undef CPP_PREDEFINES
