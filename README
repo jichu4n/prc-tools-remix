@@ -15,7 +15,7 @@ anything special.  To use it from an ordinary Windows command line, you
 will need to add {Cygwin}\bin, where {Cygwin} is the directory in which
 you installed Cygwin, probably C:\Cygwin, to your PATH and you'll likely
 want to set the MAKE_MODE environment variable too.  For details, see
-<http://prc-tools.sourceforge.net/install/cygwin.html>.
+<URL:http://prc-tools.sourceforge.net/install/cygwin.html>.
 
 See below for details of building prc-tools yourself.
 
