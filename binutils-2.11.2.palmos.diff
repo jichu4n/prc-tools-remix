@@ -1,3 +1,126 @@
+diff -urN orig-binutils-2.11.2/bfd/coff-m68k.c binutils-2.11.2/bfd/coff-m68k.c
+--- orig-binutils-2.11.2/bfd/coff-m68k.c	Thu Jun  7 03:08:23 2001
++++ binutils-2.11.2/bfd/coff-m68k.c	Tue Jan  8 22:55:42 2002
+@@ -106,6 +106,7 @@
+   HOWTO(R_PCRWORD,	       0,  1, 	16, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP16",   true, 0x0000ffff,0x0000ffff, false),
+   HOWTO(R_PCRLONG,	       0,  2, 	32, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP32",   true, 0xffffffff,0xffffffff, false),
+   HOWTO(R_RELLONG_NEG,	       0,  -2, 	32, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "-32",	true, 0xffffffff,0xffffffff, false),
++  HOWTO(R_RELENDWORD,	       0,  1,   16, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "END16",    true, 0x0000ffff,0x0000ffff, false),
+ };
+ #endif /* not ONLY_DECLARE_RELOCS */
+ 
+@@ -139,6 +140,7 @@
+    case R_PCRWORD:	internal->howto = m68kcoff_howto_table + 4; break;
+    case R_PCRLONG:	internal->howto = m68kcoff_howto_table + 5; break;
+    case R_RELLONG_NEG:	internal->howto = m68kcoff_howto_table + 6; break;
++   case R_RELENDWORD:	internal->howto = m68kcoff_howto_table + 7; break;
+   }
+ }
+ 
+@@ -149,6 +151,10 @@
+ m68k_howto2rtype (internal)
+      reloc_howto_type *internal;
+ {
++  /* FIXME: not sure if we need to handle this one.  */
++  if (internal->type == R_RELENDWORD)
++    abort ();
++
+   if (internal->pc_relative)
+   {
+     switch (internal->bitsize)
+@@ -189,6 +195,7 @@
+     case BFD_RELOC_16_PCREL:	return m68kcoff_howto_table + 4;
+     case BFD_RELOC_32_PCREL:	return m68kcoff_howto_table + 5;
+       /* FIXME: There doesn't seem to be a code for R_RELLONG_NEG.  */
++      /* FIXME: Nor for R_RELENDWORD.  */
+     }
+   /*NOTREACHED*/
+ }
+@@ -203,6 +210,42 @@
+ 
+ #define coff_bfd_reloc_type_lookup m68k_reloc_type_lookup
+ 
++#ifndef coff_rtype_to_howto
++/* If this is not yet defined, one of the following definitions will be
++   used.  Both need this helper function.  */
++
++static bfd_vma
++m68kcoff_global_data_size (abfd, sec, rel, h)
++     bfd *abfd;
++     asection *sec;
++     struct internal_reloc *rel;
++     struct coff_link_hash_entry *h;
++{
++  struct bfd_link_info *info;
++  struct coff_link_hash_entry *edata;
++
++  info = coff_data (sec->output_section->owner)->link_info;
++
++  edata = coff_link_hash_lookup (coff_hash_table (info), "edata",
++				 false, false, true);
++
++  if (edata && (edata->root.type == bfd_link_hash_defined
++		|| edata->root.type == bfd_link_hash_defweak))
++    {
++      return edata->root.u.def.value;
++    }
++  else
++    {
++      (*info->callbacks->warning) (info,
++				   "END16 relocation failed without `edata'",
++				   h? h->root.root.string : NULL, abfd, sec,
++				   rel->r_vaddr - sec->vma);
++      return 0;
++    }
++}
++
++#endif
++
+ #ifndef COFF_COMMON_ADDEND
+ #ifndef coff_rtype_to_howto
+ 
+@@ -215,10 +258,10 @@
+ 
+ static reloc_howto_type *
+ m68kcoff_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
+-     bfd *abfd ATTRIBUTE_UNUSED;
++     bfd *abfd;
+      asection *sec;
+      struct internal_reloc *rel;
+-     struct coff_link_hash_entry *h ATTRIBUTE_UNUSED;
++     struct coff_link_hash_entry *h;
+      struct internal_syment *sym ATTRIBUTE_UNUSED;
+      bfd_vma *addendp;
+ {
+@@ -232,6 +275,9 @@
+   if (howto->pc_relative)
+     *addendp += sec->vma;
+ 
++  if (rel->r_type == R_RELENDWORD)
++    *addendp -= m68kcoff_global_data_size (abfd, sec, rel, h);
++
+   return howto;
+ }
+ 
+@@ -375,7 +421,7 @@
+ 
+ static reloc_howto_type *
+ m68kcoff_common_addend_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
+-     bfd *abfd ATTRIBUTE_UNUSED;
++     bfd *abfd;
+      asection *sec;
+      struct internal_reloc *rel;
+      struct coff_link_hash_entry *h;
+@@ -392,6 +438,9 @@
+   if (howto->pc_relative)
+     *addendp += sec->vma;
+ 
++  if (rel->r_type == R_RELENDWORD)
++    *addendp -= m68kcoff_global_data_size (abfd, sec, rel, h);
++
+   if (sym != NULL && sym->n_scnum == 0 && sym->n_value != 0)
+     {
+       /* This is a common symbol.  The section contents include the
 diff -urN orig-binutils-2.11.2/bfd/config.bfd binutils-2.11.2/bfd/config.bfd
 --- orig-binutils-2.11.2/bfd/config.bfd	Thu Jun 14 11:16:59 2001
 +++ binutils-2.11.2/bfd/config.bfd	Wed Jan  2 14:05:07 2002
@@ -82,6 +205,20 @@ diff -urN orig-binutils-2.11.2/gas/configure binutils-2.11.2/gas/configure
  
        m88k-motorola-sysv3*) fmt=coff em=delt88 ;;
        m88k-*-coff*)         fmt=coff ;;
+diff -urN orig-binutils-2.11.2/include/coff/internal.h binutils-2.11.2/include/coff/internal.h
+--- orig-binutils-2.11.2/include/coff/internal.h	Thu Jun  7 03:21:39 2001
++++ binutils-2.11.2/include/coff/internal.h	Wed Jan  9 10:24:19 2002
+@@ -632,6 +632,10 @@
+ #define R_LVRT16       132
+ #define R_VRT32        133
+ 
++/* This (m68k) reloc evaluates to a 16bit offset, just like R_RELWORD, but
++   also implicitly subtracts the value of `edata', so that effectively the
++   origin is at the end of the memory region intead of the start.  */
++#define R_RELENDWORD	21
+ 
+ /* This reloc identifies mov.b instructions with a 16bit absolute
+    address.  The linker tries to turn insns with this reloc into
 diff -urN orig-binutils-2.11.2/ld/configure.tgt binutils-2.11.2/ld/configure.tgt
 --- orig-binutils-2.11.2/ld/configure.tgt	Mon Jun 11 10:05:08 2001
 +++ binutils-2.11.2/ld/configure.tgt	Wed Jan  2 14:05:07 2002
