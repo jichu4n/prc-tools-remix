@@ -44,6 +44,9 @@ typedef unsigned char cc_t;
 typedef unsigned int speed_t;
 typedef unsigned int tcflag_t;
 
+#ifndef _SIZE_T_DEFINED_
+#define _SIZE_T_DEFINED_
 typedef unsigned long size_t;
+#endif
 
 #endif
