@@ -78,12 +78,9 @@ mv ../make-3.79.1 make
 # have autoconf installed.
 touch gcc/gcc/cstamp-h.in
 
-mkdir build
-mkdir build/static-libs
+mkdir static-libs
 
 %build
-cd build
-
 # Ensure that we link *statically* against the stdc++ library
 rm -f static-libs/*
 ln -s `${CXX:-g++} -print-file-name=libstdc++.a` static-libs/libstdc++.a
@@ -91,7 +88,9 @@ ln -s `${CXX:-g++} -print-file-name=libstdc++.a` static-libs/libstdc++.a
 # The m68k target used to be 'm68k-palmos-coff'.  Some people may want to
 # leave it thus to avoid changing their makefiles a little bit.
 
-LDFLAGS=-L`pwd`/static-libs ../configure \
+# We can't use %%configure because it insists on libtoolizing, which will
+# likely break our config.sub.
+LDFLAGS=-L`pwd`/static-libs ./configure \
   --enable-targets=m68k-palmos,arm-palmos \
   --enable-languages=c,c++ \
   --with-palmdev-prefix=%{palmdev_prefix} \
@@ -107,7 +106,6 @@ make
 
 %install
 [ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
-cd build
 %makeinstall htmldir=$RPM_BUILD_ROOT%{palmdev_prefix}/doc
 
 %clean
