@@ -186,8 +186,8 @@ diff -urN orig-gdb-5.0/gdb/m68k-tdep.c gdb-5.0/gdb/m68k-tdep.c
  
 diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 --- orig-gdb-5.0/gdb/remote-palmos.c	Wed Dec 31 16:00:00 1969
-+++ gdb-5.0/gdb/remote-palmos.c	Sun Apr  8 20:54:53 2001
-@@ -0,0 +1,1251 @@
++++ gdb-5.0/gdb/remote-palmos.c	Wed Oct 17 14:29:56 2001
+@@ -0,0 +1,1257 @@
 +/* Remote target communications for serial-line targets in custom GDB protocol
 +   Copyright 1988, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 +   
@@ -311,9 +311,10 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +
 +static void interrupt_query PARAMS ((void));
 +
-+static void remote_insert_wbreakpoint PARAMS ((CORE_ADDR addr));
++static void remote_insert_wbreakpoint PARAMS ((CORE_ADDR addr,
++					       enum target_signal signo));
 +
-+static void remote_remove_wbreakpoint PARAMS ((void));
++static enum target_signal remote_remove_wbreakpoint PARAMS ((void));
 +
 +extern struct target_ops palmos_ops, pilot_ops;	/* Forward decl */
 +
@@ -602,7 +603,8 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +				 2);
 +
 +     if (get_short(&ins) == 0x4e4f) {
-+       remote_insert_wbreakpoint(get_long(regs+REGISTER_BYTE(17)) + 4);
++       remote_insert_wbreakpoint(get_long(regs+REGISTER_BYTE(17)) + 4,
++				 TARGET_SIGNAL_0);
 +       sr &= 0x7FFF;
 +     } else {
 +       sr |= 0x8000;
@@ -823,7 +825,9 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +	    }
 +
 +	    if (get_long(buf+State_PC) == breakpoint[MAX_BREAKS].address) {
-+	      remote_remove_wbreakpoint();
++	      enum target_signal truesig = remote_remove_wbreakpoint();
++	      if (truesig != TARGET_SIGNAL_0)
++		status->value.sig = truesig;
 +	    }
 +	    
 +	    if ((get_short(buf+State_exception) == 40 *4) &&
@@ -835,7 +839,8 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +	      text_addr = get_long(buf+State_D0);
 +	      bss_addr =  get_long(buf+State_D1);
 +	      data_addr = get_long(buf+State_D2);
-+              remote_insert_wbreakpoint(get_long(buf+State_A0) + 4);
++              remote_insert_wbreakpoint(get_long(buf+State_A0) + 4,
++					TARGET_SIGNAL_STOP);
 +	      get_offsets();
 +              remote_resume(0,0,TARGET_SIGNAL_0);
 +	      stop_soon_quietly = 0;
@@ -1325,25 +1330,26 @@ diff -urN orig-gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +  return 0;
 +}
 +
++static enum target_signal wbreakpoint_signo;
++
 +static void
-+remote_insert_wbreakpoint (addr)
++remote_insert_wbreakpoint (addr, signo)
 +     CORE_ADDR addr;
++     enum target_signal signo;
 +{
 +  breakpoint[MAX_BREAKS].address = addr;
 +  breakpoint[MAX_BREAKS].on = 1;
-+#if 0
-+  stop_soon_quietly = 1;  /* gdb is making a mess of this stuff */
-+  stop_after_trap = 1;
-+#endif
 +  set_breakpoints();
++  wbreakpoint_signo = signo;
 +}
 +
-+static void
++static enum target_signal
 +remote_remove_wbreakpoint ()
 +{
 +  breakpoint[MAX_BREAKS].address = 0;
 +  breakpoint[MAX_BREAKS].on = 0;
 +  set_breakpoints();
++  return wbreakpoint_signo;
 +}
 +
 +

@@ -1102,8 +1102,8 @@ To include this stub, you also need to @emph{link} with @samp{-g}.
 
 By default, the stub is disabled and your application runs normally.
 When the stub sees that a @code{gdbS} #0 feature exists and has the value
-0x12BEEF34, it is enabled and will trigger a special breakpoint which tells
-the debugger where in memory to find the application.
+0x12BEEF34, it is enabled and will converse with the debugger, telling it
+where in memory to find the application.
 
 There are two convenient ways to set this feature and enable the stub:
 
@@ -1162,12 +1162,23 @@ stub (@pxref{Enabling debugging}), which is done automatically if you
 are connecting to Poser, and start your application, which you've compiled
 and linked with @samp{-g}.
 
-When your application starts up, GDB receives a special breakpoint from the
+When your application starts up, GDB receives data from the
 debugger stub telling it how to correlate the bfd executable's debugging
 information with where in memory the application has been loaded.  Because
 of this, you need to ensure that the debugging information has been loaded
 @emph{before} the breakpoint is received---hence typically the bfd file of
 debugging information is specified on the GDB command line.
+
+The debugger stub also causes execution to stop as if at a breakpoint at
+the start of @code{PilotMain}, giving you a chance to interact with the
+debugger before your program runs but after you're connected to it.
+However, @code{PilotMain} can be entered multiple times---for example,
+if your application is sublaunched with another launch code or if you
+(or a gremlin) switch to another application and back again---and you
+may not want to break into the debugger every time.  You can control
+whether the debugger stops at this implicit breakpoint by changing the
+way GDB handles the @code{SIGSTOP} signal (@pxref{Signals, , Signals,
+gdb, Debugging with GDB}).
 
 There are some other features and limitations:
 
