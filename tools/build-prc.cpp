@@ -366,6 +366,33 @@ version_resource (unsigned long resid, const char* text) {
 
 }
 
+
+enum file_type {
+  FT_UNKNOWN,
+  FT_RAW,	/* .grc or .bin */
+  FT_BFD,	/* executable (no extension) */
+  FT_PRC,	/* .prc */
+  FT_RO,	/* .ro */
+  FT_DEF	/* .def */
+  };
+
+enum file_type
+file_type (const char* fname) {
+  char ext[FILENAME_MAX];
+  const char* dot = strrchr(fname, '.');
+
+  strcpy (ext, (dot)? dot+1 : "");
+  for (char* s = ext; *s; s++)
+    *s = tolower (*s);
+
+  return   (strcmp (ext, "grc") == 0 || strcmp (ext, "bin") == 0)?  FT_RAW
+	 : (strcmp (ext, "prc") == 0)? FT_PRC
+	 : (strcmp (ext, "ro")  == 0)? FT_RO
+	 : (strcmp (ext, "def") == 0)? FT_DEF
+	 : FT_BFD;
+  }
+
+
 int
 main (int argc, char** argv) {
   int c, longind;
@@ -594,7 +621,8 @@ main (int argc, char** argv) {
       }
       break;
 
-    case FT_PRC: {
+    case FT_PRC:
+    case FT_RO: {
       Datablock block = slurp_file_as_datablock (argv[i]);
       ResourceDatabase prc_db (block);
       for (ResourceDatabase::const_iterator it = prc_db.begin();

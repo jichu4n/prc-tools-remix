@@ -127,23 +127,6 @@ memmem (const void *buf, size_t buflen, const void *key, size_t keylen) {
 #endif
 
 
-enum file_type
-file_type (const char *fname) {
-  char ext[FILENAME_MAX];
-  char *s;
-  const char *dot = strrchr(fname, '.');
-
-  strcpy (ext, (dot)? dot+1 : "");
-  for (s = ext; *s; s++)
-    *s = tolower (*s);
-
-  return   (strcmp (ext, "grc") == 0 || strcmp (ext, "bin") == 0)?  FT_RAW
-	 : (strcmp (ext, "prc") == 0 || strcmp (ext, "ro") == 0)? FT_PRC
-	 : (strcmp (ext, "def") == 0)? FT_DEF
-	 : FT_BFD;
-  }
-
-
 /* If NEWEXT is non-NULL, strips off any extension (a final '.' and all
    following characters) from FNAME and appends NEWEXT.  Returns a pointer to
    the start of the filename part (i.e., without any directories) of FNAME.  */

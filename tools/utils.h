@@ -53,16 +53,6 @@ extern int propt_tab;
 void propt (const char *optname, const char *meaning);
 
 
-enum file_type {
-  FT_UNKNOWN,
-  FT_RAW,	/* .grc or .bin */
-  FT_BFD,	/* executable (no extension) */
-  FT_PRC,	/* .prc or .ro */
-  FT_DEF	/* .def */
-  };
-
-enum file_type file_type (const char *fname);
-
 /* If NEWEXT is non-NULL, strips off any extension (a final '.' and all
    following characters) from FNAME and appends NEWEXT.  Returns a pointer to
    the start of the filename part (i.e., without any directories) of FNAME.  */
