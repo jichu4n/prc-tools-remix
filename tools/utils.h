@@ -68,6 +68,19 @@ void for_each_subdir (int (*process) (const char *path, const char *base),
 		      int process_top, const char *path_format, ...)
   PRINTF_FUNC (3, 4);
 
+
+/* These functions are used similarly to opendir/readdir/closedir, but
+   iterate over all files or directories or both (as determined by FLAGS)
+   recursively nested anywhere below the given path (formatted from
+   PATH_FORMAT et al), rather than just its immediate contents.  */
+
+typedef struct directory_tree TREE;
+enum { FILES = 1, DIRS = 2 };
+
+TREE *opentree (int flags, const char *path_format, ...) PRINTF_FUNC (2, 3);
+const char *readtree (TREE *tree);
+void closetree (TREE *tree);
+
 #undef PRINTF_FUNC
 
 extern int propt_tab;

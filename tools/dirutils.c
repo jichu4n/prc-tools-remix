@@ -12,10 +12,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+
+#include "libiberty.h"
 
 #include "utils.h"
 
@@ -95,4 +98,94 @@ for_each_subdir (int (*process) (const char *, const char *),
     base = NULL;
 
   for_each_subdir_aux (process, path, base);
+  }
+
+
+struct directory_node {
+  struct directory_node *next;
+  char path[FILENAME_MAX];
+  };
+
+struct directory_tree {
+  int flags;
+  DIR *curdir;
+  char curname[FILENAME_MAX];
+  struct directory_node *dirstack;
+  };
+
+static void
+push (TREE *tree, const char *path) {
+  struct directory_node *n = xmalloc (sizeof (struct directory_node));
+
+  strcpy (n->path, path);
+  n->next = tree->dirstack;
+  tree->dirstack = n;
+  }
+
+static void
+pop (TREE *tree) {
+  struct directory_node *next = tree->dirstack->next;
+  free (tree->dirstack);
+  tree->dirstack = next;
+  }
+
+TREE *
+opentree (int flags, const char *path_format, ...) {
+  char path[FILENAME_MAX];
+  va_list args;
+  TREE *tree = xmalloc (sizeof (struct directory_tree));
+
+  va_start (args, path_format);
+  vsprintf (path, path_format, args);
+  va_end (args);
+
+  tree->flags = flags;
+  tree->curdir = NULL;
+  tree->dirstack = NULL;
+  push (tree, path);
+
+  return tree;
+  }
+
+const char *
+readtree (TREE *tree) {
+  struct dirent *entry;
+  
+  while (1)
+    if (tree->curdir && (entry = readdir (tree->curdir)) != NULL) {
+      static char entryname[FILENAME_MAX];
+
+      sprintf (entryname, "%s/%s", tree->curname, entry->d_name);
+      if (is_dir_dirent (entry, "%s", entryname)) {
+	if (strcmp (entry->d_name, ".") != 0
+	    && strcmp (entry->d_name, "..") != 0)
+	  push (tree, entryname);
+	}
+      else {
+	if (tree->flags & FILES)
+	  return entryname;
+	}
+      }
+    else if (tree->dirstack) {
+      if (tree->curdir)
+	closedir (tree->curdir);
+
+      strcpy (tree->curname, tree->dirstack->path);
+      pop (tree);
+
+      tree->curdir = opendir (tree->curname);
+      if (tree->curdir && (tree->flags & DIRS))
+	return tree->curname;
+      }
+    else
+      return NULL;
+  }
+
+void
+closetree (TREE *tree) {
+  if (tree->curdir)
+    closedir (tree->curdir);
+  while (tree->dirstack)
+    pop (tree);
+  free (tree);
   }
