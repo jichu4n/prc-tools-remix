@@ -5,8 +5,8 @@
 @c @footnotestyle separate
 
 @set update-month March 2001
-@set update-date 27 @value{update-month}
-@set prc-tools-version 2.0.90
+@set update-date 29 @value{update-month}
+@set prc-tools-version 2.0.91
 
 @c %**end of header
 
@@ -948,11 +948,20 @@ which are omitted from this clause, or vice versa.
 
 @section Listing exported library entry point functions
 
-This clause is yet to be implemented; it will be something like
+Both system shared libraries and GLibs require a dispatch table and a small
+amount of other assembler support code.  You can write this by hand, or you
+can use stubgen to generate the needed code from an export clause:
 
 @smallexample
 export @{ @var{function-name}@dots{} @}
 @end smallexample
+
+Dispatch table entries are generated in the order in which function names are
+listed in the export clause.  Thus, for the sake of binary compatibility
+between releases of your library, it is important to avoid changing the
+ordinal positions of function names.  For example, new functions being added
+to an existing library should be added at the end of the export clause, after
+the existing functions names.
 
 
 @section Listing HackMaster trap patches
@@ -1272,10 +1281,8 @@ script to @file{@var{base}.ld}.
 
 @findex stubgen
 
-@sc{@code{stubgen} is not currently implemented.}
-
 @smallexample
-stubgen [ -o @var{file} | --output @var{file} ] @var{deffile}
+stubgen [ -b @var{base} | --base @var{base} ] @var{deffile}.def
 @end smallexample
 
 The @code{stubgen} utility generates assembly language stub files for a
@@ -1286,12 +1293,17 @@ for a GLib, it is easier to have @code{stubgen} generate them for you from the
 relevant clause in your library's definition file (@pxref{Definition files}).
 
 @code{stubgen} reads from @var{deffile} and by default writes its output to
-@file{@var{deffile}-jumps.s}.
+@file{@var{deffile}-dispatch.s}.
 
 @table @code
-@item -o @var{file}
-@itemx --output @var{file}
-Write the assembly language output to @var{file}.
+@item -b @var{base}
+@itemx --base @var{base}
+Write the GLib output to @file{@var{base}-stubs.c} and
+@file{@var{base}-jumps.s}, or the SysLib output to
+@file{@var{base}-dispatch.s}.
+
+(This is inconsistent with the way @code{multigen} handles the @samp{-b}
+option.  One or the other is likely to change.)
 @end table
 
 

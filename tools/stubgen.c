@@ -1,6 +1,6 @@
 /* stubgen.c: generate a library dispatch stub file from a .def file.
 
-   Copyright (c) 1999-2000 Palm Computing, Inc. or its subsidiaries.
+   Copyright (c) 1999-2001 Palm Computing, Inc. or its subsidiaries.
    All rights reserved.
 
    This is free software; you can redistribute it and/or modify
@@ -17,14 +17,15 @@
 #include "def.h"
 #include "pfdheader.h"
 
-const char* progversion = "1.1";
+const char* progversion = "1.2";
 
 void
 usage() {
   printf ("\
 Usage: %s [options] deffile\n\
-Creates GLib support files (`<base>-jumps.s' and `<base>-stubs.c') from\n\
-export clause in <deffile>; <base> is `<deffile>' by default.\n\
+Creates GLib support files (`<base>-jumps.s' and `<base>-stubs.c') or\n\
+a SysLib support file (`<base>-dispatch.s') from an export clause in\n\
+<deffile>; <base> is `<deffile>' by default.\n\
 Options:\n", progname);
   propt ("-b FILE, --base FILE", "Set output filename base prefix");
   }
@@ -105,6 +106,10 @@ static const char *const glib_stub_text[] = {
 #include "glib-stubs-c.str"
   };
 
+static const char *const syslib_dispatch_text[] = {
+#include "syslib-dispatch-s.str"
+  };
+
 
 int
 main (int argc, char **argv) {
@@ -167,7 +172,8 @@ main (int argc, char **argv) {
 
     switch (db_kind) {
     case DK_SYSLIB:
-      einfo (E_FILE, "syslib not implemented");
+      strcpy (eos, "-dispatch.s");
+      generate_file_from_template (outfname, syslib_dispatch_text, filter);
       break;
 
     case DK_GLIB:

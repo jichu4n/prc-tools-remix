@@ -123,7 +123,8 @@ build-prc.o: build-prc.cpp utils.h def.h binres.hpp \
 	     pfd.hpp pfdheader.h pfdio.hpp
 obj-res.o: obj-res.cpp binres.hpp pfd.hpp pfdheader.h utils.h
 multigen.o: multigen.c multicode-s.str multicode-ld.str utils.h def.h
-stubgen.o: stubgen.c glib-jumps-s.str glib-stubs-c.str utils.h def.h
+stubgen.o: stubgen.c glib-jumps-s.str glib-stubs-c.str syslib-dispatch-s.str \
+	   utils.h def.h
 sdkfind.o: sdkfind.c utils.h
 binres.o: binres.cpp binres.hpp pfd.hpp pfdheader.h pfdio.hpp utils.h
 utils.o: utils.c utils.h
@@ -149,6 +150,9 @@ glib-jumps-s.str: templates/glib-jumps.s templates/codify.sed
 
 glib-stubs-c.str: templates/glib-stubs.c templates/codify.sed
 	$(CODIFY) $(srcdir)/templates/glib-stubs.c > glib-stubs-c.str
+
+syslib-dispatch-s.str: templates/syslib-dispatch.s templates/codify.sed
+	$(CODIFY) $(srcdir)/templates/syslib-dispatch.s > syslib-dispatch-s.str
 
 multicode-s.str: templates/multicode.s templates/codify.sed
 	$(CODIFY) $(srcdir)/templates/multicode.s > multicode-s.str
