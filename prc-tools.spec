@@ -17,6 +17,7 @@ NoSource: 2
 NoSource: 3
 NoSource: 4
 BuildRoot: %{_tmppath}/%{name}-root
+BuildRequires: texinfo
 
 # The target used to be 'm68k-palmos-coff'.  Some people may want to leave
 # it thus to avoid changing their makefiles a little bit.
