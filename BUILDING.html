@@ -53,7 +53,9 @@ See <a href="http://bugs.debian.org/78745">Debian bug #78745</a> and
 
 <h2>Build tools required</h2>
 
-You will need to have a C compiler, a C++ compiler, lex or
+You will need to have a unidiff-capable implementation of
+<a href="http://www.gnu.org/software/patch/patch.html">patch</a>,
+a C compiler, a C++ compiler, lex or
 <a href="http://www.gnu.org/software/flex/flex.html">flex</a>, and
 yacc or <a href="http://www.gnu.org/software/bison/bison.html">bison</a>
 installed.  Some of the post-linker tools are written with C++ and
@@ -118,6 +120,13 @@ Prc-tools also includes patches to generate HTML documentation for
 <a href="http://www.gnu.org/software/make/make.html">make</a>;
 if you want to generate this, you will also need
 <a href="ftp://ftp.gnu.org/pub/gnu/make/">make-3.77</a> source code.
+
+<p>
+(Note that the patches are in unified diff format and some
+<code>patch</code> implementations, notably on Solaris, do not handle
+this format correctly.  If you are thus afflicted, we recommend using
+<a href="http://www.gnu.org/software/patch/patch.html">GNU patch</a>
+instead.)
 
 <p>
 Once you have downloaded the packages, you need to unpack them and apply
