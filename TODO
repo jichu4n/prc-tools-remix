@@ -1,34 +1,34 @@
 * fix the `-l' gas flag.  (flag_short_refs in md_estimate_size_before_relax()
-in binutils/gas/config/tc-m68k.c)  This would let a few patches in gcc's
-m68k.md and lb1sf68palmos.asm go away; in particular, getting rid of the
-`define_insn "jump"' one would reduce code size, maybe even non-trivially.
+  in binutils/gas/config/tc-m68k.c)  This would let a few patches in gcc's
+  m68k.md and lb1sf68palmos.asm go away; in particular, getting rid of the
+  `define_insn "jump"' one would reduce code size, maybe even non-trivially.
 
 * Have some way to ask for a 64K memory region for extra code
-sections -- probably a new option or .def file thing for multigen).
+  sections -- probably a new option or .def file thing for multigen.
 
 * Don't package the $libdir/ldscripts directory -- it's redundant because
   the scripts are burnt into ld.
 
 * Overhaul the way we accomodate the "%a5 is the *end* of the globals"
-problem in binutils.  Currently we have a weird reloc END16(<foo>,<offset>)
-that means "+ <foo> + <offset> - edata", weird code in bfd to evaluate edata
-(which is hardcoded) at the right time, and weird code in gas to generate
-the reloc.  A possibly feasible alternative is to emit *two* relocs,
-(<foo>,<offset>) and (negedata,0).  The upgrade path is
+  problem in binutils.  Currently we have a weird reloc END16(<foo>,<offset>)
+  that means "+ <foo> + <offset> - edata", weird code in bfd to evaluate edata
+  (which is hardcoded) at the right time, and weird code in gas to generate
+  the reloc.  A possibly feasible alternative is to emit *two* relocs,
+  (<foo>,<offset>) and (negedata,0).  The upgrade path is
   * Leave the reloc and bfd code for compatibility with old link libraries
   * Remove the @END stuff in gas since we no longer need to generate it
   * Have GCC emit "<foo>+negedata(%a5)" instead of "<foo>@END(%a5)"
   * Have gas split these fixups into two relocs.  It looks like this is
   flaky in the COFF assembler, but very practical in the ELF assembler.
-There is more research to do here.
+  There is more research to do here.
 * An alternative is to do a trial link to find out how big the global data
-memory region is, and then do the real link with datares ORIGIN = -size.
-This would Just Work, but is less flexible (you can't mix %a4 and %a5
-addressing in the same executable), and I *really* want to avoid doing a
-trial link if possible.
+  memory region is, and then do the real link with datares ORIGIN = -size.
+  This would Just Work, but is less flexible (you can't mix %a4 and %a5
+  addressing in the same executable), and I *really* want to avoid doing a
+  trial link if possible.
 
 * Update the ChangeLogs, and start submitting patches to the various GNU
-maintainers (without any of the remaining nasty hacks!).
+  maintainers (without any of the remaining nasty hacks!).
 
 * Consider how to use --emit-relocs instead of --embedded-relocs in ld and
   return to reading real relocs in binres.cpp instead of .reloc sections.
