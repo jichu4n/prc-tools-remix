@@ -4,9 +4,9 @@
 @settitle Using PRC-Tools
 @c @footnotestyle separate
 
-@set update-month May 2002
-@set update-date 30 @value{update-month}
-@set prc-tools-version 2.1
+@set update-month June 2002
+@set update-date 1 @value{update-month}
+@set prc-tools-version 2.1.90
 
 @c %**end of header
 
@@ -1082,7 +1082,7 @@ It may be that it is better simply to list these on the command line.
 @node Debugging
 @chapter Using a debugger
 
-@c @@@ JWM write something here
+@c FIXME write something here
 
 @menu
 * Enabling debugging::
@@ -1248,6 +1248,7 @@ build-prc [ -o @var{file} | --output @var{file} ]
           [ --copy-prevention ] [ --stream ] [ --hidden ]
           [ --launchable-data ] [ --recyclable ] [ --bundle ]
           [ -z @var{n} | --compress-data @var{n} ]
+          [ --no-check-header ] [ --no-check-resources ]
           @var{file}@dots{}
 @end example
 
@@ -1359,6 +1360,22 @@ internal hyphens (@code{--readonly}, etc).
 @itemx --compress-data @var{N}
 Compress the data resource, `data #0'.  Compression ranges from 0, no
 compression, to 7, full (and somewhat experimental!) compression.
+
+@item --no-check-header
+Suppress warnings related to invalid database header fields, such as a blank
+database name or creator ID.  If the database being generated is only for
+use as a temporary file, for example, these warnings may not be of interest.
+
+@item --no-check-resources
+Suppress checking for the presence of vital resources.  Databases
+corresponding to particular kinds of project are malformed if they do not
+contain certain resources:  for example, an application without a `code #1'
+resource cannot be launched correctly, and a Hack requires `TRAP' resources
+to be numbered consecutively and to have corresponding `code' resources.
+
+By default, build-prc will check for these resources and emit diagnostics
+accordingly, which helps you detect mistakes such as the omission of a bfd
+executable from the build-prc invocation.
 @end table
 
 
@@ -1405,7 +1422,7 @@ stubgen [ -b @var{base} | --base @var{base} ] @var{deffile}.def
 
 The @code{stubgen} utility generates assembly language stub files for a
 GLib or an assembly language dispatch table for a SysLib.
-@c @@@ JWM (@pxref{Shared libraries}).
+@c FIXME (@pxref{Shared libraries}).
 You can write these stub files yourself, but, particularly
 for a GLib, it is easier to have @code{stubgen} generate them for you from the
 relevant clause in your library's definition file (@pxref{Definition files}).

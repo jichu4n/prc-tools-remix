@@ -77,6 +77,9 @@ usage () {
 	 "Set database attributes");
   propt ("-z N, --compress-data N",
 	 "Set data resource compression method (0--7)");
+  propt ("--no-check-header", "Suppress database header validity warnings");
+  propt ("--no-check-resources",
+	 "Suppress diagnosis of missing vital resources");
   // propt ("-x, --provenance", "Output resource cross-reference");
   }
 
@@ -92,6 +95,8 @@ enum {
   OPTION_LAUNCHABLE_DATA,
   OPTION_RECYCLABLE,
   OPTION_BUNDLE,
+  OPTION_NO_CHECK_HEADER,
+  OPTION_NO_CHECK_RESOURCES,
   OPTION_HELP,
   OPTION_VERSION
   };
@@ -127,6 +132,8 @@ static struct option longopts[] = {
   { "launchable-data", no_argument, NULL, OPTION_LAUNCHABLE_DATA },
   { "recyclable", no_argument, NULL, OPTION_RECYCLABLE },
   { "bundle", no_argument, NULL, OPTION_BUNDLE },
+  { "no-check-header", no_argument, NULL, OPTION_NO_CHECK_HEADER },
+  { "no-check-resources", no_argument, NULL, OPTION_NO_CHECK_RESOURCES },
 
   { "help", no_argument, NULL, OPTION_HELP },
   { "version", no_argument, NULL, OPTION_VERSION },
@@ -139,6 +146,8 @@ typedef std::map<ResKey, std::string> ResourceProvenance;
 static ResourceDatabase db;
 static ResourceProvenance prov;
 static struct binary_file_info bininfo;
+static void (*check_resources) (const char *, const ResourceDatabase&,
+				const struct binary_file_info&);
 
 
 void
@@ -149,8 +158,79 @@ add_resource (const char* origin, const ResKey& key, const Datablock& data) {
     prov[key] = origin;
     }
   else
-    warning ("[%s] resource %.4s #%u already obtained from '%s'",
+    warning ("[%s] resource '%.4s' #%u already obtained from '%s'",
 	     origin, key.type, key.id, (*prev_supplier).second.c_str());
+  }
+
+
+static void
+check_maincode (const char *fname, const ResourceDatabase& db,
+		const struct binary_file_info& info) {
+  if (db.find (info.maincode) == db.end())
+    error ("[%s] resource '%.4s' #%u is missing",
+	   fname, info.maincode.type, info.maincode.id);
+  }
+
+static void
+check_hack (const char *fname, const ResourceDatabase& db,
+	    const struct binary_file_info&) {
+  struct { unsigned int lo, hi, n; } traps, forms;
+
+  traps.lo = forms.lo = 0xffff;
+  traps.hi = forms.hi = 0;
+  traps.n = forms.n = 0;
+
+  // Check that there is a corresponding 'code' for each 'TRAP' and
+  // configuration 'tFRM', and that the traps are numbered within range
+
+  for (ResourceDatabase::const_iterator it = db.begin(); it != db.end(); ++it) {
+    unsigned int id = (*it).first.id;
+
+    if (strncmp ((*it).first.type, "TRAP", 4) == 0) {
+      if (id >= 1000 && id < 1500) {
+	if (id < traps.lo)  traps.lo = id;
+	if (id > traps.hi)  traps.hi = id;
+	traps.n++;
+	if (db.find (ResKey ("code", id)) == db.end())
+	  error ("[%s] "
+		 "resource 'TRAP' #%u has no corresponding 'code' resource",
+		 fname, id);
+	}
+      else
+	warning ("[%s] 'TRAP' #%u is out of its range of #1000--1499",
+		 fname, id);
+      }
+    else if (strncmp ((*it).first.type, "tFRM", 4) == 0
+	     && id >= 2000 && id <= 2999) {
+      if (id < forms.lo)  forms.lo = id;
+      if (id > forms.hi)  forms.hi = id;
+      forms.n++;
+      if (db.find (ResKey ("code", id)) == db.end())
+	error ("[%s] Hack form #%u has no event handler 'code' resource",
+	       fname, id);
+      }
+    }
+
+  // and that each forms a contiguous sequence from the base of its range
+  unsigned int missing;
+
+  missing = (traps.n > 0)? (traps.hi - traps.lo + 1) - traps.n : 0;
+  if (missing > 0)
+    warning ("[%s] 'TRAP' resources #%u--%u are noncontiguous (%u missing)",
+	     fname, traps.lo, traps.hi, missing);
+
+  missing = (forms.n > 0)? (forms.hi - forms.lo + 1) - forms.n : 0;
+  if (missing > 0)
+    warning ("[%s] 'tFRM' resources #%u--%u are noncontiguous (%u missing)",
+	     fname, forms.lo, forms.hi, missing);
+
+  // and that at least one trap and the name is present
+
+  if (traps.n == 0)
+    error ("[%s] Hack database contains no 'TRAP' resources", fname);
+
+  if (db.find (ResKey ("tAIN", 3000)) == db.end())
+    warning ("[%s] resource 'tAIN' #3000 (Hack name) is missing", fname);
   }
 
 
@@ -220,30 +300,36 @@ static bool
 set_db_kind (database_kind kind, priority_level pri) {
   ResKey maincode;
   bool emit_appl_extras, emit_data;
+  void (*check) (const char *, const ResourceDatabase&,
+		 const struct binary_file_info&);
 
   switch (kind) {
   case DK_APPLICATION:
     maincode = ResKey ("code", 1);
     emit_appl_extras = true;
     emit_data = true;
+    check = check_maincode;
     break;
 
   case DK_GLIB:
     maincode = ResKey ("GLib", 0);
     emit_appl_extras = false;
     emit_data = true;
+    check = check_maincode;
     break;
 
   case DK_SYSLIB:
     maincode = ResKey ("libr", 0);
     emit_appl_extras = false;
     emit_data = false;
+    check = check_maincode;
     break;
 
   case DK_HACK:
     maincode = ResKey ("code", 1000);
     emit_appl_extras = false;
     emit_data = false;
+    check = check_hack;
     break;
 
   case DK_GENERIC:
@@ -251,6 +337,7 @@ set_db_kind (database_kind kind, priority_level pri) {
     maincode = ResKey ("code", 0);
     emit_appl_extras = false;
     emit_data = false;
+    check = NULL;
     break;
     }
 
@@ -258,6 +345,8 @@ set_db_kind (database_kind kind, priority_level pri) {
     bininfo.emit_appl_extras = emit_appl_extras;
   if (superior (bininfo.emit_data, pri))
     bininfo.emit_data = emit_data;
+  if (superior (check_resources, pri))
+    check_resources = check;
   if (superior (bininfo.maincode, pri)) {
     bininfo.maincode = maincode;
     return true;
@@ -394,6 +483,7 @@ main (int argc, char** argv) {
   bool work_desired = true;
 
   char* output_fname = NULL;
+  bool check_header = true;
 
   set_progname (argv[0]);
 
@@ -501,6 +591,14 @@ main (int argc, char** argv) {
 
     case OPTION_BUNDLE:
       if (superior (db.bundle, option_pri))  db.bundle = true;
+      break;
+
+    case OPTION_NO_CHECK_HEADER:
+      check_header = false;
+      break;
+
+    case OPTION_NO_CHECK_RESOURCES:
+      if (superior (check_resources, option_pri))  check_resources = NULL;
       break;
 
     case OPTION_HELP: {
@@ -646,12 +744,17 @@ main (int argc, char** argv) {
       error (err.format, err.fname);
       }
 
-  if (nerrors == 0) {
+  if (nerrors == 0 && check_resources)
+    check_resources (output_fname, db, bininfo);
+
+  if (nerrors == 0 && check_header) {
     if (db.name[0] == '\0')
       warning ("creating '%s' without a name", output_fname);
     if (db.creator[0] == '\0')
       warning ("creating '%s' without a creator id", output_fname);
+    }
 
+  if (nerrors == 0) {
     FILE* f = fopen (output_fname, "wb");
     if (f) {
       time_t now = time (NULL);
