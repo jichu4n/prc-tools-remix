@@ -949,7 +949,7 @@ myapp-sections.o: myapp-sections.s
         m68k-palmos-gcc -c myapp-sections.s
 
 myapp-sections.s myapp-sections.ld: myapp.def
-        multigen myapp.def
+        m68k-palmos-multigen myapp.def
 @end example
 
 @item
