@@ -73,8 +73,8 @@ all-gcc:
 # easily be done in an ad hoc way by using "make all" down in the target
 # subdirectories (due to their empty $(SDKFLAGS) defaults).
 
-SDKFLAGS = -DBOOTSTRAP -I$$(srcdir)/../bootstrap \
-	   -specs=$$(srcdir)/../bootstrap/bootstrap-specs -palmos-none
+SDKFLAGS = -DBOOTSTRAP -I$${abssrcdir}/bootstrap \
+	   -specs=$${abssrcdir}/bootstrap/bootstrap-specs -palmos-none
 
 all-target:
 	r=`pwd`; \
@@ -87,10 +87,14 @@ all-target:
 	  cc1="CC=$(target_alias)-gcc"; \
 	fi; \
 	[ -d ./$(minitooldir) ] && cc1="$${cc1} -B$$r/$(minitooldir)/bin/"; \
+	case "$(srcdir)" in \
+	  /*) abssrcdir="$(srcdir)" ;; \
+	  *)  abssrcdir="$$r/$(srcdir)" ;; \
+	esac; \
 	for dir in $(target_subdirs); do \
 	  if [ -f ./$${dir}/Makefile ]; then \
 	    if (cd $${dir}; $(MAKE) "$${ar1}" "$${ranlib1}" "$${cc1}" \
-				    SDKFLAGS='$(SDKFLAGS)' all); \
+	        SDKFLAGS="$(SDKFLAGS)" all); \
 	        then true; else exit 1; fi; \
 	  fi; \
 	done

@@ -74,8 +74,9 @@ mown-gp/Makefile: Makefile
 $(MOWN_GP_FILES): sub-multilibs
 
 sub-multilibs: mown-gp/Makefile
-	cd mown-gp && \
-	$(MAKE) MULTIFLAGS=-mown-gp `echo $(MOWN_GP_FILES) | sed 's,[^ /]*/,,g'`
+	cd mown-gp; $(MAKE) CC="$(CC)" AR="$(AR)" RANLIB="$(RANLIB)" \
+	  SDKFLAGS="$(SDKFLAGS)" MULTIFLAGS=-mown-gp \
+	  `echo $(MOWN_GP_FILES) | sed 's,[^ /]*/,,g'`
 
 
 text_64k: text_in

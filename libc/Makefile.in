@@ -120,7 +120,8 @@ mown-gp/Makefile: Makefile
 	sed '1,/^#stop/s,= \.,= ../.,' Makefile > mown-gp/Makefile
 
 sub-multilibs: mown-gp/Makefile
-	cd mown-gp && $(MAKE) MULTIFLAGS=-mown-gp all-multilibs
+	cd mown-gp; $(MAKE) CC="$(CC)" AR="$(AR)" RANLIB="$(RANLIB)" \
+	  SDKFLAGS="$(SDKFLAGS)" MULTIFLAGS=-mown-gp all-multilibs
 
 
 libg.a: $(OBJS) $(GOBJS)
