@@ -129,7 +129,7 @@ print_version (const char *canonical_progname, const char *flags) {
     { '\0', NULL }
     };
 
-  static const int year = 2001;
+  static const int year = 2002;
 
   const char *s;
 
