@@ -33,11 +33,6 @@
 * Consider how to use --emit-relocs instead of --embedded-relocs in ld and
   return to reading real relocs in binres.cpp instead of .reloc sections.
 
-* Perhaps configure GCC with TARGET_MEM_FUNCTIONS so that aggregate
-  initialisation is done with memcpy instead of bcopy -- and provide
-  memcpy/bcopy more reliably than before.  Or even hack something up so
-  that it can use MemMove.
-
 * Future palmdev-prep facilities:
   - Handle multi-libs correctly, instead of just recursively listing
     everything under "lib" directories
@@ -63,6 +58,9 @@
   - strtol/strtoul should be in stdlib.h, not string.h
   - we don't have overloaded const / non-const versions of each function (C++)
   - u_int in sys/types.h
+  - (a feature, not an issue) be able to say something like -D_PALMOS_LIBC
+    and the libc headers would produce eg an inline memset() that just called
+    the corresponding Palm OS routine MemSet()
 
 * Proper way to get GCC to search $(datadir)/prc-tools/include is to override
   SYSTEM_HEADER_DIR (or better NATIVE_SYSTEM_HEADER_DIR?) in t-m68kpalmos.
