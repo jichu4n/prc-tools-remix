@@ -83,11 +83,6 @@ mv gcc-2.95.3 gcc295
 # Rename each "package-x.y.z" directory to just "package"
 for dir in *-*[0-9]; do mv $dir `echo $dir | sed 's/-[^-]*$//'`; done
 
-# The patch touches a file this depends on, and you need autoconf to remake
-# it.  There's no changes, so let's just touch it so people don't have to
-# have autoconf installed.
-touch gcc295/gcc/cstamp-h.in
-
 mkdir static-libs
 
 %build

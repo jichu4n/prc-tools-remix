@@ -135,14 +135,6 @@ the patches:
 </pre></blockquote>
 
 <p>
-If you don't have autoconf installed, you need to fix the datestamp
-on <code>cstamp-h.in</code> to prevent autoconf from being invoked to
-regenerate it:
-<blockquote><pre>
-~$ touch gcc-2.95.3/gcc/cstamp-h.in
-</pre></blockquote>
-
-<p>
 Finally, you need to make the GNU packages available to prc-tools's configure
 script and top-level Makefile so that building all the packages can be
 integrated into just one build:

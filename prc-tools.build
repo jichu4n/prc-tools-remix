@@ -31,8 +31,6 @@ mv gcc-2.95.3 gcc295
 # Rename each "package-x.y.z" directory to just "package"
 for dir in *-*[0-9]; do mv $dir `echo $dir | sed 's/-[^-]*$//'`; done
 
-touch "gcc295/gcc/cstamp-h.in"
-
 #build
 : ${prefix:=/usr/local} ${docdir:=$prefix/doc/prc-tools}
 
