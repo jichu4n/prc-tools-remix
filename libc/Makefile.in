@@ -40,9 +40,7 @@ CFLAGS = -Wall -O2 -fno-builtin -DPRINT_FLOATS \
   -I$(srcdir)/include -I$(srcdir)/../include $(SDKFLAGS) $(MULTIFLAGS)
 
 INCDIR = $(srcdir)/include
-INSTALL_HFILES = $(INCDIR)/errno.h $(INCDIR)/malloc.h \
-		 $(INCDIR)/setjmp.h $(INCDIR)/stdio.h \
-		 $(INCDIR)/sys/types.h
+INSTALL_HFILES = $(INCDIR)/setjmp.h $(INCDIR)/stdio.h $(INCDIR)/sys/types.h
 
 
 INSTALL_DIRS_m68k     = include lib lib/mown-gp
