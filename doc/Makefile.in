@@ -161,8 +161,7 @@ html-gcc295:
 
 html-make:
 	-@rm -f make[_.]*html
-	# Expect one duplicate node (Conditional Syntax)
-	$(MKHTML) -I $(srcdir)/../make $(srcdir)/../make/make.texinfo
+	$(MKHTML) -I $(srcdir)/../make/doc $(srcdir)/../make/doc/make.texi
 
 html-subtargets:
 	-for d in binutils gcc295 gdb make; do \

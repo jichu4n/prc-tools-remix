@@ -9,10 +9,10 @@ URL: http://prc-tools.sourceforge.net/
 Group: Development/Palm OS
 Source0: http://prdownloads.sourceforge.net/prc-tools/%{name}-%{version}.tar.gz
 Source1: ftp://ftp.gnu.org/pub/gnu/binutils/binutils-2.13.2.1.tar.bz2
-Source2: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.3.tar.bz2
-Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.3/gcc-2.95.3.tar.gz
-Source4: ftp://ftp.gnu.org/pub/gnu/make/make-3.79.1.tar.gz
-Source5: ftp://gcc.gnu.org/pub/gcc/releases/gcc-3.2.2/gcc-3.2.2.tar.bz2
+Source2: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.3/gcc-2.95.3.tar.gz
+Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-3.2.2/gcc-3.2.2.tar.bz2
+Source4: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.3.tar.bz2
+Source5: ftp://ftp.gnu.org/pub/gnu/make/make-3.80.tar.bz2
 NoSource: 1
 NoSource: 2
 NoSource: 3
@@ -63,19 +63,19 @@ relocation facilities of your RPM installation tool.
 
 %prep
 %setup -q -T -b 1 -n binutils-2.13.2.1
-%setup -q -T -b 2 -n gdb-5.3
-%setup -q -T -b 3 -n gcc-2.95.3
-%setup -q -T -b 4 -n make-3.79.1
-%setup -q -T -b 5 -n gcc-3.2.2
+%setup -q -T -b 2 -n gcc-2.95.3
+%setup -q -T -b 3 -n gcc-3.2.2
+%setup -q -T -b 4 -n gdb-5.3
+%setup -q -T -b 5 -n make-3.80
 %setup -q
 
 cat *.palmos.diff | (cd .. && patch -p0)
 
 mv ../binutils-2.13.2.1 binutils
-mv ../gdb-5.3 gdb
 mv ../gcc-2.95.3 gcc295
 mv ../gcc-3.2.2 gcc
-mv ../make-3.79.1 make
+mv ../gdb-5.3 gdb
+mv ../make-3.80 make
 
 # The patch touches a file this depends on, and you need autoconf to remake
 # it.  There's no changes, so let's just touch it so people don't have to
