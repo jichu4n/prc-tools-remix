@@ -100,12 +100,7 @@ LDFLAGS=-L`pwd`/static-libs ./configure \
   --enable-languages=c,c++ \
   --with-palmdev-prefix=%{palmdev_prefix} \
   --enable-html-docs=%{palmdev_prefix}/doc \
-  --prefix=%{_prefix} --exec-prefix=%{_exec_prefix} \
-  --bindir=%{_bindir} --sbindir=%{_sbindir} --libexecdir=%{_libexecdir} \
-  --localstatedir=%{_localstatedir} --sharedstatedir=%{_sharedstatedir} \
-  --sysconfdir=%{_sysconfdir} --datadir=%{_datadir} \
-  --includedir=%{_includedir} --libdir=%{_libdir} \
-  --mandir=%{_mandir} --infodir=%{_infodir}
+  --prefix=%{_prefix} --mandir=%{_mandir} --infodir=%{_infodir}
 
 %ifarch noarch
 # For a noarch package, we want to avoid wasting time building and installing
