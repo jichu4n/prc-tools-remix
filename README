@@ -1,39 +1,52 @@
-			prc-tools version 2.0.92
+This file contains general information and pointers to other sources of
+information about prc-tools, the collection of GCC and related tools for
+programming in C and C++ targeting Palm OS devices.
+
+
+INSTALLATION
+
+On platforms for which binary packages have been produced, you can simply
+install the binary in the usual way for that platform.  For details, see
+<URL:http://prc-tools.sourceforge.net/install/>.
+
+On Microsoft Windows, prc-tools uses Cygwin (<URL:http://cygwin.com/>) as
+a substrate.  You can use prc-tools from the Cygwin shell without doing
+anything special.  To use it from an ordinary Windows command line, you
+will need to add {Cygwin}\bin, where {Cygwin} is the directory in which
+you installed Cygwin, probably C:\Cygwin, to your PATH and you'll likely
+want to set the MAKE_MODE environment variable too.  For details, see
+<http://prc-tools.sourceforge.net/install/cygwin.html>.
+
+See below for details of building prc-tools yourself.
+
 
 USING THESE TOOLS
 
 In addition to installing this package, you will also need to install
 a Palm OS SDK.  SDK versions 3.5 and greater work with prc-tools without
 modification.  Earlier SDKs require changes to work with prc-tools; you
-can find suitably modified SDKs on Palm's web site at
-<URL:http://www.palmos.com/dev/tech/tools/gcc/#sdks>.  
+can find suitably modified SDKs on Palm's Web site at
+<URL:http://www.palmos.com/dev/tools/gcc/#sdks>.
 
 You may wish to install several SDKs, and you will probably want to choose
-one as the default SDK, to be used when you compile without any `-palmosN'
-command line option.  A symbolic link named `sdk' is used to select a
-default SDK; for example, to use the 3.5 SDK by default:
+one as the default SDK, to be used when you compile without any "-palmosN"
+command line option.  Use the palmdev-prep utility, which you should rerun
+whenever you upgrade prc-tools or install new SDKs or other Palm OS development
+material, to select a default and to teach GCC where to find SDKs.  See the
+palmdev-prep section of the prc-tools documentation, which is also available
+on the Web at <URL:http://prc-tools.sourceforge.net/cgi-bin/info/palmdev-prep>,
+for details.
 
-	$ cd /opt/palmdev
-	$ rm -f sdk
-	$ ln -s sdk-3.5 sdk
 
-(On Windows, the default equivalent of /opt/palmdev is C:\PalmDev.)
+DOCUMENTATION
 
-[THE FOLLOWING WINDOWS INFORMATION IS OUT OF DATE.]
+This package contains documentation in info format:  the prc-tools info
+page gives an overview of the whole tool chain and Palm OS-specific details,
+and the GCC, GDB, etc info pages are also relevant.
 
-On Windows, you will also have to add the prc-tools bin directory to your
-PATH.  You need to add the directory <prc-tools-location>\H-i586-cygwin32\bin.
-For example, if you have installed prc-tools in the default place, you could
-add the following to your AUTOEXEC.BAT:
-
-	set PATH="C:\Program Files\PRC-Tools\H-i586-cygwin32\bin;%PATH%"
-
-For further documentation, read the info pages for prc-tools, gcc, etc.,
-which you can also install as HTML documents at
-
-	file:///C|/PalmDev/doc/index.html	(Windows)
-or
-	file:/usr/local/palmdev/doc/index.html	(Unix)
+The same documentation is also available in HTML format; you can install
+the prc-tools-htmldocs package or read the manuals on the Web at
+<URL:http://prc-tools.sourceforge.net/doc/>.
 
 
 QUESTIONS ABOUT PALM OS PROGRAMMING
@@ -76,7 +89,7 @@ patches against specific versions of GCC, binutils, and GDB.  You will
 also need the source code for these versions of these packages.
 
 See the file BUILDING.html for details.  This file can be found in
-the prc-tools source tarball and also on the web at
+the prc-tools source tarball and also on the Web at
 <URL:http://prc-tools.sourceforge.net/install/BUILDING.html>.
 
 
