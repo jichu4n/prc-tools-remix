@@ -5,12 +5,6 @@
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
 
-# This Makefile is currently something of a hack job.  There's piles of
-# commented out stuff at the bottom there, and the corresponding source
-# files aren't used yet, and are down in the exp(erimental) directory.
-# There's a way to go before this libc provides anything like ISO C
-# functionality.
-
 srcdir = @srcdir@
 VPATH = @srcdir@
 #stop
@@ -37,8 +31,6 @@ LIBG_OBJS = $(LIBG_OBJS_@target_cpu@)
 # PRINT_FLOATS huh?
 CFLAGS = -Wall -O2 -fno-builtin -DPRINT_FLOATS \
   -I$(srcdir)/include -I$(srcdir)/../include $(SDKFLAGS) $(MULTIFLAGS)
-
-INSTALL_DIR = $(exec_prefix)/$(target_alias)
 
 INCDIR = $(srcdir)/include
 INSTALL_HFILES = $(INCDIR)/ctype.h $(INCDIR)/errno.h $(INCDIR)/malloc.h \
@@ -99,9 +91,6 @@ atexit.o: atexit.c include/stdlib.h $(bootstrap_h)
 conio.o: conio.c include/stdio.h $(bootstrap_h) ../bootstrap/bootstrap-ui.h
 
 
-.c.s:
-	$(CC) $(CFLAGS) -S $<
-
 all-multilibs: libc.a libg.a
 
 libc.a: $(LIBC_OBJS)
@@ -137,4 +126,4 @@ libstdc++.a:
 	$(CC) $(TARGETFLAGS) $(SDKFLAGS) $(DEFINES) -c $<
 
 clean:
-	-rm -f *.[oa] Libc* libcstub* *.grc *.exp *.sa Libg* libgstub*
+	-rm -f *.o lib*.a
