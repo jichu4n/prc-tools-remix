@@ -26,7 +26,7 @@ INSTALL_DATA = @INSTALL_DATA@
 MAKEINFO = makeinfo
 MAKEINFOFLAGS =
 
-MAKEHTML = texi2html
+MAKEHTML = @TEXI2HTML@
 MAKEHTMLFLAGS = -split node
 
 all: info @htmldocs_enabled@

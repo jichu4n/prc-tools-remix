@@ -71,6 +71,17 @@ AC_PROG_LEX
 AC_PROG_YACC
 AC_EXEEXT
 
+AC_CHECK_PROG(TEXI2HTML, texi2html, texi2html, false)
+if test -n "$htmldocs_enabled"; then
+  # Check that texi2html understands its new-style (e.g. -out_file) arguments
+  if test $TEXI2HTML != false &&
+     $TEXI2HTML -out_file /dev/null /dev/null >/dev/null 2>/dev/null
+  then :
+  else
+    AC_MSG_ERROR(modern texi2html needed to build HTML documentation)
+  fi
+fi
+
 AC_MSG_CHECKING([prc-tools package version])
 if test -f $srcdir/prc-tools.spec; then
   prc_tools_version=`grep '^Version:' $srcdir/prc-tools.spec | sed 's/.*: //'`
