@@ -5,7 +5,7 @@
 @c @footnotestyle separate
 
 @set update-month May 2002
-@set update-date 3 @value{update-month}
+@set update-date 9 @value{update-month}
 @set prc-tools-version 2.1
 
 @c %**end of header
@@ -1511,9 +1511,9 @@ to generate a list of directories tailored to the SDKs and other Palm OS
 development material you actually have installed.
 
 The @code{palmdev-prep} utility scans the standard PalmDev directory and
-any extra directories @var{directory}@dots{} listed on its command line,
-and generates the options required to make GCC search as appropriate each
-of the subdirectories found under each of the root directories given.
+any extra directories listed on its command line, and generates the options
+required to make GCC search as appropriate each of the subdirectories found
+under each of the root directories given.
 The ``standard PalmDev location'' is determined when prc-tools is configured;
 typically on Unix it is @file{/opt/palmdev} and on Cygwin it is typically
 @file{/PalmDev}, which typically corresponds to the Windows directory
