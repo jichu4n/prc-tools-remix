@@ -1,6 +1,6 @@
 /* trapfilt.c: add Palm OS trap names to disassembly listings.
 
-   Copyright 2002, 2003 John Marshall.
+   Copyright 2002, 2003, 2004 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,9 +25,7 @@ void
 load_trapnumbers () {
   static const char fname[] = DATA_PREFIX"/trapnumbers";
 
-  long traptext_size;
-
-  traptext = slurp_file (fname, "r", &traptext_size);
+  traptext = slurp_text_file (fname);
   if (traptext) {
     unsigned int i;
 

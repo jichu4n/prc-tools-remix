@@ -1,6 +1,6 @@
 /* utils.h: various utilities.
 
-   Copyright 1998, 1999, 2001, 2002 John Marshall.
+   Copyright 1998, 1999, 2001, 2002, 2004 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,6 +51,13 @@ extern int nerrors, nwarnings;
 void error   (const char *format, ...) PRINTF_FUNC (1, 2);
 void warning (const char *format, ...) PRINTF_FUNC (1, 2);
 
+
+/* Returns the length in bytes of the file specified by PATH, or -1 if stat
+   fails, e.g., because the file doesn't exist.  */
+long file_length (const char *path);
+
+#define file_exists(path)  (file_length (path) >= 0)
+
 /* These stat the formatted pathname and return non-zero if it is a
    directory.  DENT, if non-NULL, is presumed to refer to the same pathname
    and will be used to avoid the stat call if it indicates that the dirent
@@ -94,7 +101,9 @@ void print_version (const char *canonical_progname, const char *flags);
    the start of the filename part (i.e., without any directories) of FNAME.  */
 char *basename_with_changed_extension (char *fname, const char *newext);
 
-void *slurp_file (const char *fname, const char *mode, long *sizep);
+/* Returns the entire text contents of the file FNAME as a null-terminated
+   string (which should be freed by the caller), or NULL in case of error.  */
+char *slurp_text_file (const char *fname);
 
 void generate_file_from_template (const char *fname, const char *const *tmpl,
 				  int (*filter)(FILE *f, const char *key));

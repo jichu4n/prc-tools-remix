@@ -1,6 +1,6 @@
 /* def.y: parser for .def files.
 
-   Copyright 2002 John Marshall.
+   Copyright 2002, 2004 John Marshall.
    Portions copyright 1999, 2001 Palm, Inc. or its subsidiaries.
 
    This is free software; you can redistribute it and/or modify
@@ -147,8 +147,7 @@ resource_number:
 
 str_or_file:
 	  STR		{ $$ = $1; }
-	| FNAME		{ long len;
-			  char *text = slurp_file ($1, "r", &len);
+	| FNAME		{ char *text = slurp_text_file ($1);
 			  if (text) { chomp (text); $$ = text; }
 			  else { error ("[%s:%d] can't read '%s': @P",
 					parser_fname, lexer_lineno (), $1);

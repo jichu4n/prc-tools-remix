@@ -14,6 +14,10 @@
 #include <errno.h>
 #include <ctype.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "libiberty.h"
 
 #include "utils.h"
@@ -188,31 +192,38 @@ basename_with_changed_extension (char *fname, const char *newext) {
   }
 
 
-void *
-slurp_file (const char *fname, const char *mode, long *sizep) {
+long
+file_length (const char *path) {
+  struct stat st;
+  return (stat (path, &st) == 0)? st.st_size : -1;
+  }
+
+char *
+slurp_text_file (const char *fname) {
+  char *buffer = NULL;
+  long length;
   FILE *f;
-  char *buffer;
-  int text_extra = (strchr (mode, 'b') == NULL);
 
-  if ((f = fopen (fname, mode)) == NULL)
-    return NULL;
+  if ((length = file_length (fname)) >= 0 && (f = fopen (fname, "r")) != NULL) {
+    if ((buffer = malloc (length + 1)) != NULL) {
+      size_t length_read = fread (buffer, 1, length, f);
+      if (! ferror (f) && getc (f) == EOF && ! ferror (f)) {
+	/* LENGTH_READ may in fact be less than LENGTH; e.g., in the presence
+	   of line termination translations such as CR-LF to \n.  */
+	buffer[length_read] = '\0';
+	}
+      else {
+	/* If we're not at EOF, either there was a read error or we have a
+	   very strange text representation that makes text get larger when
+	   we read it in.  We signal failure in both cases.  */
+	free (buffer);
+	buffer = NULL;
+	}
+      }
 
-  buffer = NULL;
-
-  if (   fseek (f, 0L, SEEK_END) != -1
-      && (*sizep = ftell (f)) != -1
-      && fseek (f, 0L, SEEK_SET) != -1
-      && (buffer = malloc ((size_t)*sizep + text_extra)) != NULL
-      && fread (buffer, 1, (size_t)*sizep, f) == (size_t)*sizep) {
-    if (text_extra)
-      buffer[*sizep] = '\0';
+    fclose (f);
     }
-  else {
-    free (buffer);
-    buffer = NULL;
-    }
 
-  fclose (f);
   return buffer;
   }
 

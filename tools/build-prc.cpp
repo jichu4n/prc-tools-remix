@@ -1,6 +1,6 @@
 /* build-prc.cpp: build a .prc from a pile of files.
 
-   Copyright 2002, 2003 John Marshall.
+   Copyright 2002, 2003, 2004 John Marshall.
    Portions copyright 1998-2001 Palm, Inc. or its subsidiaries.
 
    This is free software; you can redistribute it and/or modify
@@ -36,10 +36,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 #include "getopt.h"
 #include "utils.h"
@@ -271,10 +267,10 @@ struct error_with_fname {
 
 Datablock
 slurp_file_as_datablock (const char* fname) {
-#ifdef HAVE_FILE_LENGTH
-  FILE* f = fopen (fname, "rb");
-  if (f) {
-    long length = file_length (f);
+  long length;
+  FILE *f;
+
+  if ((length = file_length(fname)) >= 0 && (f = fopen (fname, "rb")) != NULL) {
     Datablock block (length);
     size_t length_read = fread (block.writable_contents(), 1, length, f);
     fclose (f);
@@ -284,19 +280,6 @@ slurp_file_as_datablock (const char* fname) {
     }
   else
     throw error_with_fname ("can't open '%s': @P", fname);
-#else
-  long length;
-  void* buffer = slurp_file (fname, "rb", &length);
-
-  if (buffer) {
-    Datablock block (length);
-    memcpy (block.writable_contents(), buffer, length);
-    free (buffer);
-    return block;
-    }
-  else
-    throw error_with_fname ("can't read raw file '%s': @P", fname);
-#endif
   }
 
 
@@ -666,8 +649,7 @@ main (int argc, char** argv) {
     if (argc - optind >= 3) {
       output_fname = argv[optind++];
 
-      struct stat st;
-      if (stat (argv[optind], &st) == 0 && stat (argv[optind + 1], &st) == 0)
+      if (file_exists (argv[optind]) && file_exists (argv[optind + 1]))
 	warning ("database name ('%s') and creator id ('%s') arguments also "
 		 "denote existing files (did you really intend to use "
 		 "old-style syntax?)", argv[optind], argv[optind + 1]);

@@ -1,6 +1,6 @@
 /* palmdev-prep.c: report on and generate paths to installed SDKs.
 
-   Copyright 2001, 2002, 2003 John Marshall.
+   Copyright 2001, 2002, 2003, 2004 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,9 +15,7 @@
 #include <errno.h>
 
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <dirent.h>
-#include <unistd.h>
 
 #include "libiberty.h"
 #include "getopt.h"
@@ -502,10 +500,8 @@ fopen_for_writing (const char *fname, const char **message) {
 
 void
 remove_file (int verbose, const char *fname) {
-  struct stat st;
-
-  if (stat (fname, &st) != 0)
-    return;  /* Already non-existent.  */
+  if (! file_exists (fname))
+    return;
 
   if (remove (fname) == 0) {
     if (verbose)
@@ -710,8 +706,7 @@ main (int argc, char **argv) {
 	  }
 
       if (header_fname) {
-	long header_size;
-	char *header_text = slurp_file (header_fname, "r", &header_size);
+	char *header_text = slurp_text_file (header_fname);
 	if (header_text) {
 	  FILE *f = fopen_for_writing (trapnumbers_fname, &message);
 	  if (f) {
