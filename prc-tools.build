@@ -82,8 +82,11 @@ strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/$target/bin/* \
   " | sed 's:^ */::'`)
 bzip2 $PKGBASE$PKGTAIL.tar
 
-(cd $DESTDIR; tar cvf $PKGBASE-htmldocs$PKGTAIL.tar [^CR]*)
-bzip2 $PKGBASE$PKGTAIL.tar
+(cd $DESTDIR; tar cvf $PKGBASE-htmldocs$PKGTAIL.tar \
+  `echo "
+    $docdir/[^CR]*
+  " | sed 's:^ */::'`)
+bzip2 $PKGBASE-htmldocs$PKGTAIL.tar
 
 if /bin/sh -c 'zip -h' >/dev/null 2>&1; then
   (cd $DESTDIR$docdir; zip -l9r $PKGBASE-htmldocs$PKGSHORTTAIL.zip [^CR]*)
