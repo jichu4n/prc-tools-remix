@@ -1,7 +1,6 @@
 # Makefile for prc-tools.
 #
-# Copyright (c) 1998, 1999 by John Marshall.
-# <jmarshall@acm.org>
+# Copyright 1998, 1999, 2002 John Marshall.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -175,7 +174,6 @@ pfdtime.o: pfdtime.c pfdheader.h
 libpfd.a: $(PFD_OBJS)
 	ar cr $@ $(PFD_OBJS)
 	$(RANLIB) $@
-
 
 clean:
 	-rm -f *.o *.a *.str def.*.* def.output
