@@ -16,6 +16,7 @@ CXX = @CXX@
 CXXFLAGS = @CXXFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -101,28 +102,28 @@ install: $(INSTALL_FILES)
 obj_res_objs = obj-res.o binres.o utils.o
 obj-res$(exeext): $(obj_res_objs) $(PFD)
 	$(CXX) $(ALL_LDFLAGS) -o $@ $(obj_res_objs) \
-	  $(BFDLIB) $(INTLLIBS) -liberty -lpfd
+	  $(BFDLIB) $(INTLLIBS) -liberty -lpfd $(LIBS)
 
 build_prc_objs = build-prc.o binres.o utils.o def.yy.o def.tab.o
 build-prc$(exeext): $(build_prc_objs) $(PFD)
 	$(CXX) $(ALL_LDFLAGS) -o $@ $(build_prc_objs) \
-	  $(BFDLIB) $(INTLLIBS) -liberty -lpfd
+	  $(BFDLIB) $(INTLLIBS) -liberty -lpfd $(LIBS)
 
 multigen_objs = multigen.o utils.o def.yy.o def.tab.o
 multigen$(exeext): $(multigen_objs) $(PFD)
-	$(CC) $(ALL_LDFLAGS) -o $@ $(multigen_objs) -liberty -lpfd
+	$(CC) $(ALL_LDFLAGS) -o $@ $(multigen_objs) -liberty -lpfd $(LIBS)
 
 stubgen_objs = stubgen.o utils.o def.yy.o def.tab.o
 stubgen$(exeext): $(stubgen_objs) $(PFD)
-	$(CC) $(ALL_LDFLAGS) -o $@ $(stubgen_objs) -liberty -lpfd
+	$(CC) $(ALL_LDFLAGS) -o $@ $(stubgen_objs) -liberty -lpfd $(LIBS)
 
 palmdev_prep_objs = palmdev-prep.o utils.o dirutils.o
 palmdev-prep$(exeext): $(palmdev_prep_objs)
-	$(CC) $(ALL_LDFLAGS) -o $@ $(palmdev_prep_objs) -liberty
+	$(CC) $(ALL_LDFLAGS) -o $@ $(palmdev_prep_objs) -liberty $(LIBS)
 
 trapfilt_objs = trapfilt.o utils.o
 trapfilt$(exeext): $(trapfilt_objs)
-	$(CC) $(ALL_LDFLAGS) -o $@ $(trapfilt_objs) -liberty
+	$(CC) $(ALL_LDFLAGS) -o $@ $(trapfilt_objs) -liberty $(LIBS)
 
 build-prc.o: build-prc.cpp utils.h def.h binres.hpp \
 	     pfd.hpp pfdheader.h pfdio.hpp
