@@ -18,6 +18,8 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <unistd.h>
 
 #include "libiberty.h"
 #include "getopt.h"
@@ -25,400 +27,315 @@
 #include "utils.h"
 
 
-/* Options used in various actions (most are 0 / NULL at startup):  */
-
-const char *default_sdk_key;	/* Which SDK to be used sans -palmos options */
-const char *dump_target;	/* Determines which target's specs are dumped */
-int report = 1;			/* Whether to show analysis of directories */
-int verbose;			/* Whether to echo commands before execution */
-int alter_toplevel_palmdev;	/* Whether to create or rm <palmdev> itself */
-
-int show_help, show_version;	/* Show help and version messages instead */
-
-static int nextra_trees;	/* Count of additional trees on command line */
-static char **extra_tree_paths;	/* ...and their paths */
+/* String arena used for the duration.  */
+static struct string_store *store;
 
 
-/* If we had closures, we would pass parameters down through our various
-   iterator functions.  But in a C program of this (small) size, it's easier
-   just to have them as globals.  BASIC programmers reunite!  */
+/* Returns true if STR starts with PREFIX, folding STR to lower case before
+   comparing.  */
+int
+matches (const char *prefix, const char *str) {
+  while (*prefix && tolower (*str) == *prefix)
+    prefix++, str++;
 
-struct sdk *all_sdks;		/* Mapping of SDK keys to directory paths.  */
-
-struct string_store *store;	/* General-purpose autofreed strdup arena.  */
-
-void
-for_each_palmdev_tree (void (*process) (const char *path)) {
-  static int first_invocation = 1;
-
-  int i;
-
-  if (is_dir ("%s", PALMDEV_PREFIX))
-    process (PALMDEV_PREFIX);
-
-  for (i = 0; i < nextra_trees; i++)
-    if (is_dir ("%s", extra_tree_paths[i]))
-      process (extra_tree_paths[i]);
-    else
-      if (first_invocation)
-	error ("PalmDev tree '%s' does not exist", extra_tree_paths[i]);
-
-  first_invocation = 0;
+  return *prefix == '\0';
   }
 
 
-void
-canonicalise_sdk_key (char *key) {
-  char *dot = strrchr (key, '.');
+/* Returns the SDK key portion of a 'sdk-N' directory name (safely stored on
+   the string store).  */
+const char *
+canonical_key (const char *name) {
+  char *key, *dot;
+
+  if (matches ("palmos", name))
+    name += 6;
+  if (matches ("sdk-", name))
+    name += 4;
+
+  key = insert_string (store, name);
 
   /* Canonicalise so that eg sdk-4.0 answers to "-palmos4".  */
+  dot = strrchr (key, '.');
   if (dot && strcmp (dot, ".0") == 0)
     *dot = '\0';
-  }
 
-const char *
-skip_sdk_prefix (const char *name) {
-  char prefix[5];
-  int i;
-
-  /* On a non-case-sensitive file system, a subdirectory might be returned as
-     "SDK-1" with no real way for the user to uncapitalise it.  */
-  for (i = 0; i < 4 && name[i] != '\0'; i++)
-    prefix[i] = tolower (name[i]);
-  prefix[i] = '\0';
-
-  return (strcmp (prefix, "sdk-") == 0)? &name[4] : NULL;
+  return key;
   }
 
 
+/* A ROOT is a directory with "include" and/or "lib" subdirectories, etc,
+   i.e., the base of a SDK directory tree; either really a Palm OS SDK
+   (e.g., /opt/palmdev/sdk-3.5) or the generic SDK-neutral part of a
+   PalmDev tree (e.g. /opt/palmdev).
 
+   A series of analyze_palmdev_tree() calls creates two linked lists of
+   roots:  GENERIC_ROOT_LIST is an ordered list of the generic ones, while
+   SDK_ROOT_LIST contains the ones that are real SDKs and is really a
+   table accessed with find().  The KEY field is only used by the latter.  */
 
-/* It would be nice to implement for_each_sdk() as
-     for_each_palmdev_tree (for_each_subdir (if toplevel and matches sdk-X ()))
-   but the iteration would need to remember state because a "sdk-foo" directory
-   in a later tree is hidden by "sdk-foo" in an earlier tree.  Since we need
-   to remember them anyway, we store a whole list of SDKs.  This has the
-   cosmetic bonus that we get to sort them before use.  */
+enum sub_kind { include, lib };
 
-struct sdk {
-  struct sdk *next;
-  const char *key, *path;
+struct root {
+  struct root *next;
+  const char *prefix;	/* Full path of the root directory.  */
+  const char *sub[2];	/* Names of the headers & libraries subdirectories.  */
+  const char *key;	/* Canonical SDK key, in the case of a SDK root.  */
   };
 
-/* These variables are only for communication between insert_each_sdk_subdir
-   and insert_each_sdk_subdir_aux.  */
+struct root *
+make_root (const char *path_format, ...) {
+  char path[FILENAME_MAX];
+  va_list args;
+  struct root *root = xmalloc (sizeof (struct root));
 
-static struct sdk *insert_each_sdk_subdir_list;
-static int insert_each_sdk_subdir_dups;
+  va_start (args, path_format);
+  vsprintf (path, path_format, args);
+  va_end (args);
 
-static int
-insert_each_sdk_subdir_aux (const char *path, const char *base) {
-  const char *rawkey = skip_sdk_prefix (base);
-  if (rawkey) {
-    char key[FILENAME_MAX];
-    struct sdk **prevs_next = &insert_each_sdk_subdir_list;
-    struct sdk *sdk = insert_each_sdk_subdir_list;
+  root->next = NULL;
+  root->prefix = insert_string (store, path);
+  root->sub[include] = is_dir ("%s/include", path)? "include"
+		     : is_dir ("%s/Incs", path)? "Incs"
+		     : NULL;
+  root->sub[lib] = is_dir ("%s/lib", path)? "lib"
+		 : is_dir ("%s/GCC Libraries", path)? "GCC Libraries"
+		 : NULL;
 
-    strcpy (key, rawkey);
-    canonicalise_sdk_key (key);
-
-    while (sdk && strcmp (sdk->key, key) < 0) {
-      prevs_next = &sdk->next;
-      sdk = sdk->next;
-      }
-
-    if (insert_each_sdk_subdir_dups || ! (sdk && strcmp (sdk->key, key) == 0)) {
-      struct sdk *newsdk = xmalloc (sizeof (struct sdk));
-      newsdk->key = insert_string (store, key);
-      newsdk->path = insert_string (store, path);
-      newsdk->next = sdk;
-      *prevs_next = newsdk;
-      }
-    }
-
-  return 0;
+  return root;
   }
 
-struct sdk *
-insert_each_sdk_subdir (struct sdk *list, int insert_dups, const char *path) {
-  insert_each_sdk_subdir_list = list;
-  insert_each_sdk_subdir_dups = insert_dups;
-  for_each_subdir (insert_each_sdk_subdir_aux, 0, "%s", path);
-  return insert_each_sdk_subdir_list;
-  }
-
-void
-free_sdk_list (struct sdk *list) {
-  while (list) {
-    struct sdk *next = list->next;
-    free (list);
-    list = next;
-    }
-  }
-
-struct sdk *
-find_sdk (struct sdk *list, const char *key) {
-  while (list) {
-    if (strcmp (list->key, key) == 0)
-      return list;
-    list = list->next;
-    }
+struct root *
+find (struct root *list, const char *key) {
+  if (key)
+    for (; list; list = list->next)
+      if (strcmp (key, list->key) == 0)
+	return list;
 
   return NULL;
   }
 
 void
-for_each_sdk (const struct sdk *list,
-	      void (*process) (const char *key, const char *path)) {
+free_root_list (struct root *list) {
   while (list) {
-    process (list->key, list->path);
-    list = list->next;
+    struct root *next = list->next;
+
+    /* All the strings in *LIST are allocated in the string_store, so need
+       not be explicitly freed here.  */
+    free (list);
+    list = next;
     }
   }
 
 
-void
-for_each_installed_target (void (*process) (const char *target)) {
-  /* FIXME: When we get multiple targets, we should do some configury to
-     do this, or just iterate over the subdirectories of $libdir/gcc-lib
-     that match /-palmos/.  */
-
-  process (TARGET_ALIAS);
-  }
-
-
-const char *
-targetlibdir (const char *t) {
-  if (strstr (t, "m68k-"))
-    return "m68k-palmos-coff";  /* Account for hysterical raisins.  */
-  else
-    return t;
-  }
-
-
-static FILE *specf;
-static const char *spectarget;
-
+struct root *generic_root_list, *sdk_root_list;
 
 void
-print_armoured (const char *s) {
-  for (; *s; s++) {
-    if (isspace (*s))
-      putc ('\\', specf);
-    putc (*s, specf);
+print_report (const char *name, const struct root *root,
+	      const struct root *overriding_root, int headers_required) {
+  printf ("  %-13s\t", name);
+
+  if (overriding_root)
+    printf ("UNUSED -- hidden by %s", overriding_root->prefix);
+  else if (headers_required && ! root->sub[include])
+    printf ("INVALID -- no headers");
+  else {
+    if (root->sub[include])
+      printf ("headers in '%s', ", root->sub[include]);
+    else
+      printf ("no headers, ");
+
+    if (root->sub[lib])
+      printf ("libraries in '%s'", root->sub[lib]);
+    else
+      printf ("no libraries");
+    }
+
+  printf ("\n");
+  }
+
+void
+analyze_palmdev_tree (const char *prefix, int report) {
+  static struct root **last_generic_root = &generic_root_list;
+
+  DIR *dir = opendir (prefix);
+
+  if (dir) {
+    struct dirent *e;
+    struct root *root;
+    int n = 0;
+
+    if (report)
+      printf ("Checking SDKs in %s\n", prefix);
+
+    while ((e = readdir (dir)) != NULL)
+      if (matches ("sdk-", e->d_name) &&
+	  is_dir_dirent (e, "%s/%s", prefix, e->d_name)) {
+	const char *key = canonical_key (e->d_name);
+	struct root *overriding_sdk = find (sdk_root_list, key);
+
+	if (overriding_sdk)
+	  root = NULL;
+	else
+	  root = make_root ("%s/%s", prefix, e->d_name);
+
+	n++;
+	if (report)
+	  print_report (e->d_name, root, overriding_sdk, 1);
+
+	if (root) {
+	  if (root->sub[include]) {
+	    root->key = key;
+	    root->next = sdk_root_list;
+	    sdk_root_list = root;
+	    }
+	  else
+	    free (root);
+	  }
+	}
+
+    closedir (dir);
+
+    if (report && n == 0)
+      printf ("  (none)\n");
+
+    root = make_root ("%s", prefix);
+    if (root->sub[include] || root->sub[lib]) {
+      if (report) {
+	printf ("  and material in %s used regardless of SDK choice\n", prefix);
+	print_report ("  (common)", root, NULL, 0);
+	}
+
+      *last_generic_root = make_root ("%s", prefix);
+      last_generic_root = &((*last_generic_root)->next);
+      }
+    else
+      free (root);
+
+    if (report)
+      printf ("\n");
     }
   }
 
-int
-print_isystem (const char *path, const char *base) {
-  fprintf (specf, " -isystem ");
-  print_armoured (path);
-  return 1;
-  }
 
-int
-print_l (const char *path, const char *base) {
-  fprintf (specf, " -L");
-  print_armoured (path);
-  return 1;
-  }
-
-void
-print_includedirs (const char *path) {
-  for_each_subdir (print_isystem, 1, "%s/%s", path,
-		   is_dir ("%s/include", path)? "include" : "Incs");
-  }
-
-// FIXME: targets! multilibs!
-void
-print_targetlibdirs (const char *path) {
-  for_each_subdir (print_l, 1, "%s/%s/%s", path,
-		   is_dir ("%s/lib", path)? "lib" : "GCC Libraries",
-		   targetlibdir (spectarget));
-  }
-
-
-
-
-
-static const char *spec_kind;
-
-void
-print_palmos_flags (const char *key, const char *path) {
-  fprintf (specf, " %%{palmos%s:%%(%s_sdk_%s)}", key, spec_kind, key);
-
-  if (! strchr (key, '.'))
-    fprintf (specf, " %%{palmos%s.0:%%(%s_sdk_%s)}", key, spec_kind, key);
-  }
-
-void
-print_main_spec (const char *kind, void (*process) (const char *path)) {
-  fprintf (specf, "*%s:\n+ %%{!palmos-none:", kind);
-  for_each_palmdev_tree (process);
-  spec_kind = kind;
-  for_each_sdk (all_sdks, print_palmos_flags);
-  fprintf (specf, " %%{!palmos*:%%(%s_sdk_%s)}}\n\n", kind, default_sdk_key);
-  }
-
-void
-print_sdk_specs (const char *key, const char *path) {
-  fprintf (specf, "*cpp_sdk_%s:\n", key);
-  print_includedirs (path);
-  fprintf (specf, "\n\n");
-
-  fprintf (specf, "*link_sdk_%s:\n", key);
-  print_targetlibdirs (path);
-  fprintf (specf, "\n\n");
-  }
-
-void
-gen_specs (FILE *f, const char *target0) {
-  specf = f;
-  spectarget = target0;
-
-  for_each_sdk (all_sdks, print_sdk_specs);
-
-  print_main_spec ("cpp", print_includedirs);
-  print_main_spec ("link", print_targetlibdirs);
-  }
-
-
-/* These variables are only for communication between count_targets and
-   count_targets_aux.  */
-
-static const char *count_targets_path1;
-static const char *count_targets_path2;
-static int count_targets_count;
+const char *spec[2] = { "cpp", "link" };
+const char *option[2] = { "-isystem ", "-L" };
 
 static void
-count_targets_aux (const char *target) {
-  if (is_dir ("%s/%s/%s", count_targets_path1, count_targets_path2,
-	      targetlibdir (target)))
-    count_targets_count++;
-  }
-
-int
-count_targets (const char *path1, const char *path2) {
-  count_targets_path1 = path1;
-  count_targets_path2 = path2;
-  count_targets_count = 0;
-  for_each_installed_target (count_targets_aux);
-  return count_targets_count;
-  }
-
-
-static int report_hidden, report_Incs, report_no_includes,
-	   report_GCC_Libraries, report_no_library_targets;
-
-void
-report_headers_libs (const char *key, const char *path) {
-  const char *sep = strrchr (path, '/');
-  const char *base = sep? sep + 1 : path;
-  struct sdk *sdk = key? find_sdk (all_sdks, key) : NULL;
-
-  printf ("  %-13s\t", key? base : "general");
-
-  if (sdk && strcmp (sdk->path, path) != 0) {
-    printf ("UNUSED -- hidden by %s\n", sdk->path);
-    report_hidden = 1;
-    }
-  else {
-    const char *includes, *libs;
-
-    if (is_dir ("%s/include", path))
-      includes = "include";
-    else if (is_dir ("%s/Incs", path)) {
-      includes = "Incs";
-      report_Incs = 1;
-      }
-    else
-      includes = NULL;
-
-    if (is_dir ("%s/lib", path))
-      libs = "lib";
-    else if (is_dir ("%s/GCC Libraries", path)) {
-      libs = "GCC Libraries";
-      report_GCC_Libraries = 1;
-      }
-    else
-      libs = NULL;
-
-    if (includes)
-      printf ("headers in '%s', ", includes);
-    else {
-      if (key) {
-	printf ("INVALID -- no headers; ");
-	report_no_includes = 1;
-	}
-      else
-	printf ("no headers, ");
-      }
-
-    if (libs) {
-      int ntargets = count_targets (path, libs);
-      switch (ntargets) {
-      case 0:
-	printf ("NO LIBRARIES in '%s'\n", libs);
-	report_no_library_targets = 1;
-	break;
-      case 1:
-	printf ("libraries (one target) in '%s'\n", libs);
-	break;
-      default:
-	printf ("libraries (%d targets) in '%s'\n", ntargets, libs);
-	break;
+write_dirtree (FILE *f, struct root *root, const char *target,
+	       enum sub_kind kind) {
+  if (root->sub[kind]) {
+    /* FIXME this will need generalising when we have multiple targets.  */
+    const char *target_for_lib = target? "/m68k-palmos-coff" : "";
+    TREE *tree = opentree (DIRS, "%s/%s%s", root->prefix, root->sub[kind],
+			   target_for_lib);
+    const char *dir;
+    while ((dir = readtree (tree)) != NULL) {
+      const char *s;
+      fprintf (f, " %s", option[kind]);
+      for (s = dir; *s; s++) {
+	if (isspace (*s))
+	  putc ('\\', f);
+	putc (*s, f);
 	}
       }
-    else {
-      /* No report for this, becaues old SDKs didn't have any libraries.  */
-      printf ("no libraries\n");
-      }
+
+    closetree (tree);
     }
   }
 
-static int report_hidden, report_Incs, report_no_includes,
-	   report_GCC_Libraries, report_no_library_targets;
-
-void
-report_tree (const char *path) {
-  struct sdk *sdks = insert_each_sdk_subdir (NULL, 1, path);
-  printf ("%s\n", path);
-  report_headers_libs (NULL, path);
-  for_each_sdk (sdks, report_headers_libs);
-  free_sdk_list (sdks);
+static void
+write_sdk_spec (FILE *f, struct root *sdk, const char *target,
+		enum sub_kind kind) {
+  fprintf (f, "*%s_sdk_%s:\n", spec[kind], sdk->key);
+  write_dirtree (f, sdk, target, kind);
+  fprintf (f, "\n\n");
   }
 
-/* May have reason to use getmntent and cygwin_conv_to_posix_path */
+static void
+write_main_spec (FILE *f, const char *target, const struct root *default_sdk,
+		 enum sub_kind kind) {
+  struct root *root, *sdk;
 
-/* Instead of wrapping with sdkfind:
+  fprintf (f, "*%s:\n+ %%{!palmos-none:", spec[kind]);
 
-   palmdev-prep writes to $prefix/lib/gcc-lib/m68k-palmos/specs
-   (which is a new file, different from GCC's  ...-palmos/2.95.3-kgpd/specs) */
+  for (root = generic_root_list; root; root = root->next)
+    write_dirtree (f, root, target, kind);
 
+  for (sdk = sdk_root_list; sdk; sdk = sdk->next) {
+    fprintf (f, " %%{palmos%s:%%(%s_sdk_%s)}", sdk->key, spec[kind], sdk->key);
+    if (strspn (sdk->key, "0123456789") == strlen (sdk->key))
+      fprintf (f, " %%{palmos%s.0:%%(%s_sdk_%s)}", sdk->key, spec[kind],
+	       sdk->key);
+    }
+
+  if (default_sdk)
+    fprintf (f, " %%{!palmos*: %%(%s_sdk_%s)}", spec[kind], default_sdk->key);
+
+  fprintf (f, "}\n\n");
+  }
+
+void
+write_specs (FILE *f, const char *target, const struct root *default_sdk) {
+  struct root *sdk;
+
+  for (sdk = sdk_root_list; sdk; sdk = sdk->next) {
+    write_sdk_spec (f, sdk, NULL, include);
+    write_sdk_spec (f, sdk, target, lib);
+    }
+
+  write_main_spec (f, NULL, default_sdk, include);
+  write_main_spec (f, target, default_sdk, lib);
+  }
+
+
+void
+remove_file (int verbose, const char *fname) {
+  struct stat st;
+
+  if (stat (fname, &st) != 0)
+    return;  /* Already non-existent.  */
+
+  if (remove (fname) == 0) {
+    if (verbose)
+      printf ("Removed '%s'\n", fname);
+    }
+  else
+    warning ("can't remove '%s': @P", fname);
+  }
+
+
+/* FIXME this will need to get cleverer when we have multiple targets.  */
+const char *target_list[] = { TARGET_ALIAS, NULL };
+
+char *
+specfilename (const char *target) {
+  static char fname[FILENAME_MAX];
+  sprintf (fname, "%s/%s/specs", STANDARD_EXEC_PREFIX, target);
+  return fname;
+  }
 
 
 void
 usage () {
   printf ("Usage: %s [options] [directory...]\n", progname);
+  printf ("Directories listed will be scanned in addition to %s\n",
+	  PALMDEV_PREFIX);
   printf ("Options:\n");
-  propt ("-i, --install [or by default]",
-	 "Install basic PalmDev framework and specs files");
   propt ("-d SDK, --default SDK", "Set default SDK");
-  propt ("--dump-specs TARGET", "Write specs for target to standard output");
+  propt ("-r, --remove", "Remove all files installed by palmdev-prep");
+  propt ("--dump-specs TARGET", "Write specs for TARGET to standard output");
   propt ("-q, --quiet, --silent", "Suppress display of installation analysis");
-  propt ("-r, --remove", "Remove installed files and directories");
-  propt ("-R, --remove-palmdev", "  including " PALMDEV_PREFIX);
-  propt ("-v, --verbose", "Display invoked subcommands");
-  printf ("PalmDev tree:\n  %s\n", PALMDEV_PREFIX);
+  propt ("-v, --verbose", "Display extra information about actions taken");
   }
 
-static const char shortopts[] = "d:iqrRv";
+static int show_help, show_version;
+
+static const char shortopts[] = "d:rqv";
 
 static struct option longopts[] = {
-  { "install", no_argument, NULL, 'i' },
   { "default", required_argument, NULL, 'd' },
   { "remove", no_argument, NULL, 'r' },
-  { "remove-palmdev", no_argument, NULL, 'R' },
   { "dump-specs", required_argument, NULL, 'D' },
 
   { "quiet", no_argument, NULL, 'q' },
@@ -430,252 +347,27 @@ static struct option longopts[] = {
   { NULL, no_argument, NULL, 0 }
   };
 
-
-#if 0
-int
-for_each_frameworkdir (const char *prefix, int (*process) (const char *path)) {
-  char path[FILENAME_MAX];
-
-  process (prefix);
-
-  sprintf (path, "%s/include", prefix);
-  process (path);
-
-  sprintf (path, "%s/lib", prefix);
-  process (path);
-
-  for_each_installed_target (for_each_frameworkdir_aux, process);
-  }
-
-#endif
-
-
-
-/* Install searches <palmdev> and any supplied directory trees for SDKs,
-   printing analyses of what it finds (unless --quiet), and writes specs
-   files accordingly (if it has write permission).
-
-   If --install is explicitly given, or if <palmdev> itself exists, or if
-   we're on Cygwin and there's a <palmdev> mount entry (even without a
-   directory behind it), we also create the basic directory framework under
-   <palmdev>.  */
-
-char *
-specfilename (const char *target) {
-  static char fname[FILENAME_MAX];
-  sprintf (fname, "%s/%s/specs", STANDARD_EXEC_PREFIX, target);
-  return fname;
-  }
-
-
-static int install_specfile_access_denied;
-
-static void
-install_specfile (const char *target) {
-  const char *fname = specfilename (target);
-  FILE *f = fopen (fname, "w");
-
-  if (f) {
-    gen_specs (f, target);
-    fclose (f);
-
-    if (verbose)
-      printf ("Wrote %s specs to '%s'\n", target, fname);
-    }
-  else {
-#ifdef EACCES
-    if (errno == EACCES)
-      install_specfile_access_denied++;
-#endif
-    error ("can't write to '%s': @P", fname);
-    }
-  }
-
-
-void
-do_install () {
-  if (alter_toplevel_palmdev || is_dir ("%s", PALMDEV_PREFIX)) {
-    /* create framework */
-    }
-
-  if (report) {
-    for_each_palmdev_tree (report_tree);
-    printf ("\nWriting SDK details to target spec files...\n");
-    }
-
-  install_specfile_access_denied = 0;
-  for_each_installed_target (install_specfile);
-  if (report) {
-    if (install_specfile_access_denied)
-      printf ("Permission to write spec files denied -- try again as root\n");
-    else
-      printf ("...done\n");
-    }
-
-#if 0
-  char *palmdev_main = strtok (palmdev_path, ":");
-  struct string_list *all = list_dirtree (palmdev_main);
-  struct string_list *p;
-
-  printf ("PalmDev path: %s\n", palmdev_path);
-
-  if (! check_framework (palmdev_main, 0)) {
-    printf ("Creating basic PalmDev directories in %s:\n", palmdev_main);
-    check_framework (palmdev_main, 1);
-    }
-
-  // process optind..argc
-  printf ("Doing stuff\n");
-
-  sort_string_list (&all, strcmp);
-
-  printf ("Dirs:\n");
-  for (p = all; p; p = p->next)
-    printf ("  %s\n", p->text);
-
-  free_string_list (all);
-#endif
-  }
-
-
-/* Dump just generates one set of specs, and always has permission to
-   write (since it's to stdout). */
-
-void
-do_dumpspec () {
-  gen_specs (stdout, dump_target);
-  }
-
-
-int
-exists (const char *fname) {
-  struct stat st;
-  return stat (fname, &st) == 0;
-  }
-
-/* Remove deletes any specs files we've created, and deletes the basic
-   framework under <palmdev>, as long as those basic directories are empty.  */
-
-static void
-remove_specfile (const char *target) {
-  const char *fname = specfilename (target);
-
-  if (! exists (fname))
-    return;
-
-  if (remove (fname) == 0) {
-    if (verbose)
-      printf ("Removed '%s'\n", fname);
-    }
-  else {
-    }
-  }
-
-static void
-remove_targetlibdir (const char *target) {
-  }
-
-void
-do_remove () {
-  for_each_installed_target (remove_specfile);
-  for_each_installed_target (remove_targetlibdir);
-  }
-
-
-
-
-int
-create_dir (const char* dir) {
-  if (mkdir (dir, 0755) == 0)
-    if (chmod (dir, 0755) == 0)
-      return 1;
-    else
-      error ("can't chmod '%s': @P", dir);
-  else
-    error ("can't create '%s': @P", dir);
-
-  return 0;
-  }
-
-#if 0
-int
-check_framework (const char *prefix, int create) {
-  static const char* subdirs[] = {
-    "include",
-    "lib/m68k-palmos-coff",
-    NULL
-    };
-
-  const char **subdir;
-
-  for (subdir = subdirs; *subdir; subdir++)
-    if (! is_dir ("%s/%s", prefix, *subdir)) {
-      if (create) {
-	char dir[FILENAME_MAX], partial[FILENAME_MAX];
-	char *d;
-	sprintf (dir, "%s/%s", prefix, *subdir);
-	strcpy (partial, "");
-	for (d = strtok (dir, "/"); d; d = strtok (NULL, "/")) {
-	  strcat (partial, "/");
-	  strcat (partial, d);
-	  if (! is_dir (partial))
-	    if (! create_dir (partial))
-		return 0;
-	  }
-	}
-      else
-	return 0;
-      }
-
-  return 1;
-  }
-#endif
-
-static void
-add_to_all_sdks (const char *path) {
-  all_sdks = insert_each_sdk_subdir (all_sdks, 0, path);
-  }
-
 int
 main (int argc, char **argv) {
-  void (*action) () = do_install;
-  int nactions = 0;
+  const char *default_sdk_name = NULL;
+  const char *dump_target = NULL;
+  int removing = 0, report = 1, verbose = 0;
   int c;
 
   set_progname (argv[0]);
 
   while ((c = getopt_long (argc, argv, shortopts, longopts, NULL)) >= 0)
     switch (c) {
-    case 'i':
-      nactions++;
-      action = do_install;
-      alter_toplevel_palmdev = 1;
-      break;
-
-    case 'd': {
-      static char key[FILENAME_MAX];
-      const char *rawkey = skip_sdk_prefix (optarg);
-
-      strcpy (key, rawkey? rawkey : optarg);
-      canonicalise_sdk_key (key);
-      default_sdk_key = key;
-      }
-      break;
-
-    case 'R':
-      nactions++;	/* **** FIXME */
-      action = do_remove;
+    case 'd':
+      default_sdk_name = optarg;
       break;
 
     case 'D':
-      nactions++;
-      action = do_dumpspec;
       dump_target = optarg;
       break;
 
     case 'r':
-      nactions++;
-      action = do_remove;
+      removing = 1;
       break;
 
     case 'q':
@@ -703,23 +395,82 @@ main (int argc, char **argv) {
     if (show_help)
       usage ();
     }
-  else if (nactions > 1)
-    error ("more than one of --install, --dump-specs, --remove given");
+  else if (removing) {
+    const char **target;
+
+    for (target = target_list; *target; target++)
+      remove_file (verbose, specfilename (*target));
+    }
   else {
-    nextra_trees = argc - optind;
-    extra_tree_paths = &argv[optind];
+    struct root *default_sdk = NULL;
 
     store = new_string_store ();
 
-    all_sdks = NULL;
-    for_each_palmdev_tree (add_to_all_sdks);
+    analyze_palmdev_tree (PALMDEV_PREFIX, report);
+    for (; optind < argc; optind++)
+      if (is_dir ("%s", argv[optind]))
+	analyze_palmdev_tree (argv[optind], report);
+      else
+	warning ("can't open '%s': @P", argv[optind]);
 
-    if (default_sdk_key == NULL)
-      default_sdk_key = "banana";
+    if (default_sdk_name) {
+      default_sdk = find (sdk_root_list, canonical_key (default_sdk_name));
+      if (default_sdk == NULL)
+	warning ("SDK '%s' not found -- using highest found instead",
+		 default_sdk_name);
+      }
 
-    action ();
+    if (default_sdk == NULL && sdk_root_list) {
+      struct root *sdk;
 
-    free_sdk_list (all_sdks);
+      /* Find the SDK with the alphabetically highest key.  */
+      default_sdk = sdk_root_list;
+      for (sdk = sdk_root_list; sdk; sdk = sdk->next)
+	if (strcmp (sdk->key, default_sdk->key) > 0)
+	  default_sdk = sdk;
+
+      if (report)
+	printf ("When GCC is given no -palmos options, "
+		"SDK '%s' will be used by default\n\n", default_sdk->key);
+      }
+
+    if (dump_target)
+      write_specs (stdout, dump_target, default_sdk);
+    else {
+      const char **target;
+      const char *message = "...done";
+
+      if (report)
+	printf ("Writing SDK details to target specs files...\n");
+
+      for (target = target_list; *target; target++) {
+	const char *fname = specfilename (*target);
+	FILE *f = fopen (fname, "w");
+
+	if (f) {
+	  write_specs (f, *target, default_sdk);
+	  fclose (f);
+
+	  if (verbose)
+	    printf ("Wrote %s specs to '%s'\n", *target, fname);
+	  }
+	else {
+#ifdef EACCES
+	  if (errno == EACCES)
+	    message = "Permission to write spec files denied -- "
+		      "try again as root";
+#endif
+	  error ("can't write to '%s': @P", fname);
+	  }
+	}
+
+      if (report)
+	printf ("%s\n", message);
+      }
+
+    free_root_list (generic_root_list);
+    free_root_list (sdk_root_list);
+
     free_string_store (store);
     }
 
