@@ -1,7 +1,7 @@
 @c This file is @included by prc-tools.texi.
 @c @configure_input@
 
-@set updatedmonth July 2002
-@set updatedfull  28 @value{updatedmonth}
+@set updatedmonth August 2002
+@set updatedfull  14 @value{updatedmonth}
 
 @set version @prc_tools_version@
