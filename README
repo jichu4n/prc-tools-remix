@@ -93,6 +93,17 @@ the prc-tools source tarball and also on the Web at
 
 LICENSING
 
+This is a summary of the terms under which you may redistribute the various
+parts of prc-tools.  Of particular interest are the terms pertaining to the
+library functions provided by prc-tools for linking with your Palm OS projects,
+because they may have implications on the licensing terms available for your
+project, if it contains (i.e. uses) a provided function or functions to which
+particular terms apply.  (Many of these functions have been explicitly placed
+in the public domain, so carry no such implications.)
+
+For full details, you should of course consult the copyright and licensing
+text in the relevant source files.
+
 * The patches to the GNU tools in *.palmos.diff and the code in the tools
   subdirectory are free software, and may be redistributed and/or modified
   under the terms of the GNU General Public License, either version 2, or
