@@ -15,7 +15,8 @@ The remainder are the user manuals for the various
 
 <p>
 <ul>
-<li> Using <b><a href="@prc-tools.html">PRC-Tools</a></b>
+<li> Using <b><a href="@prc-tools.html">PRC-Tools</a></b>:
+     Palm&nbsp;OS-specific aspects of building and debugging programs
 <!-- @if-html-gcc -->
 <li> Using the <b><a href="@gcc.html">GNU Compiler Collection</a></b>:
      C and C++ on Palm OS
