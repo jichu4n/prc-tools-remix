@@ -13,9 +13,8 @@ On Microsoft Windows, prc-tools uses Cygwin (<URL:http://cygwin.com/>) as
 a substrate.  You can use prc-tools from the Cygwin shell without doing
 anything special.  To use it from an ordinary Windows command line, you
 will need to add {Cygwin}\bin, where {Cygwin} is the directory in which
-you installed Cygwin, probably C:\Cygwin, to your PATH and you'll likely
-want to set the MAKE_MODE environment variable too.  For details, see
-<URL:http://prc-tools.sourceforge.net/install/cygwin.html>.
+you installed Cygwin, probably C:\cygwin, to your PATH.  For details,
+see <URL:http://prc-tools.sourceforge.net/install/cygwin.html>.
 
 See below for details of building prc-tools yourself.
 
