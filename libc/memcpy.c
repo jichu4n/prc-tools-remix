@@ -27,7 +27,7 @@ memcpy (void *vdst, const void *vsrc, size_t n) {
     const long *lsrc;
     size_t nl;
 
-    while_maybe (alignment (src) != 0)  *dst++ = *src++;
+    while_maybe (alignment (src) != 0)  *dst++ = *src++, n--;
 
     ldst = (long *) dst;
     lsrc = (const long *) src;
