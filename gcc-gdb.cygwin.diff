@@ -63,32 +63,6 @@ diff -ur orig/gcc-2.95.2/texinfo/makeinfo/makeinfo.c gcc-2.95.2/texinfo/makeinfo
  }
  
  /* Display the version info of this invocation of Makeinfo. */
-diff -ur orig/gdb-4.18/gdb/Makefile.in gdb-4.18/gdb/Makefile.in
---- orig/gdb-4.18/gdb/Makefile.in	Fri Jan 21 18:53:43 2000
-+++ gdb-4.18/gdb/Makefile.in	Sat Jan 22 08:29:44 2000
-@@ -17,6 +17,9 @@
- # along with this program; if not, write to the Free Software
- # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- 
-+# JWM: hack -- make it link
-+WIN32LIBS = -luser32
-+
- prefix = @prefix@
- exec_prefix = @exec_prefix@
- 
-diff -ur orig/gdb-4.18/gdb/doc/Makefile.in gdb-4.18/gdb/doc/Makefile.in
---- orig/gdb-4.18/gdb/doc/Makefile.in	Thu Jan 27 02:19:08 2000
-+++ gdb-4.18/gdb/doc/Makefile.in	Thu Jan 27 02:19:18 2000
-@@ -194,8 +194,6 @@
- # not one for their binary config---which may not be specifically
- # defined anyways).
- gdb-cfg.texi: ${srcdir}/${DOC_CONFIG}-cfg.texi
--	ln -s ${srcdir}/${DOC_CONFIG}-cfg.texi gdb-cfg.texi || \
--	ln ${srcdir}/${DOC_CONFIG}-cfg.texi gdb-cfg.texi || \
- 	cp ${srcdir}/${DOC_CONFIG}-cfg.texi gdb-cfg.texi
- 
- # GDB MANUAL: texinfo source, using @set/@clear/@value/@ifset/@ifclear
-diff -ur orig/binutils-2.9.1/ld/Makefile.in binutils-2.9.1/ld/Makefile.in
 --- orig/binutils-2.9.1/ld/Makefile.in	Thu Jan 27 16:15:27 2000
 +++ binutils-2.9.1/ld/Makefile.in	Thu Jan 27 16:16:08 2000
 @@ -1136,9 +1136,7 @@

@@ -38,7 +38,7 @@ BUILDING FROM SOURCE
 
 To build these tools yourself, you will need to download the source from
 <http://www.palm.com/devzone/tools/gcc/>.  You will also need the source
-for GCC 2.95.2, binutils 2.9.1, and gdb 4.18, which can be found via
+for GCC 2.95.2, binutils 2.9.1, and gdb 5.0, which can be found via
 <http://www.gnu.org/software/software.html>.  See the file BUILDING.html.
 
 
