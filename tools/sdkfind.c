@@ -99,7 +99,8 @@ add_trees (const char *sdk_version) {
 
   int broken_sdk = 0;
 
-  sprintf (sdk, "sdk%s%s", (*sdk_version)? "-" : "", sdk_version);
+  sprintf (sdk, "sdk%s%s",
+	   (*sdk_version && *sdk_version != '-')? "-" : "", sdk_version);
 
   sprintf (path, "%s/include", PALMDEV_PREFIX);
   add_tree (add_isystem, path);
@@ -112,31 +113,15 @@ add_trees (const char *sdk_version) {
   add_tree (add_L, path);
 
   sprintf (path, "%s/%s/lib/%s", PALMDEV_PREFIX, sdk, TARGET);
-  if (!add_tree (add_L, path))
-    broken_sdk = 1;
+  /* We would update BROKEN_SDK here too, except that pre-3.5 SDKs didn't
+     have lib directories.  */
+  add_tree (add_L, path);
 
   sprintf (path, "%s/%s", PALMDEV_PREFIX, sdk);
   if (!is_dir (path))
     einfo (E_NOFILE|E_WARNING, "%s does not exist", path);
   else if (broken_sdk)
     einfo (E_NOFILE|E_WARNING, "%s does not contain an sdk", path);
-  }
-
-
-const char *
-find_subcmd (const char *cmd) {
-  static char path[FILENAME_MAX];
-  struct stat st;
-
-  sprintf (path, "%s/%s/bin/%s%s", EXEC_PREFIX, TARGET_ALIAS, cmd, EXEEXT);
-  if (stat (path, &st) == 0)
-    return path;
-
-  sprintf (path, "%s/bin/real-%s-%s%s", EXEC_PREFIX, TARGET_ALIAS, cmd, EXEEXT);
-  if (stat (path, &st) == 0)
-    return path;
-
-  return NULL;
   }
 
 
@@ -194,18 +179,16 @@ main (int argc, char **argv) {
     dump (args + 1);
   else {
     char *errmsg_fmt, *errmsg_arg;
+    char full_subcmd[FILENAME_MAX];
     int pid, status;
 
-    const char *full_subcmd = find_subcmd (subcmd);
+    sprintf (full_subcmd, "%s/%s/real-bin/%s%s",
+	     EXEC_PREFIX, TARGET_ALIAS, subcmd, EXEEXT);
 
     if (verbose_seen) {
-      if (full_subcmd)
-	printf (" [%s]", full_subcmd);
+      printf (" [%s]", full_subcmd);
       dump (args);
       }
-
-    if (!full_subcmd)
-      full_subcmd = subcmd;
 
     pid = pexecute (full_subcmd, args, progname,
 		    NULL, &errmsg_fmt, &errmsg_arg, PEXECUTE_ONE);
