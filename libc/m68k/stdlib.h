@@ -35,6 +35,15 @@ extern inline void free (void *_ptr) {
   if (_ptr)  MemPtrFree (_ptr);
   }
 
+/* 7.20.6  Integer arithmetic functions.  */
+
+extern inline div_t div (int _numer, int _denom) {
+  div_t _res;
+  __asm__ ("divs.w %1,%0" : "=d" (_res)
+			  : "g" (_denom), "0" ((long) _numer) : "cc");
+  return _res;
+  }
+
 #ifdef __cplusplus
 }
 #endif

@@ -6,7 +6,7 @@
    as the majority of prc-tools.  The contents of this file, and also
    the implementations of the functions declared in this file, are in
    the public domain.
-   
+
    One particular consequence of this is that you may use these functions
    in Palm OS executables without concern that doing so by itself causes
    the resulting executable to be covered by any particular license, such as
@@ -39,6 +39,21 @@ void free (void *_ptr);
 
 void abort (void)  __attribute__ ((__noreturn__));
 int atexit (void (*_func) (void));
+
+/* 7.20.6  Integer arithmetic functions.  */
+
+int abs (int _j)			__attribute__ ((__const__));
+long int labs (long int _j)		__attribute__ ((__const__));
+long long int llabs (long long int _j)	__attribute__ ((__const__));
+
+typedef struct { int rem, quot; } div_t;
+typedef struct { long int rem, quot; } ldiv_t;
+typedef struct { long long int rem, quot; } lldiv_t;
+
+div_t div (int _numer, int _denom)		__attribute__ ((__const__));
+ldiv_t ldiv (long int _numer, long int _denom)	__attribute__ ((__const__));
+lldiv_t lldiv (long long int _numer, long long int _denom)
+						__attribute__ ((__const__));
 
 #ifdef __cplusplus
 }

@@ -52,6 +52,7 @@ LIBC_OBJS_m68k = \
 	memscan.o strcmp.o strncmp.o strstr.o \
 	memset.o strcpy.o strncpy.o strtok.o \
 	malloc.o free.o realloc.o calloc.o \
+	abs.o labs.o llabs.o div.o ldiv.o lldiv.o \
 	memcmp.o strnlen.o strtol.o \
 	memcpy.o strcat.o strlen.o strpbrk.o strtoul.o \
 	abort.o atexit.o bzero.o
@@ -64,6 +65,7 @@ INSTALL_HEADERS_arm =
 INSTALL_LIBS_arm    = libc.a libstdc++.a
 
 LIBC_OBJS_arm = \
+	abs.o labs.o llabs.o div.o ldiv.o lldiv.o \
 	memcpy.o memset.o
 
 LIBG_OBJS_arm =
@@ -97,6 +99,12 @@ malloc.o free.o calloc.o realloc.o: malloc.c ../include/stdlib.h $(bootstrap_h)
 	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/malloc.c
 
 atexit.o: atexit.c ../include/stdlib.h $(bootstrap_h)
+
+abs.o labs.o llabs.o: abs.c ../include/stdlib.h
+	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/abs.c
+
+div.o ldiv.o lldiv.o: division.c ../include/stdlib.h
+	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/division.c
 
 conio.o: conio.c include/stdio.h $(bootstrap_h) ../bootstrap/bootstrap-ui.h
 
