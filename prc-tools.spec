@@ -16,6 +16,7 @@ NoSource: 1
 NoSource: 2
 NoSource: 3
 NoSource: 4
+BuildRoot: %{_tmppath}/%{name}-root
 
 %define prefix /usr/local
 %define exec_prefix %{prefix}
@@ -79,30 +80,13 @@ cd $RPM_BUILD_DIR/build-prc-tools/doc
 make html
 
 %install
+[ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
 # Yes, we really are doing most of the build in the install script.  This is
 # because we need binutils installed before we can build GCC, and we need GCC
 # installed before we can build the target crt and lib stuff.  Probably we'll
 # eventually tidy this up and do a proper unified binutils/gcc tree thing.
 cd $RPM_BUILD_DIR/build-prc-tools
 make all-install
-
-cd %{exec_prefix}/bin
-strip build-prc%{exeext} multigen%{exeext} stubgen%{exeext} obj-res%{exeext} \
-%{target}-obj-res%{exeext} %{target}-addr2line%{exeext} %{target}-ar%{exeext} \
-%{target}-as%{exeext} %{target}-c++%{exeext} %{target}-c++filt%{exeext} \
-%{target}-cpp%{exeext} %{target}-g++%{exeext} %{target}-gasp%{exeext} \
-%{target}-gcc%{exeext} %{target}-gdb%{exeext} %{target}-ld%{exeext} \
-%{target}-nm%{exeext} %{target}-objcopy%{exeext} %{target}-objdump%{exeext} \
-%{target}-protoize%{exeext} %{target}-ranlib%{exeext} %{target}-size%{exeext} \
-%{target}-strings%{exeext} %{target}-strip%{exeext} \
-%{target}-unprotoize%{exeext}
-cd %{exec_prefix}/lib/gcc-lib/%{target}/2.95.3-kgpd
-strip cc1%{exeext} cc1plus%{exeext} collect2%{exeext} cpp0%{exeext}
-cd %{exec_prefix}/%{target}/bin
-strip ar%{exeext} as%{exeext} gcc%{exeext} ld%{exeext} nm%{exeext} \
-ranlib%{exeext} strip%{exeext}
-cd %{exec_prefix}/%{target}/real-bin
-strip cpp%{exeext} gcc%{exeext} g++%{exeext} c++%{exeext}
 
 cd $RPM_BUILD_DIR/build-prc-tools/doc
 make install-html
@@ -128,6 +112,9 @@ if [ "$1" = 0 ]; then
     fi
   fi
 fi
+
+%clean
+[ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
 
 %files
 # prc-tools-specific post-linker tools
