@@ -49,7 +49,7 @@ extern int lexer_lineno ();
 
 void yyerror (char *s);
 
-static char *standard_db_type (enum database_kind kind);
+static const char *standard_db_type (enum database_kind kind);
 %}
 
 %union {
@@ -184,7 +184,7 @@ print_warning (const char *message) {
   }
 
 
-static char *
+static const char *
 standard_db_type (enum database_kind kind) {
   switch (kind) {
   case DK_APPLICATION:	return "appl";
