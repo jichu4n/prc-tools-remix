@@ -49,6 +49,8 @@ install: $(INSTALL_FILES)
 	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib/$${f}; \
 	done
 
+.PHONY: all install clean sub-multilibs
+
 
 crt0.o: crt0.c ../include/NewTypes.h crt.h
 scrt0.o: scrt0.c ../include/NewTypes.h crt.h palmos_GLib.h
@@ -123,6 +125,3 @@ $(NFMLIB_OBJS): nfm.c
 clean:
 	-rm -f *.o *.a text_*
 	-rm -rf mown-gp
-
-distclean: clean
-	-rm -f Makefile
