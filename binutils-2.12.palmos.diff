@@ -1,0 +1,701 @@
+diff -urN orig-binutils-2.12/ChangeLogs.palmos binutils-2.12/ChangeLogs.palmos
+--- orig-binutils-2.12/ChangeLogs.palmos	Thu Jan  1 00:00:00 1970
++++ binutils-2.12/ChangeLogs.palmos	Mon Apr 15 18:29:48 2002
+@@ -0,0 +1,81 @@
++Collect all the changelog entries here for use on the eventual submission
++to the FSF:
++
++(Many of these log entries no longer relate to the current form of the
++patches.  But at the moment they are still of historical interest to us.)
++
++bfd/ChangeLog
++=============
++
++2002-01-09  John Marshall  <johnm@falch.net>
++
++	* cofflink.c (_bfd_coff_generic_relocate_section): Removed handling
++	of R_RELENDWORD from here...
++	* coff-m68k.c (m68kcoff_rtype_to_howto): ...handling it here instead.
++	(m68kcoff_global_data_size): New helper function.
++
++Tue Feb  1 21:54:44 2000  John Marshall  <john_w_marshall@palm.com>
++
++	* coff-m68k.c (_bfd_m68kcoff_create_embedded_relocs,
++	coff_m68k_bfd_print_private_bfd_data), emultempl/m68kcoff.em:
++	Pad the .reloc records to 12 bytes.
++	* coffcode.h (coff_new_section_hook): Don't try to change .reloc's
++	alignment.
++
++Thu Sep 24 14:24:36 1998  John Marshall  <jmarshall@acm.org>
++
++      * coff-m68k.c (m68k_rtype2howto, m68k_howto2rtype,
++      m68k_reloc_type_lookup): New reloc type R_RELENDWORD.
++      * cofflink.c (_bfd_coff_generic_relocate_section): Likewise.
++
++Sat Sep  5 14:10:23 1998  John Marshall  <jmarshall@acm.org>
++
++      * cofflink.c (_bfd_coff_generic_relocate_section): Fill in .dreloc
++      section, somewhat similarly to base file.
++
++
++gas/ChangeLog
++=============
++
++2002-01-09  John Marshall  <johnm@falch.net>
++
++	* config/obj-elf.h, config/tc-m68k.h: Reorganised the setting of
++	NEED_FX_R_TYPE and SPECIAL_PIC_RELOC (now renamed COFF_RELEND_RELOC)
++	so as to avoid touching these two files.
++
++Tue Oct 13 01:30:47 1998  John Marshall  <jmarshall@acm.org>
++
++      * config/m68k-parse.h, config/m68k-parse.y, config/tc-m68k.c: Use
++      SPECIAL_PIC_RELOC instead of OBJ_ELF to activate special PIC
++      relocation code.
++      * config/obj-elf.h, config/obj-coff.h: Define SPECIAL_PIC_RELOC.
++      * config/tc-m68k.h [SPECIAL_PIC_RELOC]: Define NEED_FX_R_TYPE.
++
++      * config/m68k-parse.h: New pic_relocation type pic_endrel.
++      * config/m68k-parse.y: Encode `symbol@END' as pic_endrel.
++
++      * config/tc-m68k.c (get_reloc_code) [SPECIAL_PIC_RELOC]: Set
++      fx_r_type if the reloc has a special pic type.
++      (tc_coff_fix2rtype) [SPECIAL_PIC_RELOC]: Use fx_r_type if set.
++
++
++include/coff/ChangeLog
++======================
++
++Sat Sep  5 21:38:15 1998  John Marshall  <jmarshall@acm.org>
++
++      * internal.h (R_RELENDWORD): Define.
++
++
++ld/ChangeLog
++============
++
++Sat Sep  5 14:10:23 1998  John Marshall  <jmarshall@acm.org>
++
++      * emultempl/m68kcoff.em: New file, based on generic.em, with a
++      custom gld${EMULATION_NAME}_after_open that creates a .dreloc
++      section for input bfds which need it, if --embedded-relocs is used.
++      * emulparams/m68kcoff.sh (TEMPLATE_NAME): Set to m68kcoff.
++      * Makefile.am (em68kcoff.c): Depend upon m68kcoff.em rather than
++      generic.em.
++      * Makefile.in (em68kcoff.c): Likewise.
+diff -urN orig-binutils-2.12/bfd/coff-m68k.c binutils-2.12/bfd/coff-m68k.c
+--- orig-binutils-2.12/bfd/coff-m68k.c	Tue Sep 18 11:57:22 2001
++++ binutils-2.12/bfd/coff-m68k.c	Wed Apr 17 18:46:27 2002
+@@ -106,6 +106,7 @@
+   HOWTO(R_PCRWORD,	       0,  1, 	16, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP16",   true, 0x0000ffff,0x0000ffff, false),
+   HOWTO(R_PCRLONG,	       0,  2, 	32, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP32",   true, 0xffffffff,0xffffffff, false),
+   HOWTO(R_RELLONG_NEG,	       0,  -2, 	32, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "-32",	true, 0xffffffff,0xffffffff, false),
++  HOWTO(R_RELENDWORD,	       0,  1,   16, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "END16",    true, 0x0000ffff,0x0000ffff, false),
+ };
+ #endif /* not ONLY_DECLARE_RELOCS */
+ 
+@@ -139,6 +140,7 @@
+    case R_PCRWORD:	internal->howto = m68kcoff_howto_table + 4; break;
+    case R_PCRLONG:	internal->howto = m68kcoff_howto_table + 5; break;
+    case R_RELLONG_NEG:	internal->howto = m68kcoff_howto_table + 6; break;
++   case R_RELENDWORD:	internal->howto = m68kcoff_howto_table + 7; break;
+   }
+ }
+ 
+@@ -149,6 +151,10 @@
+ m68k_howto2rtype (internal)
+      reloc_howto_type *internal;
+ {
++  /* FIXME: not sure if we need to handle this one.  */
++  if (internal->type == R_RELENDWORD)
++    abort ();
++
+   if (internal->pc_relative)
+   {
+     switch (internal->bitsize)
+@@ -189,6 +195,7 @@
+     case BFD_RELOC_16_PCREL:	return m68kcoff_howto_table + 4;
+     case BFD_RELOC_32_PCREL:	return m68kcoff_howto_table + 5;
+       /* FIXME: There doesn't seem to be a code for R_RELLONG_NEG.  */
++      /* FIXME: Nor for R_RELENDWORD.  */
+     }
+   /*NOTREACHED*/
+ }
+@@ -203,6 +210,42 @@
+ 
+ #define coff_bfd_reloc_type_lookup m68k_reloc_type_lookup
+ 
++#ifndef coff_rtype_to_howto
++/* If this is not yet defined, one of the following definitions will be
++   used.  Both need this helper function.  */
++
++static bfd_vma
++m68kcoff_global_data_size (abfd, sec, rel, h)
++     bfd *abfd;
++     asection *sec;
++     struct internal_reloc *rel;
++     struct coff_link_hash_entry *h;
++{
++  struct bfd_link_info *info;
++  struct coff_link_hash_entry *edata;
++
++  info = coff_data (sec->output_section->owner)->link_info;
++
++  edata = coff_link_hash_lookup (coff_hash_table (info), "edata",
++				 false, false, true);
++
++  if (edata && (edata->root.type == bfd_link_hash_defined
++		|| edata->root.type == bfd_link_hash_defweak))
++    {
++      return edata->root.u.def.value;
++    }
++  else
++    {
++      (*info->callbacks->warning) (info,
++				   "END16 relocation failed without `edata'",
++				   h? h->root.root.string : NULL, abfd, sec,
++				   rel->r_vaddr - sec->vma);
++      return 0;
++    }
++}
++
++#endif
++
+ #ifndef COFF_COMMON_ADDEND
+ #ifndef coff_rtype_to_howto
+ 
+@@ -215,10 +258,10 @@
+ 
+ static reloc_howto_type *
+ m68kcoff_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
+-     bfd *abfd ATTRIBUTE_UNUSED;
++     bfd *abfd;
+      asection *sec;
+      struct internal_reloc *rel;
+-     struct coff_link_hash_entry *h ATTRIBUTE_UNUSED;
++     struct coff_link_hash_entry *h;
+      struct internal_syment *sym ATTRIBUTE_UNUSED;
+      bfd_vma *addendp;
+ {
+@@ -232,6 +275,9 @@
+   if (howto->pc_relative)
+     *addendp += sec->vma;
+ 
++  if (rel->r_type == R_RELENDWORD)
++    *addendp -= m68kcoff_global_data_size (abfd, sec, rel, h);
++
+   return howto;
+ }
+ 
+@@ -375,7 +421,7 @@
+ 
+ static reloc_howto_type *
+ m68kcoff_common_addend_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
+-     bfd *abfd ATTRIBUTE_UNUSED;
++     bfd *abfd;
+      asection *sec;
+      struct internal_reloc *rel;
+      struct coff_link_hash_entry *h;
+@@ -392,6 +438,9 @@
+   if (howto->pc_relative)
+     *addendp += sec->vma;
+ 
++  if (rel->r_type == R_RELENDWORD)
++    *addendp -= m68kcoff_global_data_size (abfd, sec, rel, h);
++
+   if (sym != NULL && sym->n_scnum == 0 && sym->n_value != 0)
+     {
+       /* This is a common symbol.  The section contents include the
+@@ -499,21 +548,194 @@
+ 	    targetsec = NULL;
+ 	}
+ 
++      bfd_put_16 (abfd, 1, p);
++      bfd_put_16 (abfd, datasec->output_section->index, p + 2);
+       bfd_put_32 (abfd,
+-		  (irel->r_vaddr - datasec->vma + datasec->output_offset), p);
+-      memset (p + 4, 0, 8);
++		  (irel->r_vaddr - datasec->vma + datasec->output_offset),
++		  p + 4);
+       if (targetsec != NULL)
+-	strncpy (p + 4, targetsec->output_section->name, 8);
++	bfd_put_16 (abfd, targetsec->output_section->index, p + 8);
++      else
++	{
++	  /* Probably can't happen, but let's try to be compatible with the
++	     previous version.  */
++	  p -= 12;
++	}
++      bfd_put_16 (abfd, 0, p + 10);
+     }
+ 
+   return true;
+ }
+ #endif /* neither ONLY_DECLARE_RELOCS not STATIC_RELOCS  */
+ 
++/* Print the contents of ABFD's `.reloc' section to the file PTR.  */
++static boolean
++coff_m68k_bfd_print_private_bfd_data (abfd, ptr)
++     bfd *abfd;
++     PTR ptr;
++{
++  FILE *f = (FILE *) ptr;
++  asection *relocs_sec, *held_relsec;
++  bfd_byte *relocs, *rel, *relsec_contents;
++  bfd_size_type relocs_size, relsec_size = 0;
++
++  relocs_sec = bfd_get_section_by_name (abfd, ".reloc");
++  if (relocs_sec == NULL)
++    return true;
++
++  fprintf (f, "\nEMBEDDED RELOCATION RECORDS:");
++
++  relocs_size = bfd_section_size (abfd, relocs_sec);
++  if (relocs_size == 0)
++    {
++      fprintf (f, " (none)\n\n");
++      return true;
++    }
++  else
++    fprintf (f, "\n");
++  
++  relocs = (bfd_byte *) bfd_malloc ((size_t) relocs_size);
++  bfd_get_section_contents (abfd, relocs_sec, (PTR) relocs, 0, relocs_size);
++
++  /* Get column headers lined up reasonably.  */
++  {
++    static int width;
++    if (width == 0)
++      {
++	char buf[30];
++	sprintf_vma (buf, (bfd_vma) -1);
++	width = strlen (buf) - 7;
++      }
++    fprintf (f, "SECTION+OFFSET    %*s TYPE %*s VALUE \n", width, "", 12, "");
++  }
++
++  held_relsec = NULL;
++  relsec_contents = NULL;
++
++  for (rel = relocs; rel < relocs + relocs_size; rel += 12)
++    {
++      bfd_vma type, reloffset, value;
++      int relsecndx, symsecndx;
++      reloc_howto_type *howto;
++      asection *sec, *relsec, *symsec;
++      CONST char *relsecname, *symsecname;
++      char relbuffer[32], symbuffer[32];
++
++      type      = bfd_get_16 (abfd, rel);
++      relsecndx = bfd_get_16 (abfd, rel+2);
++      reloffset = bfd_get_32 (abfd, rel+4);
++      symsecndx = bfd_get_16 (abfd, rel+8);
++
++      /* Decode the embedded relocation type.  See also the corresponding
++         encoding table in _bfd_m68kcoff_create_embedded_relocs().  */
++      switch (type)
++	{
++	case 1:
++	  type = BFD_RELOC_32;
++	  break;
++
++	default:
++	  type = BFD_RELOC_UNUSED;  /* Something definitely unknown.  */
++	  break;
++	}
++
++      relsec = symsec = NULL;
++      for (sec = abfd->sections; sec; sec = sec->next)
++	{
++	  if (sec->index == relsecndx)
++	    relsec = sec;
++	  if (sec->index == symsecndx)
++	    symsec = sec;
++	}
++
++      sprintf (relbuffer, "[%d?]", (int) relsecndx);
++      relsecname = (relsec)? bfd_section_name (abfd, relsec) : relbuffer;
++
++      sprintf (symbuffer, "[%d?]", (int) symsecndx);
++      symsecname = (symsec)? bfd_section_name (abfd, symsec) : symbuffer;
++
++      fprintf (f, "%s+0x", relsecname);
++      fprintf_vma (f, reloffset);
++      fprintf (f, "%*s", 9 - strlen (relsecname), "");
++
++      howto = (relsec)? bfd_reloc_type_lookup (abfd, type) : NULL;
++      if (howto == NULL)
++	{
++	  char buf[32];
++	  sprintf (buf, "[0x%x]", (unsigned int) type);
++	  fprintf (f, "%-18.18s%s+?? (%s unknown)\n", buf, symsecname,
++		   (relsec)? "type" : "relocation section");
++	  continue;
++	}
++
++      fprintf (f, "%-18.18s", howto->name);
++
++      if (relsec == NULL)
++	{
++	  fprintf (f, "%s+?? (relocation section unknown)\n", symsecname);
++	  continue;
++	}
++
++      if (held_relsec != relsec)
++	{
++	  free (relsec_contents);
++	  held_relsec = relsec;
++	  relsec_size = bfd_section_size (abfd, relsec);
++	  relsec_contents = (bfd_byte *) bfd_malloc ((size_t) relsec_size);
++	  bfd_get_section_contents (abfd, relsec, (PTR) relsec_contents,
++				    0, relsec_size);
++	}
++
++      if (reloffset > relsec_size - bfd_get_reloc_size (howto))
++	{
++	  fprintf (f, "%s+?? (offset out of range)\n", symsecname);
++	  continue;
++	}
++
++      switch (bfd_get_reloc_size (howto))
++	{
++	default:
++	case 0:
++	  abort ();
++	case 1:
++	  value = bfd_get_8 (abfd, &relsec_contents[reloffset]);
++	  break;
++	case 2:
++	  value = bfd_get_16 (abfd, &relsec_contents[reloffset]);
++	  break;
++	case 4:
++	  value = bfd_get_32 (abfd, &relsec_contents[reloffset]);
++	  break;
++	case 8:
++#ifdef BFD64
++	  value = bfd_get_64 (abfd, &relsec_contents[reloffset]);
++#else
++	  abort ();
++#endif
++	  break;
++	}
++
++      value &= howto->dst_mask;
++      value >>= howto->bitpos;
++      value <<= howto->rightshift;
++
++      fprintf (f, "%s+0x", symsecname);
++      fprintf_vma (f, value - bfd_section_vma (abfd, symsec));
++      fprintf (f, "\n");
++    }
++
++  free (relocs);
++  free (relsec_contents);
++
++  return true;
++}
++
+ #define coff_bfd_is_local_label_name m68k_coff_is_local_label_name
+ 
+ #define coff_relocate_section _bfd_coff_generic_relocate_section
+ 
++#define coff_bfd_print_private_bfd_data coff_m68k_bfd_print_private_bfd_data
++
+ #include "coffcode.h"
+ 
+ #ifndef TARGET_SYM
+diff -urN orig-binutils-2.12/bfd/config.bfd binutils-2.12/bfd/config.bfd
+--- orig-binutils-2.12/bfd/config.bfd	Wed Feb 13 21:45:46 2002
++++ binutils-2.12/bfd/config.bfd	Mon Apr 15 18:24:42 2002
+@@ -161,6 +161,10 @@
+     targ_defvec=bfd_elf32_littlearm_oabi_vec
+     targ_selvecs=bfd_elf32_bigarm_oabi_vec
+     ;;
++  arm-*-palmos*)
++    targ_defvec=bfd_elf32_littlearm_vec
++    targ_selvecs=bfd_elf32_bigarm_vec
++    ;;
+ 
+   thumb-*-coff)
+     targ_defvec=armcoff_little_vec
+@@ -567,6 +571,9 @@
+     targ_selvecs=ieee_vec
+     targ_underscore=yes
+     ;;
++  m68*-*-palmos*)
++    targ_defvec=m68kcoff_vec
++    ;;
+ 
+   m88*-harris-cxux* | m88*-*-dgux* | m88*-*-sysv4*)
+     targ_defvec=bfd_elf32_m88k_vec
+diff -urN orig-binutils-2.12/config.sub binutils-2.12/config.sub
+--- orig-binutils-2.12/config.sub	Sun Feb 24 01:02:46 2002
++++ binutils-2.12/config.sub	Mon Apr 15 18:22:53 2002
+@@ -255,6 +255,10 @@
+ 		echo Invalid configuration \`$1\': machine \`$basic_machine\' not recognized 1>&2
+ 		exit 1
+ 		;;
++	m68k-palmos)
++		basic_machine=m68k-unknown
++		os=-palmos
++		;;
+ 	# Recognize the basic CPU types with company name.
+ 	# FIXME: clean up the formatting here.
+ 	vax-* | tahoe-* | i[234567]86-* | i860-* | ia64-* | m32r-* | m68k-* | m68000-* \
+@@ -1017,6 +1021,7 @@
+ 	      | -mingw32* | -linux-gnu* | -uxpv* | -beos* | -mpeix* | -udk* \
+ 	      | -interix* | -uwin* | -rhapsody* | -darwin* | -opened* \
+ 	      | -openstep* | -oskit* | -conix* | -pw32* | -nonstopux* \
++	      | -palmos* \
+ 	      | -storm-chaos* | -tops10* | -tenex* | -tops20* | -its* | -os2*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+diff -urN orig-binutils-2.12/gas/config/m68k-parse.h binutils-2.12/gas/config/m68k-parse.h
+--- orig-binutils-2.12/gas/config/m68k-parse.h	Fri Mar  9 00:24:22 2001
++++ binutils-2.12/gas/config/m68k-parse.h	Mon Apr 15 18:21:45 2002
+@@ -240,12 +240,13 @@
+   int scale;
+ };
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+ /* The type of a PIC expression.  */
+ 
+ enum pic_relocation
+ {
+   pic_none,			/* not pic */
++  pic_endrel,			/* @END (for COFF_RELEND_RELOC) */
+   pic_plt_pcrel,		/* @PLTPC */
+   pic_got_pcrel,		/* @GOTPC */
+   pic_plt_off,			/* @PLT */
+@@ -260,7 +261,7 @@
+   /* The size to use.  */
+   enum m68k_size size;
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   /* The type of pic relocation if any.  */
+   enum pic_relocation pic_reloc;
+ #endif
+diff -urN orig-binutils-2.12/gas/config/m68k-parse.y binutils-2.12/gas/config/m68k-parse.y
+--- orig-binutils-2.12/gas/config/m68k-parse.y	Wed Sep 19 07:33:21 2001
++++ binutils-2.12/gas/config/m68k-parse.y	Mon Apr 15 18:21:09 2002
+@@ -973,7 +973,7 @@
+ 	tail = 2;
+     }
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   {
+     /* Look for @PLTPC, etc.  */
+     char *cp;
+@@ -1005,6 +1005,11 @@
+ 	    yylval.exp.pic_reloc = pic_got_off;
+ 	    tail += 4;
+ 	  }
++	else if (strncmp (cp - 4, "@END", 4) == 0)
++	  {
++	    yylval.exp.pic_reloc = pic_endrel;
++	    tail += 4;
++	  } 
+       }
+   }
+ #endif
+diff -urN orig-binutils-2.12/gas/config/obj-coff.h binutils-2.12/gas/config/obj-coff.h
+--- orig-binutils-2.12/gas/config/obj-coff.h	Tue Feb 19 00:54:47 2002
++++ binutils-2.12/gas/config/obj-coff.h	Mon Apr 15 18:20:22 2002
+@@ -25,6 +25,9 @@
+ 
+ #define OBJ_COFF 1
+ 
++#define COFF_RELEND_RELOC
++#define NEED_FX_R_TYPE
++
+ #ifndef BFD_ASSEMBLER
+ 
+ #define WORKING_DOT_WORD
+diff -urN orig-binutils-2.12/gas/config/tc-m68k.c binutils-2.12/gas/config/tc-m68k.c
+--- orig-binutils-2.12/gas/config/tc-m68k.c	Wed Feb 13 20:16:45 2002
++++ binutils-2.12/gas/config/tc-m68k.c	Wed Apr 17 18:09:26 2002
+@@ -215,7 +215,7 @@
+ 	 significance of some values (in the branch instruction, for
+ 	 example).  */
+       int pcrel_fix;
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+       /* Whether this expression needs special pic relocation, and if
+ 	 so, which.  */
+       enum pic_relocation pic_reloc;
+@@ -283,7 +283,7 @@
+   the_ins.reloc[the_ins.nrel].exp = exp->exp;
+   the_ins.reloc[the_ins.nrel].wid = width;
+   the_ins.reloc[the_ins.nrel].pcrel_fix = pc_fix;
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   the_ins.reloc[the_ins.nrel].pic_reloc = exp->pic_reloc;
+ #endif
+   the_ins.reloc[the_ins.nrel++].pcrel = pc_rel;
+@@ -692,6 +692,11 @@
+ tc_coff_fix2rtype (fixP)
+      fixS *fixP;
+ {
++#ifdef COFF_RELEND_RELOC
++  if (fixP->fx_r_type != NO_RELOC)
++    return fixP->fx_r_type;
++#endif
++
+   if (fixP->fx_tcbit && fixP->fx_size == 4)
+     return R_RELLONG_NEG;
+ #ifdef NO_PCREL_RELOCS
+@@ -875,8 +880,12 @@
+ }
+ 
+ #else /* !OBJ_ELF */
+-
++#ifdef COFF_RELEND_RELOC
++#define get_reloc_code(SIZE,PCREL,PIC) \
++  (((PIC) == pic_endrel && (SIZE) == 2)? R_RELENDWORD : NO_RELOC)
++#else
+ #define get_reloc_code(SIZE,PCREL,OTHER) NO_RELOC
++#endif /* COFF_RELEND_RELOC */
+ 
+ #define relaxable_symbol(symbol) 1
+ 
+diff -urN orig-binutils-2.12/gas/configure.in binutils-2.12/gas/configure.in
+--- orig-binutils-2.12/gas/configure.in	Tue Feb 26 11:35:27 2002
++++ binutils-2.12/gas/configure.in	Mon Apr 15 18:17:24 2002
+@@ -196,6 +196,7 @@
+       arm-*-pe | thumb-*-pe)            fmt=coff em=pe ;;
+       arm-*-riscix*)	                fmt=aout em=riscix ;;
+       arm-*-vxworks)	                fmt=coff ;;
++      arm-*-palmos*)	                fmt=elf ;;
+ 
+       avr-*-*)		    fmt=elf bfd_gas=yes ;;
+ 
+@@ -321,6 +322,7 @@
+       m68k-*-openbsd*)      fmt=aout em=nbsd bfd_gas=yes ;;
+       m68k-apple-aux*)      fmt=coff em=aux ;;
+       m68k-*-psos*)         fmt=elf em=psos;;
++      m68k-*-palmos*)       fmt=coff ;;
+ 
+       m88k-motorola-sysv3*) fmt=coff em=delt88 ;;
+       m88k-*-coff*)         fmt=coff ;;
+diff -urN orig-binutils-2.12/gas/configure binutils-2.12/gas/configure
+--- orig-binutils-2.12/gas/configure	Tue Feb 26 11:35:27 2002
++++ binutils-2.12/gas/configure	Mon Apr 15 18:16:53 2002
+@@ -2312,6 +2312,7 @@
+       arm-*-pe | thumb-*-pe)            fmt=coff em=pe ;;
+       arm-*-riscix*)	                fmt=aout em=riscix ;;
+       arm-*-vxworks)	                fmt=coff ;;
++      arm-*-palmos*)	                fmt=elf ;;
+ 
+       avr-*-*)		    fmt=elf bfd_gas=yes ;;
+ 
+@@ -2440,6 +2441,7 @@
+       m68k-*-openbsd*)      fmt=aout em=nbsd bfd_gas=yes ;;
+       m68k-apple-aux*)      fmt=coff em=aux ;;
+       m68k-*-psos*)         fmt=elf em=psos;;
++      m68k-*-palmos*)       fmt=coff ;;
+ 
+       m88k-motorola-sysv3*) fmt=coff em=delt88 ;;
+       m88k-*-coff*)         fmt=coff ;;
+diff -urN orig-binutils-2.12/gas/m68k-parse.c binutils-2.12/gas/m68k-parse.c
+--- orig-binutils-2.12/gas/m68k-parse.c	Fri Mar  8 07:16:01 2002
++++ binutils-2.12/gas/m68k-parse.c	Mon Apr 15 18:14:40 2002
+@@ -1978,7 +1978,7 @@
+ 	tail = 2;
+     }
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   {
+     /* Look for @PLTPC, etc.  */
+     char *cp;
+@@ -2010,6 +2010,11 @@
+ 	    yylval.exp.pic_reloc = pic_got_off;
+ 	    tail += 4;
+ 	  }
++	else if (strncmp (cp - 4, "@END", 4) == 0)
++	  {
++	    yylval.exp.pic_reloc = pic_endrel;
++	    tail += 4;
++	  } 
+       }
+   }
+ #endif
+diff -urN orig-binutils-2.12/include/coff/internal.h binutils-2.12/include/coff/internal.h
+--- orig-binutils-2.12/include/coff/internal.h	Fri Aug 24 02:20:01 2001
++++ binutils-2.12/include/coff/internal.h	Mon Apr 15 18:16:06 2002
+@@ -632,6 +632,10 @@
+ #define R_LVRT16       132
+ #define R_VRT32        133
+ 
++/* This (m68k) reloc evaluates to a 16bit offset, just like R_RELWORD, but
++   also implicitly subtracts the value of `edata', so that effectively the
++   origin is at the end of the memory region intead of the start.  */
++#define R_RELENDWORD	21
+ 
+ /* This reloc identifies mov.b instructions with a 16bit absolute
+    address.  The linker tries to turn insns with this reloc into
+diff -urN orig-binutils-2.12/ld/configure.tgt binutils-2.12/ld/configure.tgt
+--- orig-binutils-2.12/ld/configure.tgt	Wed Feb 20 06:26:22 2002
++++ binutils-2.12/ld/configure.tgt	Mon Apr 15 18:12:59 2002
+@@ -191,6 +191,7 @@
+ arm*-*-linux-gnu*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
+ arm*-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
+ arm*-*-conix*)		targ_emul=armelf ;;
++arm*-*-palmos*)		targ_emul=armelf ;;
+ thumb-*-linux-gnu* | thumb-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
+ strongarm-*-coff)	targ_emul=armcoff ;;
+ strongarm-*-elf)	targ_emul=armelf ;;
+@@ -242,6 +243,7 @@
+ m68*-*-netbsd*)		targ_emul=m68knbsd ;;
+ m68*-*-psos*)		targ_emul=m68kpsos ;;
+ m68*-*-rtems*)		targ_emul=m68kcoff ;;
++m68*-*-palmos*)		targ_emul=m68kcoff ;;
+ hppa*64*-*)		targ_emul=elf64hppa ;;
+ hppa*-*-linux-gnu*)	targ_emul=hppalinux ;;
+ hppa*-*-*elf*)		targ_emul=hppaelf ;;
+diff -urN orig-binutils-2.12/ld/emultempl/m68kcoff.em binutils-2.12/ld/emultempl/m68kcoff.em
+--- orig-binutils-2.12/ld/emultempl/m68kcoff.em	Tue Mar 13 07:14:27 2001
++++ binutils-2.12/ld/emultempl/m68kcoff.em	Mon Apr 15 18:11:43 2002
+@@ -88,22 +88,25 @@
+ 	{
+ 	  asection *relsec;
+ 
+-	  relsec = bfd_make_section (abfd, ".emreloc");
++	  relsec = bfd_make_section (abfd, ".reloc");
+ 	  if (relsec == NULL
+ 	      || ! bfd_set_section_flags (abfd, relsec,
+-					  (SEC_ALLOC
+-					   | SEC_LOAD
+-					   | SEC_HAS_CONTENTS
++					  (SEC_HAS_CONTENTS
+ 					   | SEC_IN_MEMORY))
+ 	      || ! bfd_set_section_alignment (abfd, relsec, 2)
+ 	      || ! bfd_set_section_size (abfd, relsec,
+ 					 datasec->reloc_count * 12))
+-	    einfo ("%F%B: can not create .emreloc section: %E\n");
++	    einfo ("%F%B: can not create .reloc section: %E\n");
+ 	}
+ 
+       /* Double check that all other data sections are empty, as is
+          required for embedded PIC code.  */
++#if 0
++      /* This is NOT required for embedded PIC.  In fact, since we have
++         sections like [be]hook which can be data sections on input but
++	 are output in the .text section, this is wrong wrong wrong.  */
+       bfd_map_over_sections (abfd, check_sections, (PTR) datasec);
++#endif
+     }
+ }
+ 
+@@ -146,7 +149,7 @@
+       if (datasec == NULL || datasec->reloc_count == 0)
+ 	continue;
+ 
+-      relsec = bfd_get_section_by_name (abfd, ".emreloc");
++      relsec = bfd_get_section_by_name (abfd, ".reloc");
+       ASSERT (relsec != NULL);
+ 
+       if (! bfd_m68k_coff_create_embedded_relocs (abfd, &link_info,
