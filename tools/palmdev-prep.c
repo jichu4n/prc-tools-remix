@@ -372,16 +372,16 @@ write_main_spec (FILE *f, const struct root *default_sdk,
 void
 write_specs (FILE *f, const char *target, const struct root *default_sdk) {
   static const struct spec_kind include = { "cpp", write_include_tree, NULL };
-  static const char * const m68k_libdirs[] = { "m68k-palmos-coff", NULL };
-
-  const char * const generic_libdirs[] = { target, NULL };
-  const struct spec_kind lib = {
-    "link", write_lib_tree,
-    matches ("m68k-", target)? m68k_libdirs : generic_libdirs
-    };
 
   struct root *sdk;
   int i, n = 0;
+
+  struct spec_kind lib = { "link", write_lib_tree, NULL };
+  const char *libdirs[2];
+
+  lib.targetdirs = libdirs;
+  libdirs[0] = (matches ("m68k-", target))? "m68k-palmos-coff" : target;
+  libdirs[1] = NULL;
 
   for (sdk = sdk_root_list; sdk; sdk = sdk->next) {
     write_sdk_spec (f, sdk, &include);
