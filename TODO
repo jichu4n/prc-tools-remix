@@ -15,13 +15,4 @@ distribution.
 * Update the ChangeLogs, and start submitting patches to the various GNU
 maintainers (without any of the remaining nasty hacks!).
 
-* figure out what to do to unify the different floating point implementations.
-You can now (finally!) call new float manager routines by hand, but you
-probably want them to get called for operators too.  Unfortunately, libcalls
-don't see prototypes (i.e., they don't see callseqs!), so there's a bit of
-internals hacking needed here.
-
-* get GDB to notice Macsbug function names in the absence of other symbols
-(like in the ROM, for example).
-
 * sort out GLibs and integrate Michael's stuff.
