@@ -29,6 +29,7 @@ CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
+INSTALL_DIRS  = $(INSTALL_DIRS_@target_cpu@)
 INSTALL_FILES = $(INSTALL_FILES_@target_cpu@)
 LIBC_OBJS = $(LIBC_OBJS_@target_cpu@)
 LIBG_OBJS = $(LIBG_OBJS_@target_cpu@)
@@ -45,6 +46,7 @@ INSTALL_HFILES = $(INCDIR)/ctype.h $(INCDIR)/errno.h $(INCDIR)/malloc.h \
 		 $(INCDIR)/stdlib.h $(INCDIR)/sys/types.h
 
 
+INSTALL_DIRS_m68k  = lib/mown-gp
 INSTALL_FILES_m68k = libc.a mown-gp/libc.a libg.a mown-gp/libg.a libstdc++.a
 
 LIBC_OBJS_m68k = \
@@ -60,6 +62,7 @@ LIBC_OBJS_m68k = \
 LIBG_OBJS_m68k =
 
 
+INSTALL_DIRS_arm  =
 INSTALL_FILES_arm = libc.a libstdc++.a
 
 LIBC_OBJS_arm = \
@@ -77,8 +80,9 @@ install: $(INSTALL_FILES) $(INSTALL_HFILES)
 	  echo $${f}; \
 	  $(INSTALL_DATA) $${f} `echo $${f} | sed -e 's:^$(INCDIR):$(exec_prefix)/$(target_alias)/include:'`; \
 	done
-	$(INSTALL) -d $(exec_prefix)/$(target_alias)/lib
-	$(INSTALL) -d $(exec_prefix)/$(target_alias)/lib/mown-gp
+	for d in lib $(INSTALL_DIRS); do \
+	  $(INSTALL) -d $(exec_prefix)/$(target_alias)/$${d}; \
+	done
 	for f in $(INSTALL_FILES); do \
 	  echo $${f}; \
 	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib/$${f}; \
