@@ -13,5 +13,5 @@
 >#error No genuine PalmOS.h found
 <#warning use PalmOS.h instead if you are using the 3.5 SDK or later; \
 >#warning use Pilot.h if you really mean to use the 3.1 SDK or earlier; \
-you may need to run palmdev-prep or use a suitable -palmosX option -- \
+you may need to run palmdev-prep or use a suitable -palmosN option -- \
 see "http://prc-tools.sourceforge.net/cgi-bin/info/palmdev-prep" for details
