@@ -318,6 +318,21 @@ write_specs (FILE *f, const char *target, const struct root *default_sdk) {
   }
 
 
+FILE *
+fopen_for_writing (const char *fname, const char **message) {
+  FILE *f = fopen (fname, "w");
+  if (f == NULL) {
+#ifdef EACCES
+    if (errno == EACCES)
+      *message =
+	"Permission to write configuration files denied -- try again as root";
+#endif
+    error ("can't write to '%s': @P", fname);
+    }
+
+  return f;
+  }
+
 void
 remove_file (int verbose, const char *fname) {
   struct stat st;
@@ -492,7 +507,7 @@ main (int argc, char **argv) {
 
       for (ntargets = 0; (target = next_target (&dir)) != NULL; ntargets++) {
 	const char *fname = specfilename (target);
-	FILE *f = fopen (fname, "w");
+	FILE *f = fopen_for_writing (fname, &message);
 
 	if (f) {
 	  write_specs (f, target, default_sdk);
@@ -500,14 +515,6 @@ main (int argc, char **argv) {
 
 	  if (verbose)
 	    printf ("Wrote %s specs to '%s'\n", target, fname);
-	  }
-	else {
-#ifdef EACCES
-	  if (errno == EACCES)
-	    message = "Permission to write spec files denied -- "
-		      "try again as root";
-#endif
-	  error ("can't write to '%s': @P", fname);
 	  }
 	}
 
