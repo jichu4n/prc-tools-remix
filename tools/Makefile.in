@@ -31,9 +31,9 @@ RANLIB = @RANLIB@
 LEX = @LEX@
 YACC = @YACC@
 
-# Eventually write configury goop to select this if needed
 # (Is this *really* what you have to do to get one library statically linked?)
-CXXLIBS = -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lm -lgcc -lc -lgcc
+STATIC_CXXLIBS = -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lm -lgcc -lc -lgcc
+CXXLIBS = @static_cxxlibs@
 
 BINUTILS_INCDIRS = -I$(srcdir)/../binutils/include -I../binutils/bfd
 BINUTILS_LIBDIRS = -L../binutils/bfd -L../binutils/libiberty

@@ -26,6 +26,17 @@ if test x$build_sdk = x; then
   build_sdk='$(BOOTSTRAP_SDKFLAGS)'
 fi
 
+AC_SUBST(build_sdk)
+
+AC_ARG_WITH(shared-libstdcxx-for-tools,
+[  --without-shared-libstdcxx-for-tools
+                          try not to use shared libstdc++ in build-prc [with]],
+[case "${withval}" in
+no)	static_cxxlibs='$(STATIC_CXXLIBS)' ;;
+*)	;;
+esac])
+AC_SUBST(static_cxxlibs)
+
 AC_MSG_CHECKING([prc-tools package version])
 if test -f $srcdir/prc-tools.spec; then
   prc_tools_version=`grep ^Version: $srcdir/prc-tools.spec | sed 's/.*: //'`
@@ -33,8 +44,6 @@ else
   prc_tools_version=unknown
 fi
 AC_MSG_RESULT($prc_tools_version)
-
-AC_SUBST(build_sdk)
 AC_SUBST(prc_tools_version)
 
 AC_OUTPUT(Makefile crt/Makefile crt/Make-multi doc/Makefile include/Makefile libc/Makefile libm/Makefile tools/Makefile)

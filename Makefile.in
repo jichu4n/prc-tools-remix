@@ -128,8 +128,6 @@ install-palmdev:
 	$(INSTALL) -d $(palmdev_prefix)/doc
 	$(INSTALL) -d $(palmdev_prefix)/include
 	$(INSTALL) -d $(palmdev_prefix)/lib/$(target)
-	$(INSTALL_DATA) $(srcdir)/COPYING $(palmdev_prefix)/doc/COPYING
-	$(INSTALL_DATA) $(srcdir)/README $(palmdev_prefix)/doc/README
 
 
 distdir = prc-tools-@prc_tools_version@

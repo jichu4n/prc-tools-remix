@@ -92,6 +92,7 @@ cd $RPM_BUILD_DIR/build-prc-tools
 ../prc-tools-%{version}/configure --target=%{target} --enable-languages=c,c++ \
   --prefix=%{prefix} --exec-prefix=%{exec_prefix} \
   --with-headers=$RPM_BUILD_DIR/build-prc-tools/empty \
+  --without-shared-libstdcxx-for-tools \
   --sharedstatedir=%{palmdev_prefix}
 
 cd $RPM_BUILD_DIR/build-prc-tools/doc
@@ -193,7 +194,22 @@ fi
 %doc %{prefix}/info/ld.info*
 %doc %{prefix}/info/prc-tools.info*
 %endif
-%doc %{prefix}/man/man1/%{target}-*.1
+%doc %{prefix}/man/man1/%{target}-addr2line.1*
+%doc %{prefix}/man/man1/%{target}-ar.1*
+%doc %{prefix}/man/man1/%{target}-as.1*
+%doc %{prefix}/man/man1/%{target}-c++filt.1*
+%doc %{prefix}/man/man1/%{target}-g++.1*
+%doc %{prefix}/man/man1/%{target}-gcc.1*
+%doc %{prefix}/man/man1/%{target}-gdb.1*
+%doc %{prefix}/man/man1/%{target}-ld.1*
+%doc %{prefix}/man/man1/%{target}-nlmconv.1*
+%doc %{prefix}/man/man1/%{target}-nm.1*
+%doc %{prefix}/man/man1/%{target}-objcopy.1*
+%doc %{prefix}/man/man1/%{target}-objdump.1*
+%doc %{prefix}/man/man1/%{target}-ranlib.1*
+%doc %{prefix}/man/man1/%{target}-size.1*
+%doc %{prefix}/man/man1/%{target}-strings.1*
+%doc %{prefix}/man/man1/%{target}-strip.1*
 
 # support stuff tucked away in GCC's directories
 %{exec_prefix}/lib/gcc-lib/%{target}/2.95.3-kgpd/[A-o]*
@@ -211,11 +227,9 @@ fi
 %dir %{palmdev_prefix}/lib
 # yes, this is intentionally not %{target}
 %dir %{palmdev_prefix}/lib/m68k-palmos-coff
-
 %docdir %{palmdev_prefix}/doc
-%dir %{palmdev_prefix}/doc
-%doc %{palmdev_prefix}/doc/COPYING
-%doc %{palmdev_prefix}/doc/README
+
+%doc COPYING README
 
 %files htmldocs
 %doc %{palmdev_prefix}/doc/index.html
