@@ -5,7 +5,7 @@
 @c @footnotestyle separate
 
 @set update-month May 2002
-@set update-date 9 @value{update-month}
+@set update-date 30 @value{update-month}
 @set prc-tools-version 2.1
 
 @c %**end of header
@@ -286,9 +286,6 @@ implied by the @samp{-O} flags, but must be selected explicitly.
 @c The option @samp{-ffunction-cse} works, but (because we care about code size)
 @c generally produces worse code.  Unlike other platforms, @samp{-O2} doesn't
 @c turn function @sc{cse} on.
-
-@item
-Floating-point support is probably generally flaky.
 
 @item
 If you use 64K code resources, the linker @samp{-r} option will not always work.
