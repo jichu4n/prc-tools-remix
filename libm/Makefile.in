@@ -16,11 +16,14 @@ INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 LN_S = @LN_S@
 
+BOOTSTRAP_SDKFLAGS = -I$(srcdir)/../sdk-bootstrap -nopalmos
+SDKFLAGS = @build_sdk@
+
 CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
-CFLAGS = -O2 -Wall -msoft-float -fno-builtin
+CFLAGS = -O2 -Wall -msoft-float -fno-builtin $(SDKFLAGS)
 
 INCS= mconf.h
 OBJS= acoshf.o airyf.o asinf.o asinhf.o atanf.o \

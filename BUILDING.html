@@ -188,6 +188,12 @@ Pointing it at an empty directory like this effectively suppresses that
 behaviour -- which may or may not be the best idea, but it makes life
 easier for now.  :-)
 <dt>
+<code>--with-build-sdk[=-palmosX]</code>
+<dd>
+Select an installed Palm OS SDK with which to build the runtime code.
+By default, the files in <code>prc-tools/sdk-bootstrap</code> are used,
+which provide just enough functionality to compile the startup code.
+<dt>
 <code><a name="sharedstatedir">--sharedstatedir=/usr/local/palmdev</a></code>
 <dd>
 (There's a bit of a hack here :-))  This is where the tool chain

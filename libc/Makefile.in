@@ -21,13 +21,16 @@ target_alias = @target_alias@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 
+BOOTSTRAP_SDKFLAGS = -I$(srcdir)/../sdk-bootstrap -nopalmos
+SDKFLAGS = @build_sdk@
+
 CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
 # PRINT_FLOATS huh?
 CFLAGS = -Wall -O2 -fno-builtin -DPRINT_FLOATS \
-	 -I$(srcdir)/include -I$(srcdir)/../include
+	 -I$(srcdir)/include -I$(srcdir)/../include $(SDKFLAGS)
 
 INSTALL_DIR = $(exec_prefix)/$(target_alias)
 

@@ -18,13 +18,16 @@ target_alias = @target_alias@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 
+BOOTSTRAP_SDKFLAGS = -I$(srcdir)/../sdk-bootstrap -nopalmos
+SDKFLAGS = @build_sdk@
+
 CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
 # Don't use -fomit-frame-pointer just now: it's broken
 # CFLAGS = -O5 -fomit-frame-pointer -fno-builtin -Wall -W
-CFLAGS = -O5 -fno-builtin -Wall -W -I$(srcdir)/../include
+CFLAGS = -O5 -fno-builtin -Wall -W -I$(srcdir)/../include $(SDKFLAGS)
 
 INSTALL_FILES = crt0.o gcrt0.o scrt0.o libcrt.a libcrt-owngp.a \
   libnoexcept.a libnfm.a

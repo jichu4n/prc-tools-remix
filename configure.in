@@ -14,4 +14,18 @@ AC_PROG_LEX
 AC_PROG_YACC
 AC_EXEEXT
 
+AC_ARG_WITH(build-sdk,
+[  --with-build-sdk=FLAGS  which SDK to build runtime [internal bootstrap SDK]],
+[case "${withval}" in
+yes)	build_sdk="-palmos" ;;
+no)	;;
+*)	build_sdk=$with_build_sdk ;;
+esac])
+
+if test x$build_sdk = x; then
+  build_sdk='$(BOOTSTRAP_SDKFLAGS)'
+fi
+
+AC_SUBST(build_sdk)
+
 AC_OUTPUT(Makefile crt/Makefile crt/Make-multi doc/Makefile include/Makefile libc/Makefile libm/Makefile tools/Makefile)
