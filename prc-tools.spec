@@ -93,7 +93,6 @@ cd $RPM_BUILD_DIR/build-prc-tools
   --prefix=%{prefix} --exec-prefix=%{exec_prefix} \
   --with-headers=$RPM_BUILD_DIR/build-prc-tools/empty \
   --without-shared-libstdcxx-for-tools \
-  --with-build-sdk=-palmos \
   --with-palmdev-prefix=%{palmdev_prefix} \
   --with-palmdev-extra-path=/usr/local/palmdev
 
