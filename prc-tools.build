@@ -25,7 +25,7 @@ do
   tar xf$decompression $SOURCES/$tarball$extension
 done
   
-cat *.palmos.diff | $PATCH -p0
+cat *.diff | $PATCH -p0
 
 mv gcc-2.95.3 gcc295
 # Rename each "package-x.y.z" directory to just "package"
