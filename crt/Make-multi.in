@@ -1,0 +1,41 @@
+# Makefile for prc-tools crt files.
+#
+# Copyright (c) 2000 Palm, Inc. or its subsidiaries.
+# All rights reserved.
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+target_alias = @target_alias@
+
+CC = $(target_alias)-gcc
+AR = $(target_alias)-ar
+RANLIB = $(target_alias)-ranlib
+
+hooks$(VER).o: hooks.c ../include/NewTypes.h crt.h
+	$(CC) $(CFLAGS) -c -o $@ $(srcdir)/hooks.c
+
+gdbstub$(VER).o: gdbstub.c ../include/NewTypes.h crt.h
+	$(CC) $(CFLAGS) -c -o $@ $(srcdir)/gdbstub.c
+
+palmos_GLib$(VER).o: palmos_GLib.c ../include/NewTypes.h palmos_GLib.h
+	$(CC) $(CFLAGS) -c -o $@ $(srcdir)/palmos_GLib.c
+
+single_dreloc$(VER).o multi_dreloc$(VER).o \
+multi_free$(VER).o reloc_chain$(VER).o: dreloc.c ../include/NewTypes.h crt.h
+	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o | sed -e s/-.*//` $(srcdir)/dreloc.c
+
+CRTLIB_OBJS = \
+  hooks$(VER).o gdbstub$(VER).o palmos_GLib$(VER).o \
+  single_dreloc$(VER).o multi_dreloc$(VER).o \
+  multi_free$(VER).o reloc_chain$(VER).o
+
+libcrt$(VER).a: $(CRTLIB_OBJS)
+	-rm -f $@
+	$(AR) cr $@ $(CRTLIB_OBJS)
+	$(RANLIB) $@

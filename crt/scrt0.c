@@ -1,5 +1,11 @@
-#include <Pilot.h>
+#include <SystemMgr.h>
+#include <MemoryMgr.h>
+#include <DataMgr.h>
+#include <ErrorMgr.h>
+
+#include "NewTypes.h"
 #include "palmos_GLib.h"
+#include "crt.h"
 
 #define USE_DYNAMIC_MEM_ONLY
 
@@ -11,36 +17,31 @@ typedef struct {
 } SaveEntry;
 
 void jmptable();
-static void GccRelocateData(void);
 static void AllocSaveTable(void);
-static void clean(UInt,struct LibRef *);
+static void clean(UInt16,struct LibRef *);
 void crt0_trampoline(void);
-static void do_bhook(Word,Ptr,Word);
-static void do_ehook(Word,Ptr,Word);
-static void do_ctors(void);
-static void do_dtors(void);
 
 register void *reg_a4 asm("%a4");
 
 /* This must be the first piece of data */
-static void(*trampoline)(void) = crt0_trampoline;
+static void(*trampoline)(void) UNUSED_PARAM = crt0_trampoline;
 
 static SaveEntry *savetable;
 static SaveEntry *savetableend;
-static VoidHand savetableHand;
+static MemHandle savetableHand;
 
 /* This must be the first function; there con be no constant strings in
    this function, or else they'd end up before "start" in the text segment */
-ULong start(UInt ref, struct LibRef *libref,
-    void (**cleanfcnP)(UInt, struct LibRef *))
+UInt32 start(UInt16 ref, struct LibRef *libref,
+    void (**cleanfcnP)(UInt16, struct LibRef *))
 {
     void *save_a4 = reg_a4;
-    VoidHand dataH;
+    MemHandle dataH;
     unsigned char *dataP;
     unsigned char *readp;
     unsigned char *writep;
     int i;
-    ULong datasize;
+    UInt32 datasize;
 
     libref->jmptable = (void *)&jmptable;
 
@@ -70,12 +71,12 @@ ULong start(UInt ref, struct LibRef *libref,
     /* Decompress the data segment */
     readp = dataP + 4;
     for(i=0;i<3;++i) {
-	ULong startat = *(readp++);
+	UInt32 startat = *(readp++);
 	startat <<= 8; startat += *(readp++);
 	startat <<= 8; startat += *(readp++);
 	startat <<= 8; startat += *(readp++);
 	writep = ((unsigned char *)(libref->globals)) + datasize +
-		    (Long)startat;
+		    (Int32)startat;
 	while(*readp) {
 	    if (*readp & 0x80) {
 		unsigned char j;
@@ -139,104 +140,28 @@ ULong start(UInt ref, struct LibRef *libref,
     MemHandleUnlock(dataH);
     DmReleaseResource(dataH);
     reg_a4 = libref->globals;
-    GccRelocateData();
-    do_ctors();
+    _GccRelocateData();
+    __do_ctors();
     AllocSaveTable();
-    do_bhook(0, NULL, 0);
+    __do_bhook(0, NULL, 0);
     reg_a4 = save_a4;
     return 0;
 }
 
-struct pilot_reloc {
-  UChar  type;
-  UChar  section;  
-  UInt   offset;
-  ULong  value ;
-};
-
-#define TEXT_SECTION 't'
-#define DATA_SECTION 'd'
-#define BSS_SECTION  'b'
-
-#define RELOC_ABS_32       0xbe
-
-/*
- *  This function should be called from 
- */
-static void GccRelocateData ()
-{
-  extern long data_start, bss_start;
-  unsigned long data = (unsigned long)&data_start;
-  unsigned long bss  = (unsigned long)&bss_start;
-  unsigned long text = (unsigned long)&start;
-
-  VoidHand relocH;
-  char *relocPtr;
-  struct pilot_reloc *relocs;
-  UInt count, i;
-
-  static int done = 0;
-  
-  if (done) return;
-  else done = 1;
-
-  asm ("sub.l #start, %0" : "=g" (text) : "0" (text));
-  asm ("sub.l #bss_start, %0" : "=g" (bss) : "0" (bss));
-  asm ("sub.l #data_start, %0" : "=g" (data) : "0" (data));
-  
-  relocH = DmGet1Resource ('rloc', 0);
-  if (relocH == 0)
-    return;
-
-  relocPtr = MemHandleLock (relocH);
-  count = *(UInt*)relocPtr;
-  relocs = (struct pilot_reloc*) (relocPtr + 2);
-
-  for (i = 0; i < count; i++)
-    {
-      unsigned long *loc;
-      ErrFatalDisplayIf (relocs[i].type != RELOC_ABS_32, \
-			 "unknown reloc.type");
-
-      loc = (unsigned long*) ((char*)&data_start + relocs[i].offset);
-
-      switch (relocs[i].section)
-	{
-	case TEXT_SECTION:
-	  *loc += text;
-	  break;
-
-	case DATA_SECTION:
-	  *loc += data;
-	  break;
-
-	case BSS_SECTION:
-	  *loc += bss;
-	  break;
-	  
-	default:
-	  ErrDisplay ("Unknown reloc.section");
-	}
-    }
-
-  MemHandleUnlock (relocH);
-  DmReleaseResource (relocH);
-
-}
 
 /* Free the globals we allocated in start() */
-static void clean(UInt dummy, struct LibRef *libref)
+static void clean(UInt16 dummy UNUSED_PARAM, struct LibRef *libref)
 {
     void *save_a4 = reg_a4;
 #ifndef USE_DYNAMIC_MEM_ONLY
-    VoidHand orighand;
+    MemHandle orighand;
 #endif
 
     reg_a4 = libref->globals;
     MemHandleUnlock(savetableHand);
     MemHandleFree(savetableHand);
-    do_ehook(0, NULL, 0);
-    do_dtors();
+    __do_ehook(0, NULL, 0);
+    __do_dtors();
     reg_a4 = save_a4;
 #ifdef USE_DYNAMIC_MEM_ONLY
     MemPtrFree(libref->globals);
@@ -351,64 +276,4 @@ void *crt0GetEntry(void **retpcP)
     /* Not found. */
     ErrFatalDisplayIf(1, "Entry not found in SaveTable");
     return NULL;
-}
-
-static void do_bhook(Word cmd, Ptr PBP, Word flags)
-{
-    void **hookend, **hookptr;
-    unsigned long text = (unsigned long)&start;
-    asm ("sub.l #start, %0" : "=g" (text) : "0" (text));
-
-    asm ("lea bhook_start,%0; add.l %1,%0" : "=a" (hookptr) : "g" (text));
-    asm ("lea bhook_end,%0; add.l %1,%0" : "=a" (hookend) : "g" (text));
-
-    while (hookptr < hookend) {
-	void (*fptr)(Word,Ptr,Word) = (*(hookptr++)) + text;
-	fptr(cmd,PBP,flags);
-    }
-}
-
-static void do_ehook(Word cmd, Ptr PBP, Word flags)
-{
-    void **hookstart, **hookptr;
-    unsigned long text = (unsigned long)&start;
-    asm ("sub.l #start, %0" : "=g" (text) : "0" (text));
-
-    asm ("lea ehook_start,%0; add.l %1,%0" : "=a" (hookstart) : "g" (text));
-    asm ("lea ehook_end,%0; add.l %1,%0" : "=a" (hookptr) : "g" (text));
-
-    while (hookptr > hookstart) {
-	void (*fptr)(Word,Ptr,Word) = (*(--hookptr)) + text;
-	fptr(cmd,PBP,flags);
-    }
-}
-
-static void do_ctors(void)
-{
-    void **hookend, **hookptr;
-    unsigned long text = (unsigned long)&start;
-    asm ("sub.l #start, %0" : "=g" (text) : "0" (text));
-
-    asm ("lea ctors_start,%0; add.l %1,%0" : "=a" (hookptr) : "g" (text));
-    asm ("lea ctors_end,%0; add.l %1,%0" : "=a" (hookend) : "g" (text));
-
-    while (hookptr < hookend) {
-	void (*fptr)(void) = (*(hookptr++)) + text;
-	fptr();
-    }
-}
-
-static void do_dtors(void)
-{
-    void **hookstart, **hookptr;
-    unsigned long text = (unsigned long)&start;
-    asm ("sub.l #start, %0" : "=g" (text) : "0" (text));
-
-    asm ("lea dtors_start,%0; add.l %1,%0" : "=a" (hookstart) : "g" (text));
-    asm ("lea dtors_end,%0; add.l %1,%0" : "=a" (hookptr) : "g" (text));
-
-    while (hookptr > hookstart) {
-	void (*fptr)(void) = (*(--hookptr)) + text;
-	fptr();
-    }
 }

@@ -1,7 +1,23 @@
-#include <System/SysAll.h>
-#include <System/FeatureMgr.h>
-#include <System/DataMgr.h>
+#include <FeatureMgr.h>
+#include <DataMgr.h>
+#include <StringMgr.h>
+#include <ErrorMgr.h>
+
+#include "NewTypes.h"
 #include "palmos_GLib.h"
+
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)
+/* Recent versions of prc-tools's GCC use %a4 or %a5 depending on -mown-gp.  */
+    #ifdef __OWNGP__
+    #define A4_GLOBALS
+    #else
+    #undef A4_GLOBALS
+    #endif
+#else
+/* The prc-tools 0.5.0 version always uses %a4.  */
+#define A4_GLOBALS
+#endif
+
 
 /* This function is called when we need to get a pointer to the LibRef for
    the shared library.  We find the pointer in a Feature if it's already
@@ -9,16 +25,16 @@
    function, which will fill in bits of the required structure (in which
    case we'll make the Feature for it).  Note that we do not necessarily
    have globals available when we are called. */
-struct LibRef *GLibOpen(ULong creator, CharPtr libname) {
+struct LibRef *GLibOpen(UInt32 creator, Char* libname) {
     struct LibRef *libref;
     Err err;
 
-    err = FtrGet(creator, 0, (DWord *)&libref);
+    err = FtrGet(creator, 0, (UInt32 *)&libref);
     if (err || !libref) {
 	DmOpenRef dbref;
-	VoidHand GLib0;
-	ULong (*libstart)(UInt, struct LibRef*,
-	    void (**)(UInt, struct LibRef*));
+	MemHandle GLib0;
+	UInt32 (*libstart)(UInt16, struct LibRef*,
+	    void (**)(UInt16, struct LibRef*));
 	Char errmsg[80];
 
 	/* Try to load the library */
@@ -60,7 +76,7 @@ struct LibRef *GLibOpen(ULong creator, CharPtr libname) {
 	libstart(0, libref, &(libref->cleanfcn));
 
 	/* Set the Feature */
-	FtrSet(creator, 0, (DWord)libref);
+	FtrSet(creator, 0, (UInt32)libref);
     }
 
     /* Note that we now have it open */
@@ -94,6 +110,10 @@ void GLibClose(struct LibRef *libref)
 
 void GLib_dispatch_(void)
 {
+#ifdef A4_GLOBALS
+    asm volatile (".equ A4_GLOBALS,1");
+#endif
+
     /* The tricky bit with this dispatch routine is preservation of
        registers.  The callee is supposed to preserve
        a2,a3,a4,a5,d3,d4,d5,d6,d7.  However, we _can't push stuff on our
@@ -101,7 +121,7 @@ void GLib_dispatch_(void)
        there.  Also, we may not have globals.  Note also that we see the
        opposite problem when we try to call GLibOpen: we need to
        manually preserve a[01] and d[012] across the call. */
-    asm ("
+    asm volatile ("
 .global GLibDispatch
 GLibDispatch:
     |
@@ -111,8 +131,14 @@ GLibDispatch:
     | the function code is in %%d0, and if %%a4 is not 0, a pointer to
     | libref is in %%a1.
     |
+    | If we (the application) have %%a5 globals though, we'll assume that
+    | they are available, and hence that %%a1 is valid.  So we skip over
+    | the globals check to the libref check.
+    |
+    .ifdef A4_GLOBALS
     cmp.l #0,%%a4
     jbeq noglobals
+    .endif
     move.l (%%a1),%%a0
     cmp.l #0,%%a0
     jbne RefInA0
@@ -125,6 +151,7 @@ GLibDispatch:
     move.l (%%sp)+,%%d0
     move.l (%%sp)+,%%a1
     move.l %%a0,(%%a1)
+    .ifdef A4_GLOBALS
     bras RefInA0
 
 noglobals:
@@ -134,6 +161,7 @@ noglobals:
     bsr.w GLibOpen
     lea 8(%%sp),%%sp
     move.l (%%sp)+,%%d0
+    .endif
 RefInA0:
     |
     | At this point, %%a0 contains the address of the LibRef and %%d0 contains

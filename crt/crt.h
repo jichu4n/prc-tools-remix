@@ -8,6 +8,4 @@ extern void _RelocateChain (Int16 offset, void *base);
 
 extern int _GdbStartDebug (UInt16);
 
-extern UInt32 start ();
-
 #define UNUSED_PARAM  __attribute__ ((unused))

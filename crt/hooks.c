@@ -15,6 +15,8 @@
 #include "NewTypes.h"
 #include "crt.h"
 
+extern UInt32 start ();
+
 void
 __do_bhook (UInt16 cmd, void *PBP, UInt16 flags)
 {

@@ -7,13 +7,13 @@ struct LibRef {
     DmOpenRef *dbref;
 /* Entries above here are referenced in scrt0.o; if you change them,
    incompatibilities will result. */
-    void (*cleanfcn)(UInt,struct LibRef *);
-    VoidHand GLibHand;
-    ULong creator;
-    UInt refcount;
+    void (*cleanfcn)(UInt16,struct LibRef *);
+    MemHandle GLibHand;
+    UInt32 creator;
+    UInt16 refcount;
 };
 
-struct LibRef *GLibOpen(ULong, CharPtr);
+struct LibRef *GLibOpen(UInt32, Char*);
 void GLibClose(struct LibRef *);
 
 #endif

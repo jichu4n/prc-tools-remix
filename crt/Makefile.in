@@ -26,18 +26,8 @@ RANLIB = $(target_alias)-ranlib
 # CFLAGS = -O5 -fomit-frame-pointer -fno-builtin -Wall -W
 CFLAGS = -O5 -fno-builtin -Wall -W -I$(srcdir)/../include
 
-#INSTALL_FILES = crt0.o gcrt0.o scrt0.o libcrt.a libscrt.a libnoexcept.a libnfm.a
-INSTALL_FILES = crt0.o gcrt0.o libcrt.a libnoexcept.a libnfm.a
-
-CRTLIB_OBJS = \
-  single_dreloc.o multi_dreloc.o multi_free.o reloc_chain.o \
-  hooks.o gdbstub.o
-
-SCRTLIB_OBJS = \
-  palmos_GLib.o \
-  ssingle_dreloc.o smulti_dreloc.o smulti_free.o sreloc_chain.o \
-  hooks.o decompress.o
-
+INSTALL_FILES = crt0.o gcrt0.o scrt0.o libcrt.a libcrt-owngp.a \
+  libnoexcept.a libnfm.a
 
 all: $(INSTALL_FILES)
 
@@ -48,41 +38,32 @@ install: $(INSTALL_FILES)
 	  $(INSTALL_DATA) $${f} $(exec_prefix)/$(target_alias)/lib; \
 	done
 
+
 crt0.o: crt0.c ../include/NewTypes.h crt.h
 
 gcrt0.o: crt0.c ../include/NewTypes.h crt.h
 	$(CC) $(CFLAGS) -DDASHG -c -o $@ $(srcdir)/crt0.c
 
-scrt0.o: scrt0.c
+scrt0.o: scrt0.c ../include/NewTypes.h crt.h palmos_GLib.h
+	$(CC) $(CFLAGS) -mown-gp -c -o $@ $(srcdir)/scrt0.c
 
-hooks.o: hooks.c ../include/NewTypes.h crt.h
-gdbstub.o: gdbstub.c
-palmos_GLib.o: palmos_GLib.c palmos_GLib.h
 
-single_dreloc.o multi_dreloc.o \
-multi_free.o reloc_chain.o: dreloc.c ../include/NewTypes.h crt.h
-	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/dreloc.c
+CRTLIB_SRCS = \
+  hooks.c gdbstub.c palmos_GLib.c dreloc.c \
+  ../include/NewTypes.h crt.h
 
-ssingle_dreloc.o smulti_dreloc.o \
-smulti_free.o sreloc_chain.o: dreloc.c ../include/NewTypes.h crt.h
-	$(CC) $(CFLAGS) -mown-gp -c -o $@ -DL`basename $@ .o | sed -e s/^s//` $(srcdir)/dreloc.c
+libcrt.a: $(CRTLIB_SRCS)
+	$(MAKE) -f Make-multi VER="" CFLAGS="$(CFLAGS)" $@
 
-libcrt.a: $(CRTLIB_OBJS)
-	-rm -f $@
-	$(AR) cr $@ $+
-	$(RANLIB) $@
-
-libscrt.a: $(SCRTLIB_OBJS)
-	-rm -f $@
-	$(AR) cr $@ $+
-	$(RANLIB) $@
+libcrt-owngp.a: $(CRTLIB_SRCS)
+	$(MAKE) -f Make-multi VER="-owngp" CFLAGS="$(CFLAGS) -mown-gp" $@
 
 
 NOEXCEPTLIB_OBJS = new.o newnt.o del.o vdel.o delnt.o vdelnt.o
 
 libnoexcept.a: $(NOEXCEPTLIB_OBJS)
 	-rm -f libnoexcept.a
-	$(AR) cr $@ $+
+	$(AR) cr $@ $(NOEXCEPTLIB_OBJS)
 	$(RANLIB) $@
 
 $(NOEXCEPTLIB_OBJS): new12.cc
@@ -110,4 +91,4 @@ clean:
 	-rm *.o *.a
 
 distclean: clean
-	-rm Makefile
+	-rm Makefile Make-multi
