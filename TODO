@@ -60,7 +60,4 @@
   to be accessible from all targets; they should go somewhere like
   $datadir/prc-tools/include/after instead of $prefix/$target/include.
 
-* Invent syntax in .def files for standalone code segments; probably should
-  insert a jump to their entry points in the resulting code resources.
-
 * Add a post-install script to the Cygwin build to do install-info.
