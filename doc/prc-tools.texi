@@ -5,7 +5,7 @@
 @c @footnotestyle separate
 
 @set update-month June 2002
-@set update-date 6 @value{update-month}
+@set update-date 11 @value{update-month}
 @set prc-tools-version 2.1.90
 
 @c %**end of header
@@ -68,7 +68,7 @@ last modified on @value{update-date}.
 @menu
 * GCC on Palm OS::    Features (and mis-features) specific to Palm OS.
 * Global data::       Accessing global data.
-* Special projects::  Large applications, libraries, standalone code, etc.
+* Special projects::  Large applications, libraries, stand-alone code, etc.
 * Definition files::  Using a project definition file.
 * Debugging::         Enabling and using a debugger.
 
@@ -672,20 +672,27 @@ issues.  Perhaps someone will find a good use for all this flexibility!
 @node Special projects
 @chapter Special projects
 
-Because the Dragonball processor can only make a relative jump if it is of a
-distance of 32K or less, it is only possible to jump arbitrarily within a
-code resource if that resource is at most 32K in size.  Attempting to jump
-further leads to error messages that can be confusing to neophytes, so by
-default prc-tools limits the size of your code to 32K.  While it is certainly
-possible to create larger applications, there are choices to be made and
-issues to be aware of, so it is not the default.
+When you compile and link using the default options, the size of your
+application's code is limited to 32K.  The 68000 DragonBall processor can
+only make a relative jump if it is of a distance of 32K or less, and you
+will get errors from the assembler and/or linker if your code attempts to
+jump further than that.  The default size limit, enforced at link time, is
+such that it is possible to jump arbitrarily within a maximally sized code
+resource without risking attempting an impossibly long jump.
+
+While the default is limited, it is certainly possible to create larger
+applications; the choices and issues involved are discussed in this chapter.
+
+Also discussed are other types of projects: shared libraries and various
+flavours of stand-alone code resources, particularly HackMaster Hacks and
+Palm OS 5 armlets.
 
 @menu
 * Single code resource::       Size limitations for a single code resource.
 * Multiple code resources::      ...and how to escape them.
+* Shared libraries::           Creating and using shared libraries.
+* Stand-alone code::           Hacks, armlets, etc.
 @end menu
-@c FIXME * Shared libraries::           Creating and using shared libraries.
-@c FIXME * Standalone code::            Hacks, armlets, etc.
 
 
 @node Single code resource
@@ -946,6 +953,20 @@ myapp: $(OBJS) myapp-sections.ld
         m68k-palmos-gcc -o myapp $(OBJS) myapp-sections.ld
 @end example
 @end enumerate
+
+
+@node Shared libraries
+@section Shared libraries
+
+@c FIXME
+(This section has not yet been written; see @ref{stubgen}, and also the
+library projects in the sample code collection.)
+
+
+@node Stand-alone code
+@section Stand-alone code
+
+FIXME
 
 
 @node Definition files
@@ -1495,9 +1516,8 @@ stubgen [ -b @var{base} | --base @var{base} ] @var{deffile}.def
 @end example
 
 The @code{stubgen} utility generates assembly language stub files for a
-GLib or an assembly language dispatch table for a SysLib.
-@c FIXME (@pxref{Shared libraries}).
-You can write these stub files yourself, but, particularly
+GLib or an assembly language dispatch table for a SysLib (@pxref{Shared
+libraries}).  You can write these stub files yourself, but, particularly
 for a GLib, it is easier to have @code{stubgen} generate them for you from the
 relevant clause in your library's definition file (@pxref{Definition files}).
 
