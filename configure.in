@@ -56,6 +56,11 @@ esac])
 AC_ARG_ENABLE(generic,
 [  --disable-generic       omit tools etc that are not target-specific])
 
+
+INTLLIBS=
+AC_SUBST(INTLLIBS)
+
+
 # Use "cd subdir; $(up_srcdir)$(srcdir)/..." to find $srcdir correctly
 # regardless of whether we were configured relatively or absolutely.
 case $srcdir in
@@ -90,7 +95,7 @@ target_gcc_flags=
 targetlib_prereqs=
 targetlib_flags=
 tools_prereqs=
-tools_bfdiberty=
+target_bfd=
 doc_prereqs=
 
 AC_SUBST(target_gcc_prereqs)
@@ -98,7 +103,7 @@ AC_SUBST(target_gcc_flags)
 AC_SUBST(targetlib_prereqs)
 AC_SUBST(targetlib_flags)
 AC_SUBST(tools_prereqs)
-AC_SUBST(tools_bfdiberty)
+AC_SUBST(target_bfd)
 AC_SUBST(doc_prereqs)
 
 if test -n "$enable_targets"; then
@@ -136,19 +141,20 @@ if test -n "$enable_targets"; then
   done
 
   if test x$enable_generic != xno; then
-    test -d bfd  || mkdir bfd
-    test -d libiberty || mkdir libiberty
-    extra_subdirs="$extra_subdirs bfd libiberty"
-    all_subdirs="$all_subdirs bfd libiberty"
-    tools_prereqs="bfd libiberty"
-    tools_bfdiberty=".."
-
     changequote(,)dnl
     first=`echo $enable_targets | sed 's/,.*//'`
     others=`echo $enable_targets | sed 's/^[^,]*,//'`
     changequote([,])dnl
     bfd_configure_args="--target=$first --enable-targets=$others"
     first_enabled_target="$first"
+
+    test -d multi-bfd  || mkdir multi-bfd
+    extra_subdirs="$extra_subdirs multi-bfd"
+    all_subdirs="$all_subdirs multi-bfd"
+    # FIXME It doesn't really need all of $first_enabled_target; really all
+    # it needs from there is $first_enabled_target/binutils/{libiberty,intl}
+    tools_prereqs="multi-bfd $first_enabled_target"
+    target_bfd="../multi-bfd"
   fi
 else
   case "$target_cpu" in
@@ -166,8 +172,9 @@ else
   	;;
   esac
 
-  # The "tools" subdirectory should look for BFD and libiberty over here.
-  tools_bfdiberty="../binutils"
+  # The "tools" subdirectory should look for BFD over here.
+  tools_prereqs="binutils"
+  target_bfd="../binutils/bfd"
 
   # The extra variables to be passed down to GCC and the target libraries
   # depend on which of binutils and GCC is being built in the tree.  This is

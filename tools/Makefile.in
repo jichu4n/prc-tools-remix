@@ -30,14 +30,25 @@ RANLIB = @RANLIB@
 LEX = @LEX@
 YACC = @YACC@
 
-# In a single target build, the target's BFD and libiberty from
-# ../binutils/{bfd,libiberty} are used; but when there are multiple
-# targets, extra multi-target versions are built in ../{bfd,liberty}.
-# Configure will set this appropriately.
-BFDIBERTY = @tools_bfdiberty@
+# Pretty much any copy of libiberty and libintl (when it is needed) will do;
+# from one of the binutils builds is as good as anywhere.  In a single target
+# build, BFD from our binutils build is the right one; but when there are
+# multiple targets, we need the special multi-target one we've built.
 
-INCDIRS = -I. -I$(srcdir) -I$(srcdir)/../binutils/include -I$(BFDIBERTY)/bfd
-LIBDIRS = -L. -L$(BFDIBERTY)/bfd -L$(BFDIBERTY)/libiberty
+GENERIC_BINUTILS = ../@first_enabled_target@/binutils
+SPECIAL_BFD = @target_bfd@
+
+# For libraries (like libiberty and pfd) which are generic such that any copy
+# will do, we can add -L options for our likely locations and search for them
+# via -l.  But for some other libraries (like bfd -- the native one just won't
+# do) we need our particular version, so we use explicit paths to our copies.
+
+BFDLIB = $(SPECIAL_BFD)/libbfd.a
+INCLUDED_INTLLIBS = $(GENERIC_BINUTILS)/intl/libintl.a
+INTLLIBS = @INTLLIBS@
+
+INCDIRS = -I. -I$(srcdir) -I$(srcdir)/../binutils/include -I$(SPECIAL_BFD)
+LIBDIRS = -L. -L$(GENERIC_BINUTILS)/libiberty
 
 ALL_CFLAGS = $(INCDIRS) $(CPPFLAGS) $(CFLAGS)
 ALL_CXXFLAGS = $(INCDIRS) $(CPPFLAGS) $(CXXFLAGS)
@@ -89,11 +100,13 @@ install: $(INSTALL_FILES)
 
 obj_res_objs = obj-res.o binres.o utils.o
 obj-res$(exeext): $(obj_res_objs) $(PFD)
-	$(CXX) $(ALL_LDFLAGS) -o $@ $(obj_res_objs) -lbfd -liberty -lpfd
+	$(CXX) $(ALL_LDFLAGS) -o $@ $(obj_res_objs) \
+	  $(BFDLIB) $(INTLLIBS) -liberty -lpfd
 
 build_prc_objs = build-prc.o binres.o utils.o def.yy.o def.tab.o
 build-prc$(exeext): $(build_prc_objs) $(PFD)
-	$(CXX) $(ALL_LDFLAGS) -o $@ $(build_prc_objs) -lbfd -liberty -lpfd
+	$(CXX) $(ALL_LDFLAGS) -o $@ $(build_prc_objs) \
+	  $(BFDLIB) $(INTLLIBS) -liberty -lpfd
 
 multigen_objs = multigen.o utils.o def.yy.o def.tab.o
 multigen$(exeext): $(multigen_objs) $(PFD)

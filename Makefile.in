@@ -33,13 +33,9 @@ dummy @extra_target_configs@:
 	$(up_srcdir)$(srcdir)/configure --target=$$target --disable-generic \
 	  $(configure_args)
 
-bfd/config.status:
-	cd bfd && $(up_srcdir)$(srcdir)/binutils/bfd/configure \
+multi-bfd/config.status:
+	cd multi-bfd && $(up_srcdir)$(srcdir)/binutils/bfd/configure \
 	  $(bfd_configure_args) $(configure_args)
-
-libiberty/config.status:
-	cd libiberty && \
-	$(up_srcdir)$(srcdir)/binutils/libiberty/configure $(configure_args)
 
 # For each target subdirectory as listed in @extra_target_configs_@,
 # configure will supply (via @extra_dependencies_@) a dependency in the form
@@ -51,9 +47,7 @@ libiberty/config.status:
 #
 # @extra_dependencies@
 
-bfd: bfd/config.status
-
-libiberty: libiberty/config.status
+multi-bfd: multi-bfd/config.status
 
 
 BUILT_AS = binutils/gas/as-new$(exeext)
