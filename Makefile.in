@@ -36,6 +36,7 @@ BUILT_LD = binutils/ld/ld-new$(exeext)
 BUILT_AR = binutils/binutils/ar$(exeext)
 BUILT_RANLIB = binutils/binutils/ranlib$(exeext)
 BUILT_GCC = gcc/gcc/xgcc$(exeext)
+BUILT_PALMDEV_PREP = tools/palmdev-prep$(exeext)
 
 minitooldir = $(target_alias)
 
@@ -76,6 +77,8 @@ all-target:
 	  cc1="CC=$(target_alias)-gcc"; \
 	fi; \
 	[ -d ./$(minitooldir) ] && cc1="$${cc1} -B$$r/$(minitooldir)/bin/"; \
+	$(BUILT_PALMDEV_PREP) -q --dump-specs none > palmdev-specs; \
+	cc1="$${cc1} -specs=$$r/palmdev-specs"; \
 	for dir in $(target_subdirs); do \
 	  if [ -f ./$${dir}/Makefile ]; then \
 	    if (cd $${dir}; $(MAKE) "$${ar1}" "$${ranlib1}" "$${cc1}" all); \
@@ -158,7 +161,7 @@ clean:
 	    if (cd $${dir} && $(MAKE) clean); then true; else exit 1; fi; \
 	  fi; \
 	done
-	-rm -rf $(minitooldir)
+	-rm -rf $(minitooldir) palmdev-specs
 
 
 distdir = prc-tools
