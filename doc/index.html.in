@@ -1,3 +1,4 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
 <title>Palm OS Development Documentation</title>
@@ -7,9 +8,9 @@
 
 <h1>Palm OS Development Documentation</h1>
 
-<a href="texi/prc-tools_toc.html">PRC-Tools</a> gives an overview
-of the whole tool chain, and details of features specific to this
-Palm&nbsp;OS port.  The remainder are the user manuals for the various
+<i>Using PRC-Tools</i> gives an overview of the whole tool chain, and
+details of features specific to this Palm&nbsp;OS port.
+The remainder are the user manuals for the various
 <a href="http://www.gnu.org/">GNU</a> packages used in the tool chain.
 
 <p>
@@ -32,6 +33,31 @@ Palm&nbsp;OS port.  The remainder are the user manuals for the various
      to build your project
 <!-- @if-1 -->
 </ul>
+
+<p>
+The tools described in these manuals can be configured for use with
+several different targets.  Historically, prc-tools was configured for
+<code>m68k-palmos-coff</code>; nowadays it is normally configured for
+<code>m68k-palmos</code>.  In the future, <code>arm-palmos</code> will
+be a typical configuration too.
+
+<p>
+These manuals refer to the tools they describe using their generic
+target-neutral names.  Most tools in the prc-tools package are
+<i>cross-compiler</i> tools rather than <i>native</i> ones, and the
+convention is to prefix these commands with their target so as to
+distinguish them from their native counterparts.  For example, the GDB
+manual describes the <code>gdb</code> command, but for debugging against a
+Palm&nbsp;OS device you actually want to use the <code>m68k-palmos-gdb</code>
+<!-- or eventually <code>arm-palmos-gdb</code>--> command.
+
+<p>
+The exceptions are <code>make</code>, which is a native tool and
+neither has nor needs any Palm&nbsp;OS-specific functionality, and
+<code>build-prc</code> and <code>palmdev-prep</code>, which are
+Palm&nbsp;OS-specific but not specific to any one particular Palm&nbsp;OS
+target.  In these cases, the command you type is just the name of the
+utility, as is.
 
 <p><hr>
 <i>To the <a href="http://prc-tools.sourceforge.net/">prc-tools website</a></i>
