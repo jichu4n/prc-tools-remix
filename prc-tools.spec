@@ -116,6 +116,7 @@ if [ "$1" = 0 ]; then
   if /bin/sh -c 'install-info --version' >/dev/null 2>&1; then
     install-info --remove --info-dir=%{_infodir} %{_infodir}/prc-tools.info
   fi
+  palmdev-prep --remove
 fi
 
 %files
