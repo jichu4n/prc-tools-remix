@@ -1,51 +1,53 @@
 /* nfm.c: GCC entry points to the New Float Manager.
 
-   Copyright (c) 2000 Palm Computing, Inc. or its subsidiaries.
-   All rights reserved.  */
+   This code was written by Palm Computing, Inc., and is in the public
+   domain.  In particular, object code compiled from this code may be
+   freely linked into your programs.  */
 
 #include <ErrorMgr.h>
 #include "NewTypes.h"
 
-#if SDK_VERSION < 35
-#include <NewFloatMgr.h>
-#else
-/* The "New" was dropped in the 3.5 SDK.  */
+#if SDK_VERSION >= 35
+
 #include <FloatMgr.h>
+#define TRAP(sel)  FLOAT_EM_TRAP(sysFloat##sel)
+
+#else
+
+/* Earlier SDKs don't enable GCC to call selectorized traps such as the New
+   Float Manager traps, so we define the relevant machinery ourselves.  */
+
+#define Str(X)  #X
+
+#define TRAP(sel) \
+  __attribute__ ((callseq ("moveq #" Str(sel) ",%%d2; trap #15; dc.w 0xA306")))
+
+#define Em_f_itof	 4
+#define Em_f_lltof	 6
+#define Em_d_itod	 8
+#define Em_d_lltod	10
+#define Em_f_ftod	11
+#define Em_d_dtof	12
+#define Em_f_ftou	17
+#define Em_f_ftoi	18
+#define Em_f_ftoull	19
+#define Em_f_ftoll	20
+#define Em_d_dtou	21
+#define Em_d_dtoi	22
+#define Em_d_dtoull	23
+#define Em_d_dtoll	24
+#define Em_f_neg	45
+#define Em_f_add	46
+#define Em_f_mul	47
+#define Em_f_sub	48
+#define Em_f_div	49
+#define Em_d_neg	50
+#define Em_d_add	51
+#define Em_d_mul	52
+#define Em_d_sub	53
+#define Em_d_div	54
+
 #endif
-
-
-/* We can't use some of the new float manager functions directly because
-   they return structures, and GCC doesn't do this the same way as
-   CodeWarrior.  Fortunately, the CW ABI is such that the following
-   functions do look the same as the corresponding functions in the
-   new float manager.  See
-
-     news://news.massena.com/01bc20ff$0671c580$21fc6bcc@david  */
-
-void _f_ftoll_aux (sfpe_long_long *, FlpFloat)
-  FLOAT_EM_TRAP(sysFloatEm_f_ftoll);
-void _f_ftoull_aux (sfpe_unsigned_long_long *, FlpFloat)
-  FLOAT_EM_TRAP(sysFloatEm_f_ftoull);
-void _f_ftod_aux (FlpDouble *, FlpFloat) FLOAT_EM_TRAP(sysFloatEm_f_ftod);
-
-void _d_dtoll_aux (sfpe_long_long *, FlpDouble)
-  FLOAT_EM_TRAP(sysFloatEm_d_dtoll);
-void _d_dtoull_aux (sfpe_unsigned_long_long *, FlpDouble)
-  FLOAT_EM_TRAP(sysFloatEm_d_dtoull);
-void _d_itod_aux (FlpDouble *, Int32) FLOAT_EM_TRAP(sysFloatEm_d_itod);
-void _d_lltod_aux (FlpDouble *, sfpe_long_long)
-  FLOAT_EM_TRAP(sysFloatEm_d_lltod);
-
-void _d_neg_aux (FlpDouble *, FlpDouble) FLOAT_EM_TRAP(sysFloatEm_d_neg);
-
-void _d_add_aux (FlpDouble *, FlpDouble, FlpDouble)
-  FLOAT_EM_TRAP(sysFloatEm_d_add);
-void _d_mul_aux (FlpDouble *, FlpDouble, FlpDouble)
-  FLOAT_EM_TRAP(sysFloatEm_d_mul);
-void _d_sub_aux (FlpDouble *, FlpDouble, FlpDouble)
-  FLOAT_EM_TRAP(sysFloatEm_d_sub);
-void _d_div_aux (FlpDouble *, FlpDouble, FlpDouble)
-  FLOAT_EM_TRAP(sysFloatEm_d_div);
 
 
 typedef int SItype __attribute__ ((mode (SI)));
@@ -56,28 +58,49 @@ typedef unsigned int USItype __attribute__ ((mode (SI)));
 typedef unsigned int UDItype __attribute__ ((mode (DI)));
 
 
-#define CVT_FUNCTION(NAME, FROM, TO)					\
-  static inline TO NAME (FROM x) {					\
-    union { FROM a; TO b; } u;						\
-    u.a = x;								\
-    return u.b;								\
-    }
+/* These functions are the same as the ones in NewFloatMgr.h, except that
+   the types have been replaced by the equivalent native GCC types, so that
+   we don't have to cast everything to and from NewFloatMgr.h's types.
 
-#define CVT_FUNCTIONS(GCCNAME, NFMNAME)					\
-  CVT_FUNCTION (NFMNAME##_of, GCCNAME, NFMNAME)				\
-  CVT_FUNCTION (of_##NFMNAME, NFMNAME, GCCNAME)
+   We can't use some of the NewFloatMgr functions directory because they
+   return structures, and GCC doesn't do this in the same way as CodeWarrior.
+   Fortunately, the CW ABI is such that the XXX_aux functions do look the
+   same as the corresponding functions in the new float manager.  See
 
-CVT_FUNCTIONS (DItype, sfpe_long_long)
-CVT_FUNCTIONS (UDItype, sfpe_unsigned_long_long)
-CVT_FUNCTIONS (SFtype, FlpFloat)
-CVT_FUNCTIONS (DFtype, FlpDouble)
+     news://news.massena.com/01bc20ff$0671c580$21fc6bcc@david  */
+
+
+SFtype	f_itof		(SItype)		TRAP(Em_f_itof);
+SFtype	f_lltof		(DItype)		TRAP(Em_f_lltof);
+void	d_itod_aux	(DFtype *, SItype)	TRAP(Em_d_itod);
+void	d_lltod_aux	(DFtype *, DItype)	TRAP(Em_d_lltod);
+void	f_ftod_aux	(DFtype *, SFtype)	TRAP(Em_f_ftod);
+SFtype	d_dtof		(DFtype)		TRAP(Em_d_dtof);
+USItype	f_ftou		(SFtype)		TRAP(Em_f_ftou);
+SItype	f_ftoi		(SFtype)		TRAP(Em_f_ftoi);
+void	f_ftoull_aux	(UDItype *, SFtype)	TRAP(Em_f_ftoull);
+void	f_ftoll_aux	(DItype *, SFtype)	TRAP(Em_f_ftoll);
+USItype	d_dtou		(DFtype)		TRAP(Em_d_dtou);
+SItype	d_dtoi		(DFtype)		TRAP(Em_d_dtoi);
+void	d_dtoull_aux	(UDItype *, DFtype)	TRAP(Em_d_dtoull);
+void	d_dtoll_aux	(DItype *, DFtype)	TRAP(Em_d_dtoll);
+SFtype	f_neg		(SFtype)		TRAP(Em_f_neg);
+SFtype	f_add		(SFtype, SFtype)	TRAP(Em_f_add);
+SFtype	f_mul		(SFtype, SFtype)	TRAP(Em_f_mul);
+SFtype	f_sub		(SFtype, SFtype)	TRAP(Em_f_sub);
+SFtype	f_div		(SFtype, SFtype)	TRAP(Em_f_div);
+void	d_neg_aux	(DFtype *, DFtype)	TRAP(Em_d_neg);
+void	d_add_aux	(DFtype *, DFtype, DFtype) TRAP(Em_d_add);
+void	d_mul_aux	(DFtype *, DFtype, DFtype) TRAP(Em_d_mul);
+void	d_sub_aux	(DFtype *, DFtype, DFtype) TRAP(Em_d_sub);
+void	d_div_aux	(DFtype *, DFtype, DFtype) TRAP(Em_d_div);
 
 
 #ifdef L__floatsisf
 
 SFtype
 __floatsisf (SItype x) {
-  return of_FlpFloat (_f_itof (x));
+  return f_itof (x);
   }
 
 #endif
@@ -85,7 +108,7 @@ __floatsisf (SItype x) {
 
 SFtype
 __floatdisf (DItype x) {
-  return of_FlpFloat (_f_lltof (sfpe_long_long_of (x)));
+  return f_lltof (x);
   }
 
 #endif
@@ -93,9 +116,9 @@ __floatdisf (DItype x) {
 
 DFtype
 __floatsidf (SItype x) {
-  FlpDouble z;
-  _d_itod_aux (&z, x);
-  return of_FlpDouble (z);
+  DFtype z;
+  d_itod_aux (&z, x);
+  return z;
   }
 
 #endif
@@ -103,9 +126,9 @@ __floatsidf (SItype x) {
 
 DFtype
 __floatdidf (DItype x) {
-  FlpDouble z;
-  _d_lltod_aux (&z, sfpe_long_long_of (x));
-  return of_FlpDouble (z);
+  DFtype z;
+  d_lltod_aux (&z, x);
+  return z;
   }
 
 #endif
@@ -113,9 +136,9 @@ __floatdidf (DItype x) {
 
 DFtype
 __extendsfdf2 (SFtype x) {
-  FlpDouble z;
-  _f_ftod_aux (&z, FlpFloat_of (x));
-  return of_FlpDouble (z);
+  DFtype z;
+  f_ftod_aux (&z, x);
+  return z;
   }
 
 #endif
@@ -123,7 +146,7 @@ __extendsfdf2 (SFtype x) {
 
 SFtype
 __truncdfsf2 (DFtype x) {
-  return of_FlpFloat (_d_dtof (FlpDouble_of (x)));
+  return d_dtof (x);
   }
 
 #endif
@@ -131,7 +154,7 @@ __truncdfsf2 (DFtype x) {
 
 USItype
 __fixunssfsi (SFtype x) {
-  return _f_ftou (FlpFloat_of (x));
+  return f_ftou (x);
   }
 
 #endif
@@ -139,7 +162,7 @@ __fixunssfsi (SFtype x) {
 
 SItype
 __fixsfsi (SFtype x) {
-  return _f_ftoi (FlpFloat_of (x));
+  return f_ftoi (x);
   }
 
 #endif
@@ -147,9 +170,9 @@ __fixsfsi (SFtype x) {
 
 UDItype
 __fixunssfdi (SFtype x) {
-  sfpe_unsigned_long_long z;
-  _f_ftoull_aux (&z, FlpFloat_of (x));
-  return of_sfpe_unsigned_long_long (z);
+  UDItype z;
+  f_ftoull_aux (&z, x);
+  return z;
   }
 
 #endif
@@ -157,9 +180,9 @@ __fixunssfdi (SFtype x) {
 
 DItype
 __fixsfdi (SFtype x) {
-  sfpe_long_long z;
-  _f_ftoll_aux (&z, FlpFloat_of (x));
-  return of_sfpe_long_long (z);
+  DItype z;
+  f_ftoll_aux (&z, x);
+  return z;
   }
 
 #endif
@@ -167,7 +190,7 @@ __fixsfdi (SFtype x) {
 
 USItype
 __fixunsdfsi (DFtype x) {
-  return _d_dtou (FlpDouble_of (x));
+  return d_dtou (x);
   }
 
 #endif
@@ -175,7 +198,7 @@ __fixunsdfsi (DFtype x) {
 
 SItype
 __fixdfsi (DFtype x) {
-  return _d_dtoi (FlpDouble_of (x));
+  return d_dtoi (x);
   }
 
 #endif
@@ -183,9 +206,9 @@ __fixdfsi (DFtype x) {
 
 UDItype
 __fixunsdfdi (DFtype x) {
-  sfpe_unsigned_long_long z;
-  _d_dtoull_aux (&z, FlpDouble_of (x));
-  return of_sfpe_unsigned_long_long (z);
+  UDItype z;
+  d_dtoull_aux (&z, x);
+  return z;
   }
 
 #endif
@@ -193,9 +216,9 @@ __fixunsdfdi (DFtype x) {
 
 DItype
 __fixdfdi (DFtype x) {
-  sfpe_long_long z;
-  _d_dtoll_aux (&z, FlpDouble_of (x));
-  return of_sfpe_long_long (z);
+  DItype z;
+  d_dtoll_aux (&z, x);
+  return z;
   }
 
 #endif
@@ -228,8 +251,8 @@ __ltsf2:
    all the names to the same function.  :-)  */
 SItype
 __cmpsf2 (SFtype x, SFtype y) {
-  static const short map[] = { 0, -1, 1, 1 };
-  return map[_f_cmp (FlpFloat_of (x), FlpFloat_of (y))];
+  static const signed char map[] = { 0, -1, 1, 1 };
+  return map[f_cmp (x, y)];
   }
 #endif
 
@@ -278,7 +301,7 @@ __cmpmap:
 
 SFtype
 __negsf2 (SFtype x) {
-  return of_FlpFloat (_f_neg (FlpFloat_of (x)));
+  return f_neg (x);
   }
 
 #endif
@@ -286,7 +309,7 @@ __negsf2 (SFtype x) {
 
 SFtype
 __addsf3 (SFtype x, SFtype y) {
-  return of_FlpFloat (_f_add (FlpFloat_of (x), FlpFloat_of (y)));
+  return f_add (x, y);
   }
 
 #endif
@@ -294,7 +317,7 @@ __addsf3 (SFtype x, SFtype y) {
 
 SFtype
 __mulsf3 (SFtype x, SFtype y) {
-  return of_FlpFloat (_f_mul (FlpFloat_of (x), FlpFloat_of (y)));
+  return f_mul (x, y);
   }
 
 #endif
@@ -302,7 +325,7 @@ __mulsf3 (SFtype x, SFtype y) {
 
 SFtype
 __subsf3 (SFtype x, SFtype y) {
-  return of_FlpFloat (_f_sub (FlpFloat_of (x), FlpFloat_of (y)));
+  return f_sub (x, y);
   }
 
 #endif
@@ -310,7 +333,7 @@ __subsf3 (SFtype x, SFtype y) {
 
 SFtype
 __divsf3 (SFtype x, SFtype y) {
-  return of_FlpFloat (_f_div (FlpFloat_of (x), FlpFloat_of (y)));
+  return f_div (x, y);
   }
 
 #endif
@@ -318,9 +341,9 @@ __divsf3 (SFtype x, SFtype y) {
 
 DFtype
 __negdf2 (DFtype x) {
-  FlpDouble z;
-  _d_neg_aux (&z, FlpDouble_of (x));
-  return of_FlpDouble (z);
+  DFtype z;
+  d_neg_aux (&z, x);
+  return z;
   }
 
 #endif
@@ -328,9 +351,9 @@ __negdf2 (DFtype x) {
 
 DFtype
 __adddf3 (DFtype x, DFtype y) {
-  FlpDouble z;
-  _d_add_aux (&z, FlpDouble_of (x), FlpDouble_of (y));
-  return of_FlpDouble (z);
+  DFtype z;
+  d_add_aux (&z, x, y);
+  return z;
   }
 
 #endif
@@ -338,9 +361,9 @@ __adddf3 (DFtype x, DFtype y) {
 
 DFtype
 __muldf3 (DFtype x, DFtype y) {
-  FlpDouble z;
-  _d_mul_aux (&z, FlpDouble_of (x), FlpDouble_of (y));
-  return of_FlpDouble (z);
+  DFtype z;
+  d_mul_aux (&z, x, y);
+  return z;
   }
 
 #endif
@@ -348,9 +371,9 @@ __muldf3 (DFtype x, DFtype y) {
 
 DFtype
 __subdf3 (DFtype x, DFtype y) {
-  FlpDouble z;
-  _d_sub_aux (&z, FlpDouble_of (x), FlpDouble_of (y));
-  return of_FlpDouble (z);
+  DFtype z;
+  d_sub_aux (&z, x, y);
+  return z;
   }
 
 #endif
@@ -358,9 +381,9 @@ __subdf3 (DFtype x, DFtype y) {
 
 DFtype
 __divdf3 (DFtype x, DFtype y) {
-  FlpDouble z;
-  _d_div_aux (&z, FlpDouble_of (x), FlpDouble_of (y));
-  return of_FlpDouble (z);
+  DFtype z;
+  d_div_aux (&z, x, y);
+  return z;
   }
 
 #endif
