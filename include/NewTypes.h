@@ -15,8 +15,13 @@
    <BuildRules.h> or <BuildDefines.h>.  We can use those #defines to
    identify the SDK.  */
 
+/* 5.0 should have introduced an ARM macro for use with CPU_TYPE, but the
+   only change actually made was the introduction of a version macro.  */
+#if defined(PALMOS_SDK_VERSION)
+#define SDK_VERSION  50
+
 /* 4.0 introduced tracing.  */
-#if defined(TRACE_OUTPUT_ON)
+#elif defined(TRACE_OUTPUT_ON)
 #define SDK_VERSION  40
 
 /* 3.5 uses <PalmTypes.h> instead of <Common.h>.  */
