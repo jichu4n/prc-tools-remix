@@ -22,7 +22,7 @@ all: Pilot.fake PalmOS.fake
 install: all
 	$(INSTALL) -d $(headerdir)
 	for f in EntryPoints.h NewTypes.h Standalone.h \
-		 ctype.h stdlib.h string.h; do \
+		 ctype.h stdint.h stdlib.h string.h; do \
 	  $(INSTALL_DATA) $(srcdir)/$$f $(headerdir)/$$f; \
 	done
 	$(INSTALL_DATA) Pilot.fake $(headerdir)/Pilot.h
