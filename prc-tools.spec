@@ -1,10 +1,10 @@
 Name: prc-tools
 # The version line is grepped for by configure.  It must be exactly
 # Version<colon><space><versionnumber><newline>
-Version: 2.0.92
+Version: 2.0.93
 Release: 1
 Summary: GCC and related tools for Palm OS development
-Copyright: GPL
+License: GPL
 URL: http://prc-tools.sourceforge.net/
 Group: Development/Tools
 Source0: http://prdownloads.sourceforge.net/prc-tools/%{name}-%{version}.tar.gz
@@ -16,24 +16,11 @@ NoSource: 1
 NoSource: 2
 NoSource: 3
 NoSource: 4
-%ifos cygwin
-# We don't have find-requires/find-provides scripts for Cygwin
-AutoReqProv: no
-%endif
 
-%ifnos cygwin
 %define prefix /usr/local
 %define exec_prefix %{prefix}
 %define palmdev_prefix /opt/palmdev
 %define exeext %{nil}
-%else
-%define prefix /prc-tools
-# If you want to install into the Cygwin directory, use this one:
-#%define prefix /cygnus/cygwin-b20
-%define exec_prefix %{prefix}/H-i586-cygwin32
-%define palmdev_prefix /PalmDev
-%define exeext .exe
-%endif
 
 # The target used to be `m68k-palmos-coff'.  Some people may want to leave
 # it thus to avoid changing their makefiles a little bit.
@@ -61,19 +48,11 @@ GCC, binutils, gdb, and general prc-tools documentation in HTML format
 %setup
 
 cat *.palmos.diff | (cd .. && patch -p0)
-%ifos cygwin
-cat *.cygwin.diff | (cd .. && patch -p0)
-%endif
 
 mv ../binutils-2.11.2 binutils
 mv ../gdb-5.0 gdb
 mv ../gcc-2.95.3 gcc
 mv ../make-3.77 make
-
-%ifos cygwin
-# Convert line endings -- important because some files get installed as is
-canon -lr .
-%endif
 
 # The patch touches a file this depends on, and you need autoconf to remake
 # it.  There's no changes, so let's just touch it so people don't have to
@@ -185,7 +164,6 @@ fi
 %{exec_prefix}/bin/%{target}-unprotoize%{exeext}
 
 # info files and man pages
-%ifnos cygwin
 %doc %{prefix}/info/as.info*
 %doc %{prefix}/info/binutils.info*
 %doc %{prefix}/info/cpp.info*
@@ -194,7 +172,6 @@ fi
 %doc %{prefix}/info/gdb.info*
 %doc %{prefix}/info/ld.info*
 %doc %{prefix}/info/prc-tools.info*
-%endif
 %doc %{prefix}/man/man1/%{target}-addr2line.1*
 %doc %{prefix}/man/man1/%{target}-ar.1*
 %doc %{prefix}/man/man1/%{target}-as.1*
