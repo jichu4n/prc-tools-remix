@@ -132,20 +132,31 @@ install-palmdev:
 
 
 distdir = prc-tools-@prc_tools_version@
+nondistpat = ^(binutils|gcc|gdb|make)$$
 
 $(srcdir)/configure: $(srcdir)/configure.in
 	@echo dist error: configure is older than configure.in && exit 1
+
+# The source directory is likely to be a working development directory.
+# We need to do some tidying up before creating the distribution tarball:
+#
+#  * It may contain links to other huge (GCC etc) source trees.  We filter
+#    these out even before the first tar invocation to save time.
+#  * If the directory is checked out from CVS, it will be littered with
+#    "CVS" subdirectories which shouldn't go into the tarball.
+#  * If the directory is checked out from Perforce, many of the files will
+#    likely be read-only.  We want them to be read-write in the tarball.
 
 dist: $(srcdir)/configure
 	-rm -rf $(distdir)
 	mkdir $(distdir)
 	-chmod 777 $(distdir)
-	(cd $(srcdir) \
-	 && ls | grep -v $(distdir) | egrep -v '(binutils|gcc|gdb|make)$$' \
-	 | tar cf - -T -) \
+	(cd $(srcdir) && tar cf - `ls | egrep -v '$(nondistpat)'`) \
 	| (cd $(distdir) && tar xf -)
-	-find $(distdir) -name CVS -print | sed 's/^/rm -rf /' | $(SHELL)
-	-chmod -R a+rw $(distdir)
+	-rm -rf `find $(distdir) -name CVS -print`
+	for dir in `find $(distdir) -type d -print`; do \
+	  chmod a+rw $${dir}/*; \
+	done
 	-rm -f $(distdir).tar $(distdir).tar.gz
 	tar cf $(distdir).tar $(distdir)
 	gzip -9 $(distdir).tar
