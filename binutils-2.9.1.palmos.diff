@@ -1,5 +1,5 @@
 diff -urN orig/binutils-2.9.1/binutils/Makefile.in binutils-2.9.1/binutils/Makefile.in
---- orig/binutils-2.9.1/binutils/Makefile.in	Sat Oct 16 21:18:29 1999
+--- orig/binutils-2.9.1/binutils/Makefile.in	Fri May  1 08:49:30 1998
 +++ binutils-2.9.1/binutils/Makefile.in	Tue Jan 25 02:25:37 2000
 @@ -1039,6 +1039,14 @@
  
@@ -17,7 +17,7 @@ diff -urN orig/binutils-2.9.1/binutils/Makefile.in binutils-2.9.1/binutils/Makef
  	sed -e 's/@PROGRAM@/$(DEMANGLER_PROG)/' < $(srcdir)/cxxfilt.man \
  		> $(DEMANGLER_PROG).1
 diff -urN orig/binutils-2.9.1/gas/doc/Makefile.in binutils-2.9.1/gas/doc/Makefile.in
---- orig/binutils-2.9.1/gas/doc/Makefile.in	Sat Oct 16 21:18:34 1999
+--- orig/binutils-2.9.1/gas/doc/Makefile.in	Fri May  1 08:44:56 1998
 +++ binutils-2.9.1/gas/doc/Makefile.in	Thu Jan 27 16:16:19 2000
 @@ -148,6 +148,14 @@
  as.info: as.texinfo
@@ -35,7 +35,7 @@ diff -urN orig/binutils-2.9.1/gas/doc/Makefile.in binutils-2.9.1/gas/doc/Makefil
  gasp.info: gasp.texi
  gasp.dvi: gasp.texi
 diff -urN orig/binutils-2.9.1/ld/Makefile.in binutils-2.9.1/ld/Makefile.in
---- orig/binutils-2.9.1/ld/Makefile.in	Sat Oct 16 21:18:37 1999
+--- orig/binutils-2.9.1/ld/Makefile.in	Fri May  1 08:48:47 1998
 +++ binutils-2.9.1/ld/Makefile.in	Thu Jan 27 16:15:27 2000
 @@ -447,6 +447,14 @@
  ld.info: ld.texinfo
@@ -131,7 +131,7 @@ diff -urN orig/binutils-2.9.1/ChangeLogs.palmos binutils-2.9.1/ChangeLogs.palmos
 +      generic.em.
 +      * Makefile.in (em68kcoff.c): Likewise.
 diff -urN orig/binutils-2.9.1/bfd/bfd-in.h binutils-2.9.1/bfd/bfd-in.h
---- orig/binutils-2.9.1/bfd/bfd-in.h	Sat Oct 16 21:18:31 1999
+--- orig/binutils-2.9.1/bfd/bfd-in.h	Fri May  1 08:48:01 1998
 +++ binutils-2.9.1/bfd/bfd-in.h	Wed Dec 15 16:16:01 1999
 @@ -694,4 +694,8 @@
  extern boolean bfd_coff_get_auxent
@@ -143,7 +143,7 @@ diff -urN orig/binutils-2.9.1/bfd/bfd-in.h binutils-2.9.1/bfd/bfd-in.h
 +
  /* And more from the source.  */
 diff -urN orig/binutils-2.9.1/bfd/bfd-in2.h binutils-2.9.1/bfd/bfd-in2.h
---- orig/binutils-2.9.1/bfd/bfd-in2.h	Sat Oct 16 21:18:31 1999
+--- orig/binutils-2.9.1/bfd/bfd-in2.h	Fri May  1 08:48:01 1998
 +++ binutils-2.9.1/bfd/bfd-in2.h	Fri Dec 17 02:54:54 1999
 @@ -694,6 +694,10 @@
  extern boolean bfd_coff_get_auxent
@@ -157,7 +157,7 @@ diff -urN orig/binutils-2.9.1/bfd/bfd-in2.h binutils-2.9.1/bfd/bfd-in2.h
  void 
  bfd_init PARAMS ((void));
 diff -urN orig/binutils-2.9.1/bfd/coff-m68k.c binutils-2.9.1/bfd/coff-m68k.c
---- orig/binutils-2.9.1/bfd/coff-m68k.c	Sat Oct 16 21:18:32 1999
+--- orig/binutils-2.9.1/bfd/coff-m68k.c	Fri May  1 08:48:04 1998
 +++ binutils-2.9.1/bfd/coff-m68k.c	Mon Feb  7 02:39:38 2000
 @@ -105,6 +105,7 @@
    HOWTO(R_PCRWORD,	       0,  1, 	16, true,  0, complain_overflow_signed, RELOC_SPECIAL_FN, "DISP16",   true, 0x0000ffff,0x0000ffff, false),
@@ -460,7 +460,7 @@ diff -urN orig/binutils-2.9.1/bfd/coff-m68k.c binutils-2.9.1/bfd/coff-m68k.c
  #include "coffcode.h"
  
 diff -urN orig/binutils-2.9.1/bfd/cofflink.c binutils-2.9.1/bfd/cofflink.c
---- orig/binutils-2.9.1/bfd/cofflink.c	Sat Oct 16 21:18:32 1999
+--- orig/binutils-2.9.1/bfd/cofflink.c	Fri May  1 08:48:05 1998
 +++ binutils-2.9.1/bfd/cofflink.c	Sat Sep  4 08:52:02 1999
 @@ -2620,6 +2620,32 @@
  	    addend += sym->n_value;
@@ -496,7 +496,7 @@ diff -urN orig/binutils-2.9.1/bfd/cofflink.c binutils-2.9.1/bfd/cofflink.c
  
        if (h == NULL)
 diff -urN orig/binutils-2.9.1/bfd/hash.c binutils-2.9.1/bfd/hash.c
---- orig/binutils-2.9.1/bfd/hash.c	Sat Oct 16 21:18:33 1999
+--- orig/binutils-2.9.1/bfd/hash.c	Fri May  1 08:48:10 1998
 +++ binutils-2.9.1/bfd/hash.c	Fri Dec 17 02:36:59 1999
 @@ -73,7 +73,7 @@
  	The function <<bfd_hash_table_init>> take as an argument a
@@ -508,7 +508,7 @@ diff -urN orig/binutils-2.9.1/bfd/hash.c binutils-2.9.1/bfd/hash.c
  
  @findex bfd_hash_allocate
 diff -urN orig/binutils-2.9.1/bfd/linker.c binutils-2.9.1/bfd/linker.c
---- orig/binutils-2.9.1/bfd/linker.c	Sat Oct 16 21:18:33 1999
+--- orig/binutils-2.9.1/bfd/linker.c	Fri May  1 08:48:12 1998
 +++ binutils-2.9.1/bfd/linker.c	Fri Dec 17 02:36:52 1999
 @@ -74,7 +74,7 @@
  @cindex target vector (_bfd_link_hash_table_create)
@@ -520,7 +520,7 @@ diff -urN orig/binutils-2.9.1/bfd/linker.c binutils-2.9.1/bfd/linker.c
  	the target vector of the linker output file.
  
 diff -urN orig/binutils-2.9.1/config.sub binutils-2.9.1/config.sub
---- orig/binutils-2.9.1/config.sub	Sat Oct 16 21:18:30 1999
+--- orig/binutils-2.9.1/config.sub	Fri May  1 08:48:46 1998
 +++ binutils-2.9.1/config.sub	Sun Oct 10 02:00:20 1999
 @@ -106,7 +106,7 @@
  	-convergent* | -ncr* | -news | -32* | -3600* | -3100* | -hitachi* |\
@@ -542,7 +542,7 @@ diff -urN orig/binutils-2.9.1/config.sub binutils-2.9.1/config.sub
  	*)
  		os=-none
 diff -urN orig/binutils-2.9.1/gas/config/m68k-parse.h binutils-2.9.1/gas/config/m68k-parse.h
---- orig/binutils-2.9.1/gas/config/m68k-parse.h	Sat Oct 16 21:18:33 1999
+--- orig/binutils-2.9.1/gas/config/m68k-parse.h	Fri May  1 08:44:34 1998
 +++ binutils-2.9.1/gas/config/m68k-parse.h	Tue Aug 17 14:34:49 1999
 @@ -198,12 +198,13 @@
    int scale;
@@ -569,7 +569,7 @@ diff -urN orig/binutils-2.9.1/gas/config/m68k-parse.h binutils-2.9.1/gas/config/
    enum pic_relocation pic_reloc;
  #endif
 diff -urN orig/binutils-2.9.1/gas/config/m68k-parse.y binutils-2.9.1/gas/config/m68k-parse.y
---- orig/binutils-2.9.1/gas/config/m68k-parse.y	Sat Oct 16 21:18:33 1999
+--- orig/binutils-2.9.1/gas/config/m68k-parse.y	Fri May  1 08:44:35 1998
 +++ binutils-2.9.1/gas/config/m68k-parse.y	Tue Aug 17 14:34:49 1999
 @@ -973,7 +973,7 @@
  	tail = 2;
@@ -593,7 +593,7 @@ diff -urN orig/binutils-2.9.1/gas/config/m68k-parse.y binutils-2.9.1/gas/config/
  	  }
        }
 diff -urN orig/binutils-2.9.1/gas/config/obj-coff.h binutils-2.9.1/gas/config/obj-coff.h
---- orig/binutils-2.9.1/gas/config/obj-coff.h	Sat Oct 16 21:18:33 1999
+--- orig/binutils-2.9.1/gas/config/obj-coff.h	Fri May  1 08:44:36 1998
 +++ binutils-2.9.1/gas/config/obj-coff.h	Tue Aug 17 14:34:49 1999
 @@ -34,6 +34,10 @@
  
@@ -607,7 +607,7 @@ diff -urN orig/binutils-2.9.1/gas/config/obj-coff.h binutils-2.9.1/gas/config/ob
  
  #include "bfd.h"
 diff -urN orig/binutils-2.9.1/gas/config/obj-elf.h binutils-2.9.1/gas/config/obj-elf.h
---- orig/binutils-2.9.1/gas/config/obj-elf.h	Sat Oct 16 21:18:33 1999
+--- orig/binutils-2.9.1/gas/config/obj-elf.h	Fri May  1 08:44:36 1998
 +++ binutils-2.9.1/gas/config/obj-elf.h	Tue Aug 17 14:34:49 1999
 @@ -34,6 +34,10 @@
  #define BYTES_IN_WORD 4		/* for now */
@@ -621,7 +621,7 @@ diff -urN orig/binutils-2.9.1/gas/config/obj-elf.h binutils-2.9.1/gas/config/obj
  
  /* FIXME: For some reason, this structure is needed both here and in
 diff -urN orig/binutils-2.9.1/gas/config/tc-m68k.c binutils-2.9.1/gas/config/tc-m68k.c
---- orig/binutils-2.9.1/gas/config/tc-m68k.c	Sat Oct 16 21:18:33 1999
+--- orig/binutils-2.9.1/gas/config/tc-m68k.c	Fri May  1 08:44:43 1998
 +++ binutils-2.9.1/gas/config/tc-m68k.c	Tue Aug 17 14:34:49 1999
 @@ -238,7 +238,7 @@
  	 significance of some values (in the branch instruction, for
@@ -687,7 +687,7 @@ diff -urN orig/binutils-2.9.1/gas/config/tc-m68k.c binutils-2.9.1/gas/config/tc-
  
  #ifdef BFD_ASSEMBLER
 diff -urN orig/binutils-2.9.1/gas/config/tc-m68k.h binutils-2.9.1/gas/config/tc-m68k.h
---- orig/binutils-2.9.1/gas/config/tc-m68k.h	Sat Oct 16 21:18:33 1999
+--- orig/binutils-2.9.1/gas/config/tc-m68k.h	Fri May  1 08:44:43 1998
 +++ binutils-2.9.1/gas/config/tc-m68k.h	Tue Aug 17 14:34:49 1999
 @@ -183,6 +183,10 @@
  
@@ -701,7 +701,7 @@ diff -urN orig/binutils-2.9.1/gas/config/tc-m68k.h binutils-2.9.1/gas/config/tc-
  
  #define DIFF_EXPR_OK
 diff -urN orig/binutils-2.9.1/gas/m68k-parse.c binutils-2.9.1/gas/m68k-parse.c
---- orig/binutils-2.9.1/gas/m68k-parse.c	Sat Oct 16 21:18:36 1999
+--- orig/binutils-2.9.1/gas/m68k-parse.c	Fri May  1 08:47:44 1998
 +++ binutils-2.9.1/gas/m68k-parse.c	Tue Aug 17 14:34:49 1999
 @@ -1910,7 +1910,7 @@
  	tail = 2;
@@ -725,7 +725,7 @@ diff -urN orig/binutils-2.9.1/gas/m68k-parse.c binutils-2.9.1/gas/m68k-parse.c
  	  }
        }
 diff -urN orig/binutils-2.9.1/include/coff/internal.h binutils-2.9.1/include/coff/internal.h
---- orig/binutils-2.9.1/include/coff/internal.h	Sat Oct 16 21:18:36 1999
+--- orig/binutils-2.9.1/include/coff/internal.h	Fri May  1 08:48:27 1998
 +++ binutils-2.9.1/include/coff/internal.h	Tue Aug 17 14:34:49 1999
 @@ -605,6 +605,9 @@
  #define R_TAGWORD	(0x1f)
@@ -738,7 +738,7 @@ diff -urN orig/binutils-2.9.1/include/coff/internal.h binutils-2.9.1/include/cof
  /* This reloc identifies mov.b instructions with a 16bit absolute
     address.  The linker tries to turn insns with this reloc into
 diff -urN orig/binutils-2.9.1/ld/Makefile.am binutils-2.9.1/ld/Makefile.am
---- orig/binutils-2.9.1/ld/Makefile.am	Sat Oct 16 21:18:36 1999
+--- orig/binutils-2.9.1/ld/Makefile.am	Fri May  1 08:48:47 1998
 +++ binutils-2.9.1/ld/Makefile.am	Tue Aug 17 14:34:49 1999
 @@ -404,7 +404,7 @@
    $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/m68kaux.sc ${GEN_DEPENDS}
@@ -750,7 +750,7 @@ diff -urN orig/binutils-2.9.1/ld/Makefile.am binutils-2.9.1/ld/Makefile.am
  em68kelf.c: $(srcdir)/emulparams/m68kelf.sh \
    $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
 diff -urN orig/binutils-2.9.1/ld/configdoc.texi binutils-2.9.1/ld/configdoc.texi
---- orig/binutils-2.9.1/ld/configdoc.texi	Sat Oct 16 21:18:37 1999
+--- orig/binutils-2.9.1/ld/configdoc.texi	Fri May  1 08:48:49 1998
 +++ binutils-2.9.1/ld/configdoc.texi	Wed Dec 31 16:00:00 1969
 @@ -1,13 +0,0 @@
 -@c ------------------------------ CONFIGURATION VARS:
@@ -767,7 +767,7 @@ diff -urN orig/binutils-2.9.1/ld/configdoc.texi binutils-2.9.1/ld/configdoc.texi
 -@c ------------------------------ end CONFIGURATION VARS
 -
 diff -urN orig/binutils-2.9.1/ld/emulparams/m68kcoff.sh binutils-2.9.1/ld/emulparams/m68kcoff.sh
---- orig/binutils-2.9.1/ld/emulparams/m68kcoff.sh	Sat Oct 16 21:18:37 1999
+--- orig/binutils-2.9.1/ld/emulparams/m68kcoff.sh	Fri May  1 08:48:53 1998
 +++ binutils-2.9.1/ld/emulparams/m68kcoff.sh	Tue Aug 17 14:34:49 1999
 @@ -3,3 +3,4 @@
  TEXT_START_ADDR=0x1000000
@@ -980,7 +980,7 @@ diff -urN orig/binutils-2.9.1/ld/emultempl/m68kcoff.em binutils-2.9.1/ld/emultem
 +};
 +EOF
 diff -urN orig/binutils-2.9.1/ld/ldfile.c binutils-2.9.1/ld/ldfile.c
---- orig/binutils-2.9.1/ld/ldfile.c	Sat Oct 16 21:18:37 1999
+--- orig/binutils-2.9.1/ld/ldfile.c	Fri May  1 08:48:48 1998
 +++ binutils-2.9.1/ld/ldfile.c	Tue Aug 17 14:34:49 1999
 @@ -206,6 +206,12 @@
  	   arch != (search_arch_type *) NULL;
