@@ -61,10 +61,12 @@ cp -p README COPYING $DESTDIR$docdir
 : ${infodir:=$prefix/info}
 
 (cd $DESTDIR; tar cvf $PKGBASE$PKGTAIL.tar \
-  $bindir \
-  $exec_prefix/$target \
-  $libdir/gcc-lib/$target \
-  $infodir/prc-tools*)
+  `echo ' ' \
+    $bindir/* \
+    $exec_prefix/$target \
+    $libdir/gcc-lib/$target \
+    $infodir/prc-tools* \
+  | sed 's: /: :g'`)
 bzip2 $PKGBASE$PKGTAIL.tar
 
 (cd $DESTDIR-htmldocs; tar cvf $PKGBASE-htmldocs$PKGTAIL.tar *)
