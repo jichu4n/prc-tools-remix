@@ -1,138 +1,32 @@
 diff -urN orig/gdb-5.0/gdb/Makefile.in gdb-5.0/gdb/Makefile.in
 --- orig/gdb-5.0/gdb/Makefile.in	Wed May 17 21:44:54 2000
 +++ gdb-5.0/gdb/Makefile.in	Fri Jun  2 20:50:35 2000
-@@ -938,7 +938,7 @@
+@@ -1088,8 +1088,8 @@
  	procfs.c pyr-tdep.c pyr-xdep.c \
  	remote-adapt.c remote-array.c remote-bug.c remote-e7000.c remote-eb.c \
  	remote-es.c remote-hms.c remote-mips.c \
 -	remote-mm.c remote-nindy.c remote-os9k.c remote-rdp.c remote-sim.c \
-+	remote-mm.c remote-nindy.c remote-os9k.c remote-palmos.c remote-rdp.c remote-sim.c \
- 	remote-st.c remote-utils.c dcache.c \
+-	remote-st.c remote-utils.c dcache.c \
++	remote-mm.c remote-nindy.c remote-os9k.c remote-palmos.c remote-rdp.c \
++	remote-sim.c remote-st.c remote-utils.c dcache.c \
  	remote-udi.c remote-vx.c remote-vx29k.c \
  	rs6000-nat.c rs6000-tdep.c \
-@@ -1399,6 +1399,10 @@
+ 	ser-go32.c ser-pipe.c ser-ocd.c ser-tcp.c \
+@@ -1708,6 +1708,10 @@
  	symfile.h
  
- remote-os9k.o: remote-os9k.c $(defs_h) $(gdbcore_h) $(wait_h) \
+ remote-os9k.o: remote-os9k.c $(defs_h) $(gdbcore_h) gdb_wait.h \
 +	$(command_h) monitor.h $(remote_utils_h) $(symtab_h) symfile.h \
 +	objfiles.h gdb-stabs.h gdb_string.h
 +
-+remote-palmos.o: remote-palmos.c $(defs_h) $(gdbcore_h) $(wait_h) \
++remote-palmos.o: remote-palmos.c $(defs_h) $(gdbcore_h) gdb_wait.h \
  	$(command_h) monitor.h $(remote_utils_h) $(symtab_h) symfile.h \
  	objfiles.h gdb-stabs.h gdb_string.h
- 
-diff -urN orig/gdb-5.0/gdb/doc/Makefile.in gdb-5.0/gdb/doc/Makefile.in
---- orig/gdb-5.0/gdb/doc/Makefile.in	Wed May 17 04:54:04 2000
-+++ gdb-5.0/gdb/doc/Makefile.in	Thu Jan 27 02:19:08 2000
-@@ -23,6 +23,7 @@
- prefix = @prefix@
- 
- infodir = @infodir@
-+htmldir = $(prefix)/html
- 
- SHELL = @SHELL@
- 
-@@ -39,6 +40,9 @@
- # where to find makeinfo, preferably one designed for texinfo-2
- MAKEINFO=makeinfo
- 
-+MAKEHTML = texi2html
-+MAKEHTMLFLAGS = -glossary -menu -split_chapter
-+
- # where to find texi2roff, ditto
- TEXI2ROFF=texi2roff
- 
-@@ -94,6 +98,7 @@
- info: gdb.info gdbint.info stabs.info
- dvi: gdb.dvi gdbint.dvi stabs.dvi refcard.dvi
- ps: gdb.ps gdbint.ps stabs.ps refcard.ps
-+html: gdb_toc.html gdbint_toc.html stabs_toc.html
- all-doc: info dvi ps
- 
- install-info: info
-@@ -101,6 +106,11 @@
- 		$(INSTALL_DATA) $$i $(infodir)/$$i ; \
- 	done
- 
-+install-html: html
-+	for i in *.html ; do \
-+		$(INSTALL_DATA) $$i $(htmldir)/$$i ; \
-+	done
-+
- STAGESTUFF = *.info* gdb-all.texi GDBvn.texi *.ps *.dvi
- 
- # Copy the object files from a particular stage into a subdirectory.
-@@ -152,7 +162,7 @@
- # "clean" or "distclean".  Use maintainer-clean to remove them.
- 
- maintainer-clean realclean: distclean
--	rm -f GDBvn.texi *.info* *.dvi *.ps
-+	rm -f GDBvn.texi *.info* *.dvi *.ps *.html
- 
- # GDB QUICK REFERENCE (dvi output)
- refcard.dvi : refcard.tex $(REFEDITS)
-@@ -303,6 +313,12 @@
- 	sed -e 's/---/\\(em/g' \
- 	>gdb.mm 
- 
-+# GDB MANUAL: HTML file
-+
-+gdb_toc.html: ${SFILES_DOC}
-+	-@rm -f gdb[_.]*html
-+	$(MAKEHTML) $(MAKEHTMLFLAGS) -I ${READLINE_DIR} -I $(srcdir) $(srcdir)/gdb.texinfo
-+
- 
- # GDB INTERNALS MANUAL: TeX dvi file
- gdbint.dvi : gdbint.texinfo
-@@ -320,8 +336,20 @@
- gdbint.info: gdbint.texinfo
- 	$(MAKEINFO) -o gdbint.info $(srcdir)/gdbint.texinfo
- 
-+# GDB INTERNALS MANUAL: HTML file
-+
-+gdbint_toc.html: gdbint.texinfo
-+	-@rm -f gdbint[_.]*html
-+	$(MAKEHTML) $(MAKEHTMLFLAGS) $(srcdir)/gdbint.texinfo
-+
- stabs.info: stabs.texinfo
- 	$(MAKEINFO) -o stabs.info $(srcdir)/stabs.texinfo
-+
-+# STABS DOCUMENTATION: HTML file
-+
-+stabs_toc.html: stabs.texinfo
-+	-@rm -f stabs[_.]*html
-+	$(MAKEHTML) $(MAKEHTMLFLAGS) $(srcdir)/stabs.texinfo
- 
- # STABS DOCUMENTATION: TeX dvi file
- stabs.dvi : stabs.texinfo
-diff -urN orig/gdb-5.0/bfd/hash.c gdb-5.0/bfd/hash.c
---- orig/gdb-5.0/bfd/hash.c	Sun Jul 11 12:49:36 1999
-+++ gdb-5.0/bfd/hash.c	Fri Dec 17 02:07:03 1999
-@@ -73,7 +73,7 @@
- 	The function <<bfd_hash_table_init>> take as an argument a
- 	function to use to create new entries.  For a basic hash
- 	table, use the function <<bfd_hash_newfunc>>.  @xref{Deriving
--	a New Hash Table Type} for why you would want to use a
-+	a New Hash Table Type}, for why you would want to use a
- 	different value for this argument.
- 
- @findex bfd_hash_allocate
-diff -urN orig/gdb-5.0/bfd/linker.c gdb-5.0/bfd/linker.c
---- orig/gdb-5.0/bfd/linker.c	Fri Jan 14 10:13:40 2000
-+++ gdb-5.0/bfd/linker.c	Fri Dec 17 02:06:16 1999
-@@ -74,7 +74,7 @@
- @cindex target vector (_bfd_link_hash_table_create)
- 	The linker routines must create a hash table, which must be
- 	derived from <<struct bfd_link_hash_table>> described in
--	<<bfdlink.c>>.  @xref{Hash Tables} for information on how to
-+	<<bfdlink.c>>.  @xref{Hash Tables}, for information on how to
- 	create a derived hash table.  This entry point is called using
- 	the target vector of the linker output file.
  
 diff -urN orig/gdb-5.0/config.sub gdb-5.0/config.sub
 --- orig/gdb-5.0/config.sub	Thu Feb 24 13:20:57 2000
 +++ gdb-5.0/config.sub	Fri Jun  2 20:47:49 2000
-@@ -106,7 +106,7 @@
+@@ -99,7 +99,7 @@
  	-convergent* | -ncr* | -news | -32* | -3600* | -3100* | -hitachi* |\
  	-c[123]* | -convex* | -sun | -crds | -omron* | -dg | -ultra | -tti* | \
  	-harris | -dolphin | -highlevel | -gould | -cbm | -ns | -masscomp | \
@@ -141,16 +35,16 @@ diff -urN orig/gdb-5.0/config.sub gdb-5.0/config.sub
  		os=
  		basic_machine=$1
  		;;
-@@ -1198,6 +1198,9 @@
+@@ -1172,6 +1172,9 @@
  		;;
- 	*-apple)					# CYGNUS LOCAL
+ 	*-apple)
  		os=-macos
 +		;;
 +	m68k-palmos)
 +		os=-coff
  		;;
- 	*)
- 		os=-none
+ 	*-atari*)
+ 		os=-mint
 diff -urN orig/gdb-5.0/gdb/ChangeLog.palmos gdb-5.0/gdb/ChangeLog.palmos
 --- orig/gdb-5.0/gdb/ChangeLog.palmos	Wed Dec 31 16:00:00 1969
 +++ gdb-5.0/gdb/ChangeLog.palmos	Fri Jun  2 20:47:49 2000
@@ -181,6 +75,18 @@ diff -urN orig/gdb-5.0/gdb/ChangeLog.palmos gdb-5.0/gdb/ChangeLog.palmos
 +
 +	* m68k-tdep.c (m68k_saved_pc_after_call): Added support for
 +	MAC_SYSCALL_TRAP style systraps.
+diff -urN orig/gdb-5.0/gdb/coff-solib.c gdb-5.0/gdb/coff-solib.c
+--- orig/gdb-5.0/gdb/coff-solib.c	Mon Oct 11 21:37:19 1999
++++ gdb-5.0/gdb/coff-solib.c	Tue Jun 20 13:15:02 2000
+@@ -25,6 +25,8 @@
+ #include "bfd.h"
+ #include "gdbcore.h"
+ #include "symtab.h"
++#include "symfile.h"
++#include "objfiles.h"
+ 
+ /*
+ 
 diff -urN orig/gdb-5.0/gdb/config/m68k/m68kpalmos.mt gdb-5.0/gdb/config/m68k/m68kpalmos.mt
 --- orig/gdb-5.0/gdb/config/m68k/m68kpalmos.mt	Wed Dec 31 16:00:00 1969
 +++ gdb-5.0/gdb/config/m68k/m68kpalmos.mt	Fri Jun  2 20:47:49 2000
@@ -255,7 +161,7 @@ diff -urN orig/gdb-5.0/gdb/config/m68k/tm-m68kpalmos.h gdb-5.0/gdb/config/m68k/t
 diff -urN orig/gdb-5.0/gdb/configure.tgt gdb-5.0/gdb/configure.tgt
 --- orig/gdb-5.0/gdb/configure.tgt	Mon May  1 09:30:55 2000
 +++ gdb-5.0/gdb/configure.tgt	Fri Jun  2 20:47:49 2000
-@@ -150,6 +150,7 @@
+@@ -151,6 +151,7 @@
  m68*-monitor-*)         gdb_target=monitor ;;
  m68*-est-*)		gdb_target=monitor ;;
  m68*-*-aout*)		gdb_target=monitor ;;
@@ -263,29 +169,10 @@ diff -urN orig/gdb-5.0/gdb/configure.tgt gdb-5.0/gdb/configure.tgt
  m68*-*-coff*)		gdb_target=monitor ;;
  m68*-*-elf*)		gdb_target=monitor ;;
  m68*-*-linux*)		gdb_target=linux
-diff -urN orig/gdb-5.0/gdb/findvar.c gdb-5.0/gdb/findvar.c
---- orig/gdb-5.0/gdb/findvar.c	Fri Mar 31 14:04:50 2000
-+++ gdb-5.0/gdb/findvar.c	Thu May  4 00:43:22 2000
-@@ -252,6 +252,7 @@
-      int len;
-      LONGEST val;
- {
-+#if 0
-   if( TARGET_BYTE_ORDER == BIG_ENDIAN
-       &&  len != sizeof( LONGEST )) {
-     /* On big-endian machines (e.g., HPPA 2.0, narrow mode)
-@@ -271,6 +272,7 @@
-       return;
-     }
-   }
-+#endif
-   store_unsigned_integer (addr, len, val);
- }
- 
 diff -urN orig/gdb-5.0/gdb/m68k-tdep.c gdb-5.0/gdb/m68k-tdep.c
 --- orig/gdb-5.0/gdb/m68k-tdep.c	Thu Apr 27 22:48:25 2000
 +++ gdb-5.0/gdb/m68k-tdep.c	Fri Jun  2 20:47:49 2000
-@@ -506,6 +506,11 @@
+@@ -701,6 +701,11 @@
      return read_memory_integer (read_register (SP_REGNUM) + 4, 4);
    else
  #endif /* SYSCALL_TRAP */
@@ -300,7 +187,7 @@ diff -urN orig/gdb-5.0/gdb/m68k-tdep.c gdb-5.0/gdb/m68k-tdep.c
 diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 --- orig/gdb-5.0/gdb/remote-palmos.c	Wed Dec 31 16:00:00 1969
 +++ gdb-5.0/gdb/remote-palmos.c	Wed Jun 14 19:22:13 2000
-@@ -0,0 +1,1194 @@
+@@ -0,0 +1,1191 @@
 +/* Remote target communications for serial-line targets in custom GDB protocol
 +   Copyright 1988, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 +   
@@ -884,10 +771,7 @@ diff -urN orig/gdb-5.0/gdb/remote-palmos.c gdb-5.0/gdb/remote-palmos.c
 +	          buf[i] = '\n';
 +	      }
 +	      buf[len] = 0;
-+              if (target_output_hook)
-+	       target_output_hook (buf+12);
-+	      else
-+	        fputs_filtered (buf+12, gdb_stdout);
++	      fputs_filtered (buf+12, gdb_stdout);
 +	      continue;
 +	  }
 +	  else if (buf[10] == (char)0x80) { /* Break & state */
