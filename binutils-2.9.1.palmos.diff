@@ -792,8 +792,8 @@ diff -urN orig-binutils-2.9.1/ld/emulparams/m68kcoff.sh binutils-2.9.1/ld/emulpa
 +TEMPLATE_NAME=m68kcoff
 diff -urN orig-binutils-2.9.1/ld/emultempl/m68kcoff.em binutils-2.9.1/ld/emultempl/m68kcoff.em
 --- orig-binutils-2.9.1/ld/emultempl/m68kcoff.em	Wed Dec 31 16:00:00 1969
-+++ binutils-2.9.1/ld/emultempl/m68kcoff.em	Tue Feb  1 22:00:47 2000
-@@ -0,0 +1,201 @@
++++ binutils-2.9.1/ld/emultempl/m68kcoff.em	Sun Aug 26 10:51:16 2001
+@@ -0,0 +1,218 @@
 +# This shell script emits a C file. -*- C -*-
 +# It does some substitutions.
 +cat >e${EMULATION_NAME}.c <<EOF
@@ -874,9 +874,19 @@ diff -urN orig-binutils-2.9.1/ld/emultempl/m68kcoff.em binutils-2.9.1/ld/emultem
 +         read in the relocs into BFD canonical form, which would waste
 +         a significant amount of time and memory.  */
 +
++#if 0
 +      for (sec = abfd->sections; sec; sec = sec->next)
 +	if (sec->flags & SEC_DATA)
 +	  total_data_relocs += sec->reloc_count;
++#else
++      /* This is a hack.  We really want to iterate over sections for which
++	 sec->output_section->flags & SEC_DATA is true, but output_section has
++	 not been set up yet.  This will all go away when we update to current
++	 binutils and use --emit-relocs instead of this embedded stuff.  */
++      sec = bfd_get_section_by_name (abfd, ".data");
++      if (sec)
++	total_data_relocs += sec->reloc_count;
++#endif
 +
 +      if (total_data_relocs > 0)
 +	{
@@ -915,9 +925,16 @@ diff -urN orig-binutils-2.9.1/ld/emultempl/m68kcoff.em binutils-2.9.1/ld/emultem
 +	  asection *sec;
 +	  bfd_byte *emrel = (bfd_byte *) relsec->contents;
 +
++#if 0
 +	  for (sec = abfd->sections; sec && emrel; sec = sec->next)
 +	    if ((sec->flags & SEC_DATA) && sec->reloc_count > 0)
 +	      emrel = _bfd_m68kcoff_create_embedded_relocs (abfd, sec, emrel);
++#else
++	  /* Hack on.  See comment above.  */
++	  sec = bfd_get_section_by_name (abfd, ".data");
++	  if (sec && sec->reloc_count > 0)
++	      emrel = _bfd_m68kcoff_create_embedded_relocs (abfd, sec, emrel);
++#endif
 +
 +	  if (! emrel)
 +	    einfo ("%F%B: cannot create embedded relocations: %E\n", abfd);
