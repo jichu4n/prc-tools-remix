@@ -36,7 +36,6 @@ BUILT_LD = binutils/ld/ld-new$(exeext)
 BUILT_AR = binutils/binutils/ar$(exeext)
 BUILT_RANLIB = binutils/binutils/ranlib$(exeext)
 BUILT_GCC = gcc/gcc/xgcc$(exeext)
-BUILT_PALMDEV_PREP = tools/palmdev-prep$(exeext)
 
 minitooldir = $(target_alias)
 
@@ -66,6 +65,17 @@ all-gcc:
 	      then true; else exit 1; fi; \
 	fi
 
+# Selection between bootstrap headers and real SDKs used to be done at
+# configure time, but now we just always use the bootstrap headers during
+# full builds.  The only reason to build the target subdirectories with a
+# real SDK is to compare them against those built with the bootstrap
+# headers, to verify that the bootstrap headers are correct.  This can
+# easily be done in an ad hoc way by using "make all" down in the target
+# subdirectories (due to their empty $(SDKFLAGS) defaults).
+
+SDKFLAGS = -DBOOTSTRAP -I$$(srcdir)/../bootstrap \
+	   -specs=$$(srcdir)/../bootstrap/bootstrap-specs -palmos-none
+
 all-target:
 	r=`pwd`; \
 	ar1="XFOO="; ranlib1="XFOO="; \
@@ -77,11 +87,10 @@ all-target:
 	  cc1="CC=$(target_alias)-gcc"; \
 	fi; \
 	[ -d ./$(minitooldir) ] && cc1="$${cc1} -B$$r/$(minitooldir)/bin/"; \
-	$(BUILT_PALMDEV_PREP) -q --dump-specs none > palmdev-specs; \
-	cc1="$${cc1} -specs=$$r/palmdev-specs"; \
 	for dir in $(target_subdirs); do \
 	  if [ -f ./$${dir}/Makefile ]; then \
-	    if (cd $${dir}; $(MAKE) "$${ar1}" "$${ranlib1}" "$${cc1}" all); \
+	    if (cd $${dir}; $(MAKE) "$${ar1}" "$${ranlib1}" "$${cc1}" \
+				    SDKFLAGS='$(SDKFLAGS)' all); \
 	        then true; else exit 1; fi; \
 	  fi; \
 	done
@@ -117,7 +126,7 @@ clean:
 	    if (cd $${dir} && $(MAKE) clean); then true; else exit 1; fi; \
 	  fi; \
 	done
-	-rm -rf $(minitooldir) palmdev-specs
+	-rm -rf $(minitooldir)
 
 
 distdir = prc-tools

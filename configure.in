@@ -26,19 +26,6 @@ esac])
 AC_SUBST(palmdev_prefix)
 
 
-build_sdk='$(BOOTSTRAP_SDKFLAGS)'
-
-AC_ARG_WITH(build-sdk,
-[  --with-build-sdk=FLAGS  which SDK to build runtime [internal bootstrap SDK]],
-[case "${withval}" in
-yes)	build_sdk="-palmos" ;;
-no)	;;
-*)	build_sdk=$with_build_sdk ;;
-esac])
-
-AC_SUBST(build_sdk)
-
-
 htmldocs_prefix='$(palmdev_prefix)/doc'
 htmldocs_enabled=''
 install_htmldocs_enabled=''

@@ -1,0 +1,2 @@
+*cpp:
++ %{!palmos-none:%ebootstrap-specs is only used to give meaning to -palmos-none}

@@ -16,8 +16,7 @@ INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 LN_S = @LN_S@
 
-BOOTSTRAP_SDKFLAGS = -DBOOTSTRAP -I$(srcdir)/../bootstrap -palmos-none
-SDKFLAGS = @build_sdk@
+SDKFLAGS =
 
 CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
