@@ -404,6 +404,7 @@ main (int argc, char** argv) {
   set_db_kind (DK_APPLICATION, default_pri);
   init_database_header (&db);
   strncpy (db.type, "appl", 4);
+  db.version = 1;
 
   bininfo.stack_size = 4096;
   bininfo.force_rloc = false;
