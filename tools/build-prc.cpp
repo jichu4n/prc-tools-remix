@@ -500,8 +500,8 @@ file_type (const char* fname) {
 
 int
 main (int argc, char** argv) {
-  int c, longind;
   bool work_desired = true;
+  int c;
 
   char* output_fname = NULL;
   bool check_header = true;
@@ -517,7 +517,7 @@ main (int argc, char** argv) {
   bininfo.force_rloc = false;
   bininfo.data_compression = 0;
 
-  while ((c = getopt_long (argc, argv, shortopts, longopts, &longind)) != -1)
+  while ((c = getopt_long (argc, argv, shortopts, longopts, NULL)) >= 0)
     try {
     switch (c) {
     case 'o':

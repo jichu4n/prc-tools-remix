@@ -56,8 +56,8 @@ static struct option longopts[] = {
 
 int
 main (int argc, char** argv) {
-  int c, longind;
   bool work_desired = true;
+  int c;
 
   set_progname (argv[0]);
 
@@ -73,7 +73,7 @@ main (int argc, char** argv) {
   info.emit_data = info.force_rloc = true;
   info.data_compression = 0;
 
-  while ((c = getopt_long (argc, argv, shortopts, longopts, &longind)) != -1)
+  while ((c = getopt_long (argc, argv, shortopts, longopts, NULL)) >= 0)
     switch (c) {
     case 'l':
       info.maincode = ResKey ("GLib", 0);

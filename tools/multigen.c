@@ -102,16 +102,16 @@ static const char *const linker_text[] = {
 
 int
 main (int argc, char **argv) {
-  int c, longind;
   int work_desired = 1;
   char *outfbase = NULL;
+  int c;
 
   struct def_callbacks funcs = default_def_callbacks;
   funcs.multicode_section = section;
 
   set_progname (argv[0]);
 
-  while ((c = getopt_long (argc, argv, shortopts, longopts, &longind)) != -1)
+  while ((c = getopt_long (argc, argv, shortopts, longopts, NULL)) >= 0)
     switch (c) {
     case 'b':
       outfbase = optarg;
