@@ -35,7 +35,7 @@ YACC = @YACC@
 STATIC_CXXLIBS = -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lm -lgcc -lc -lgcc
 CXXLIBS = @static_cxxlibs@
 
-INCDIRS = -I. -I$(srcdir)/../binutils/include -I../binutils/bfd
+INCDIRS = -I. -I$(srcdir) -I$(srcdir)/../binutils/include -I../binutils/bfd
 LIBDIRS = -L. -L../binutils/bfd -L../binutils/libiberty
 
 # This ought to be in config.h.in, but that doesn't work because configure
