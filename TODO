@@ -8,6 +8,9 @@ scripts in binutils/ld/scripttempl/m68kcoff.sc.  Besides being a bit of a
 tidy-up, this would get -r linking going -- not that that's particularly
 useful.  (Might need to hack a little just above the base_file stuff in
 binutils/bfd/cofflink.c too.)
+* in conjunction with that, reduce the main code section size to 32K, with
+some (separate) way to ask for a 64K one (and similarly for extra code
+sections -- probably a new option or .def file thing for multigen).
 * maybe try to make the binutils palmos stuff a proper subtarget -- separate
 off the machine independent patches to send off to the main binutils
 distribution.
@@ -33,4 +36,34 @@ trial link if possible.
 * Update the ChangeLogs, and start submitting patches to the various GNU
 maintainers (without any of the remaining nasty hacks!).
 
-* sort out GLibs and integrate Michael's stuff.
+* Consider how to use --emit-relocs instead of --embedded-relocs in ld and
+  return to reading real relocs in binres.cpp instead of .reloc sections.
+
+* Perhaps configure GCC with TARGET_MEM_FUNCTIONS so that aggregate
+  initialisation is done with memcpy instead of bcopy -- and provide
+  memcpy/bcopy more reliably than before.  Or even hack something up so
+  that it can use MemMove.
+
+* Future palmdev-prep facilities:
+  - Handle multi-libs correctly, instead of just recursively listing
+    everything under "lib" directories
+  - Add "base" file handling, to facilitate use of SDK updates
+  - write_specs with target="none" should mean don't write any link_* specs
+
+* Use @command for commands, @option for options throughout prc-tools.texi.
+
+* Use .PHONY properly in all our makefiles.
+
+* If C++ is not in --enable-languages, we shouldn't try to build C++ target
+  support (e.g. new12.cc).  Currently the build fails.
+
+* Find a less hackish way to suppress [un]protoize and gcov.
+
+* The headers installed by our prc-tools/include subdirectory need
+  to be accessible from all targets; they should go somewhere like
+  $datadir/prc-tools/include/after instead of $prefix/$target/include.
+
+* Invent syntax in .def files for standalone code segments; probably should
+  insert a jump to their entry points in the resulting code resources.
+
+* Add a post-install script to the Cygwin build to do install-info.
