@@ -1,7 +1,6 @@
 /* binres.cpp: extract Palm OS resources from a bfd executable.
 
-   Copyright (c) 1998, 1999, 2001 by John Marshall.
-   <jmarshall@acm.org>
+   Copyright 1998, 1999, 2001, 2002 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -411,7 +410,7 @@ find_maximal_zero_run (const unsigned char** zeropp,
 
 static Datablock
 make_data (const bfd_byte* raw_data, size_t data_size, size_t total_data_size,
-	   int compr, binary_file_stats* stats) {
+	   int compr) {
   Datablock res (128 + 33 * (data_size / 32));
   unsigned char* data = res.writable_contents();
   unsigned char* datap = data + 4;
@@ -442,9 +441,6 @@ make_data (const bfd_byte* raw_data, size_t data_size, size_t total_data_size,
     datap = compress_data (datap, raw_data, Lp, Llim, total_data_size, compr);
     datap = compress_data (datap, raw_data, Mp, Mlim, total_data_size, compr);
     datap = compress_data (datap, raw_data, Rp, Rlim, total_data_size, compr);
-
-    stats->omitted_zeros = (Lp - raw_data) + (Mp - Llim) + (Rp - Mlim)
-			    + (raw_data + data_size - Rlim);
     }
   else {
     datap = compress_data (datap, raw_data, raw_data, raw_data + data_size,
@@ -453,7 +449,6 @@ make_data (const bfd_byte* raw_data, size_t data_size, size_t total_data_size,
 			   total_data_size, compr);
     datap = compress_data (datap, raw_data, raw_data, raw_data,
 			   total_data_size, compr);
-    stats->omitted_zeros = 0;
     }
 
   /* 6 longs of 0 because we don't know the format of the standard Palm OS
@@ -476,8 +471,7 @@ make_data (const bfd_byte* raw_data, size_t data_size, size_t total_data_size,
 
 
 ResourceDatabase
-process_binary_file (const char* fname, const binary_file_info& info,
-		     binary_file_stats* stats) {
+process_binary_file (const char* fname, const binary_file_info& info) {
   static bool bfd_inited = false;
 
   if (!bfd_inited) {
@@ -485,9 +479,6 @@ process_binary_file (const char* fname, const binary_file_info& info,
     bfd_set_error_program_name (progname);
     bfd_inited = true;
     }
-
-  binary_file_stats ignored_stats;
-  if (stats == NULL)  stats = &ignored_stats;
 
   ResourceDatabase db;
 
@@ -569,7 +560,7 @@ process_binary_file (const char* fname, const binary_file_info& info,
 				  abfd, reloc_sec, reloc_size, data, data_size);
 
       db[ResKey ("data", 0)] = make_data (data, data_size, total_data_size,
-					  info.data_compression, stats);
+					  info.data_compression);
       }
     else
       error ("[%s] can't read '.data' section", fname);
@@ -578,8 +569,6 @@ process_binary_file (const char* fname, const binary_file_info& info,
     }
   else if (total_data_size > 0)
     warning ("[%s] global data ignored", fname);
-
-  stats->data_size = data_size;
 
   delete [] res_from_sec;
   bfd_close (abfd);

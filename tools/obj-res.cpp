@@ -38,7 +38,6 @@ usage() {
   propt ("-l", "Generate GLib resources");
   propt ("-L EXPORT.FILE",
 	 "Generate SysLib resources (EXPORT.FILE is unsupported)");
-  propt ("-v", "Show statistics");
   propt ("-z NUM", "Set data compression level (0--7; by default, 0)");
   }
 
@@ -47,7 +46,7 @@ enum {
   OPTION_VERSION
   };
 
-static const char shortopts[] = "lL:vz:";
+static const char shortopts[] = "lL:z:";
 
 static struct option longopts[] = {
   { "help", no_argument, NULL, OPTION_HELP },
@@ -59,7 +58,6 @@ int
 main (int argc, char** argv) {
   int c, longind;
   bool work_desired = true;
-  bool verbose = false;
 
   set_progname (argv[0]);
 
@@ -88,10 +86,6 @@ main (int argc, char** argv) {
       warning ("offset table not supported by this version");
       break;
 
-    case 'v':
-      verbose = true;
-      break;
-
     case 'z':
       info.data_compression = atoi (optarg);
       break;
@@ -115,17 +109,7 @@ main (int argc, char** argv) {
     return EXIT_FAILURE;
     }
 
-  struct binary_file_stats stats;
-  ResourceDatabase out = process_binary_file (argv[optind], info,
-					      (verbose)? &stats : NULL);
-
-  if (verbose) {
-    printf ("Zeroes in .data omitted completely due to 3-part format: %ld",
-	    (long) stats.omitted_zeros);
-    if (stats.data_size)
-      printf (" (%d%%)", int((stats.omitted_zeros * 100) / stats.data_size));
-    printf ("\n");
-    }
+  ResourceDatabase out = process_binary_file (argv[optind], info);
 
   if (nerrors == 0) {
     char *basename = basename_with_changed_extension (argv[optind], NULL);

@@ -47,14 +47,8 @@ struct binary_file_info {
   int data_compression;
   };
 
-struct binary_file_stats {
-  // Statistics from data resource compression:
-  size_t data_size, omitted_zeros;
-  };
-
 ResourceDatabase process_binary_file (const char* fname,
-				      const binary_file_info& info,
-				      binary_file_stats* stats = NULL);
+				      const binary_file_info& info);
 
 // Returns a NULL-terminated vector of target names.  Remember to free() it
 // when you're finished with it.
