@@ -8,7 +8,7 @@ License: GPL
 URL: http://prc-tools.sourceforge.net/
 Group: Development/Palm OS
 Source0: http://prdownloads.sourceforge.net/prc-tools/%{name}-%{version}.tar.gz
-Source1: ftp://sources.redhat.com/pub/binutils/releases/binutils-2.12.tar.gz
+Source1: ftp://sources.redhat.com/pub/binutils/releases/binutils-2.12.1.tar.bz2
 Source2: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.0.tar.gz
 Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.3/gcc-2.95.3.tar.gz
 Source4: ftp://ftp.gnu.org/pub/gnu/make/make-3.79.1.tar.gz
@@ -29,7 +29,7 @@ BuildRequires: texinfo
 
 %description
 A complete compiler tool chain for building Palm OS applications in C or C++.
-Includes (patched versions of) binutils 2.12, GDB 5.0, and GCC 2.95.3, along
+Includes (patched versions of) binutils 2.12.1, GDB 5.0, and GCC 2.95.3, along
 with various post-linker tools to produce Palm OS .prc files.
 
 You will also need a Palm OS SDK and some way of creating resources, such as
@@ -51,7 +51,7 @@ If you want to install it elsewhere, you can do so via the prefix and/or
 relocation facilities of your RPM installation tool.
 
 %prep
-%setup -n binutils-2.12 -T -b 1
+%setup -n binutils-2.12.1 -T -b 1
 %setup -n gdb-5.0 -T -b 2
 %setup -n gcc-2.95.3 -T -b 3
 %setup -n make-3.79.1 -T -b 4
@@ -59,7 +59,7 @@ relocation facilities of your RPM installation tool.
 
 cat *.palmos.diff | (cd .. && patch -p0)
 
-mv ../binutils-2.12 binutils
+mv ../binutils-2.12.1 binutils
 mv ../gdb-5.0 gdb
 mv ../gcc-2.95.3 gcc
 mv ../make-3.79.1 make
