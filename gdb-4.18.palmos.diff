@@ -263,6 +263,25 @@ diff -urN orig/gdb-4.18/gdb/configure.tgt gdb-4.18/gdb/configure.tgt
  m68*-*-coff*)		gdb_target=monitor ;;
  m68*-*-elf*)		gdb_target=monitor ;;
  m68*-*-linux*)		gdb_target=linux
+diff -urN orig/gdb-4.18/gdb/findvar.c gdb-4.18/gdb/findvar.c
+--- orig/gdb-4.18/gdb/findvar.c	Sat Oct 16 21:17:39 1999
++++ gdb-4.18/gdb/findvar.c	Thu May  4 00:43:22 2000
+@@ -252,6 +252,7 @@
+      int len;
+      LONGEST val;
+ {
++#if 0
+   if( TARGET_BYTE_ORDER == BIG_ENDIAN
+       &&  len != sizeof( LONGEST )) {
+     /* On big-endian machines (e.g., HPPA 2.0, narrow mode)
+@@ -271,6 +272,7 @@
+       return;
+     }
+   }
++#endif
+   store_unsigned_integer (addr, len, val);
+ }
+ 
 diff -urN orig/gdb-4.18/gdb/m68k-tdep.c gdb-4.18/gdb/m68k-tdep.c
 --- orig/gdb-4.18/gdb/m68k-tdep.c	Sat Oct 16 21:17:41 1999
 +++ gdb-4.18/gdb/m68k-tdep.c	Sat Sep  4 11:53:47 1999
