@@ -7,54 +7,51 @@
 
 <h1>Building prc-tools</h1>
 
-Prc-tools builds easily on Linux, should build without too much trouble
-on other Unixes (any problems encountered are bugs and I would appreciate
-hearing about them), builds with some effort on Windows NT with
-<a href="http://sources.redhat.com/cygwin/">Cygwin</a>, and doesn't
-have a hope on Windows 95.  (The build process simply creates too many
-processes too fast for Windows 95 -- though a recent bug fix to Cygwin's
-fork() may have resolved this.)
-
-<h2>Before you start</h2>
-
-You need to have at least one Palm OS SDK installed.  Prc-tools contains
-both host tools which run on your development computer and run-time support
-code which is linked into your application.  To build this support code,
-you will need a set of Palm OS header files.  (Indeed, you may wish to
-install several versions of the SDK, and switch between them for different
-projects.)
-<ul>
-<li>
-The 3.5 SDK is suitable for use with prc-tools, and contains instructions
-detailing how to install it for a prc-tools 2.x tool chain.
-
-<li>
-Previous SDKs require modifications to be usable with this version of
-prc-tools; you can download suitably patched SDKs from
-<a href="http://www.palm.com/devzone/tools/gcc/#sdks">Palm's devzone</a>.
-</ul>
-By convention, prc-tools looks for SDKs in <code>/opt/palmdev</code>
-on Unix, or <code>C:\PalmDev</code> on Windows.  (You will get to configure
-where GCC looks for SDKs <a href="#palmdev-prefix">later</a>.  These are
-the values which the prebuilt binaries use on the various platforms, and it
-seems like a useful convention to follow.)
+Prc-tools is built regularly on Linux and Cygwin, and should build without
+too much trouble on other Unix-like systems.  (Any problems encountered are
+bugs and we would like to hear about them.)  These regular builds are done
+either with the RPM spec file <code>prc-tools.spec</code> or with the
+<code>cygwin-build</code> script.  While we attempt to keep these instructions
+up to date, those two files should be considered to represent the canonical
+tested build procedures.
 
 <p>
-You should install the SDK(s) you have selected into the directory you have
-chosen.  You may also wish to create a symlink for a `default SDK'.  For
-example, for a base directory of <code>/usr/local/palmdev</code>, the tree
-structure should look something like
-<blockquote><pre>
-/usr/local/palmdev/sdk-2/include/Core/...
-/usr/local/palmdev/sdk-3.5/include/Core/...
-/usr/local/palmdev/sdk-3.5/lib/...
-/usr/local/palmdev/sdk -> sdk-2
-</pre></blockquote>
+In this document, we use <code>prc-tools-srcdir</code> to refer to the top
+level source directory for prc-tools.  If you are working from CVS, this
+directory's name will be simply <code>prc-tools</code>.  If you have downloaded
+a source tarball, it will be something like <code>prc-tools-2.1</code>.
+
+<h2>Prc-tools and Palm OS SDKs</h2>
+
+Prc-tools contains both host tools which run on your development computer
+and run-time support code which is linked into your application.  Header
+files of some kind describing how to call several Palm OS API functions
+are needed to compile this run-time support code.
 
 <p>
-You'll also need various software development packages:
-<ul>
-<li>
+For a Palm OS application, these header files are provided by a Palm OS
+SDK.  However, the audience for prc-tools is different:  It is often built
+by people, such as system administrators and OS distributors, who may not
+themselves be Palm OS programmers.  It is unreasonable to require such
+people to first obtain a separate non-redistributable SDK that they may not
+subsequently wish to use, just so that they can compile a small part of
+this package.
+
+<p>
+Hence prc-tools contains header files (in the <code>bootstrap</code>
+subdirectory) which declare just enough Palm OS API functions and related
+machinery to compile the run-time support code.  Thus prc-tools itself can
+be compiled by itself, without requiring any separate Palm OS SDK to be
+installed on the build system.  (Of course people later <b>using</b>
+prc-tools will likely need to obtain an SDK themselves if they wish to
+write non-trivial applications.)
+
+<p>
+See <a href="http://bugs.debian.org/78745">Debian bug #78745</a> and
+<code>bootstrap/Makefile</code> for further details of this arrangement.
+
+<h2>Build tools required</h2>
+
 You will need to have a C compiler, a C++ compiler, lex or
 <a href="http://www.gnu.org/software/flex/flex.html">flex</a>, and
 yacc or <a href="http://www.gnu.org/software/bison/bison.html">bison</a>
@@ -66,27 +63,44 @@ you have a recent GCC installed as, e.g., <code>gcc295</code>,
 you can specify that the tools be built using the non-default compiler
 by defining variables for the configure command:
 <blockquote><pre>
-~/build$ CC=gcc295 CXX=g++295 ../prc-tools-2.1/configure <i>...etc...</i>
+~/build$ CC=gcc295 CXX=g++295 ../prc-tools-srcdir/configure <i>...etc...</i>
 </pre></blockquote>
 
+<p>
+Particularly if you are a maintainer working on prc-tools, you may also
+need the following:
+<ul>
 <li>
-If you do much work on the configuration files, you'll need
-<a href="http://sources.redhat.com/autoconf/">autoconf</a> as well.
+If you do much work on the configuration files or are working from CVS, you'll
+need <a href="http://sources.redhat.com/autoconf/">autoconf</a>.
+
+<li>
+If you are working on the run-time support code, you may need to update the
+<code>bootstrap</code> headers.
+A <a href="http://www.palmos.com/dev/tech/tools/">Palm OS SDK</a>
+and some Palm OS device (such as
+<a href="http://www.palmos.com/dev/tech/tools/emulator/">Poser</a>
+and a ROM) are needed to do this, because the headers are generated by running
+a Palm OS application, GenBootstrap.
 
 <li>
 If you want to generate the HTML documentation, you'll need
 <a href="http://wwwinfo.cern.ch/dis/texi2html/">texi2html</a>.
+<!-- need to check on this
 (On Windows, you'll need either a
 <a href="http://cygutils.netpedia.net/">Cygwin-ised perl</a> or some fairly
 serious heroics involving
 <a href="http://sources.redhat.com/cygwin/cygwin-ug-net/using-utils.html#CYGPATH">cygpath</a>.)
+-->
 
+<!-- this I think isn't a problem anymore either
 <li>
 On Windows, I've found that Cygwin gives you a <code>makeinfo</code> that's
 just <code>/bin/true</code> (i.e., a shell script that doesn't do anything)!
 If your Cygwin suffers from this, you might want to build and install this
 <a href="http://www.palm.com/devzone/tools/gcc/dist/makeinfo.c">makeinfo.c</a>
 which will at least create an output file to keep the makefiles happy.
+-->
 </ul>
 
 <h2>Unpacking and patching the sources</h2>
@@ -96,7 +110,9 @@ run-time support on the device, and patches against
 <a href="ftp://sources.redhat.com/pub/binutils/releases/">binutils-2.9.1</a>,
 <a href="ftp://sources.redhat.com/pub/gdb/releases/">gdb-5.0</a>, and
 <a href="ftp://gcc.gnu.org/pub/gcc/releases/">gcc-2.95.3</a>.
-You will need to download source for each of these packages separately.
+You will need to download source for each of these packages separately, either
+from a <a href="http://www.gnu.org/order/ftp.html">GNU mirror</a> or from
+<a href="http://prc-tools.sourceforge.net/misc/">http://prc-tools.sourceforge.net/misc/</a>.
 Prc-tools also includes patches to generate HTML documentation for
 <a href="http://www.gnu.org/software/make/make.html">make</a>;
 if you want to generate this, you will also need
@@ -111,7 +127,7 @@ the patches:
 ~$ tar xfz gdb-5.0.tar.gz
 ~$ tar xfz gcc-2.95.3.tar.gz
 ~$ tar xfz make-3.77.tar.gz
-~$ cat prc-tools-2.1/*.palmos.diff | patch -p0
+~$ cat prc-tools-srcdir/*.palmos.diff | patch -p0
 </pre></blockquote>
 (Omit <code>make-3.77.tar.gz</code> and <code>make-docs-3.77.palmos.diff</code>
 if you don't want to generate make documentation.)
@@ -119,7 +135,7 @@ if you don't want to generate make documentation.)
 <p>
 On Windows, you should also apply the Cygwin-specific patches:
 <blockquote><pre>
-~$ cat prc-tools-2.1/*.cygwin.diff | patch -p0
+~$ cat prc-tools-srcdir/*.cygwin.diff | patch -p0
 </pre></blockquote>
 
 <p>
@@ -136,12 +152,12 @@ script and top-level Makefile so that building all the packages can be
 integrated into just one build:
 
 <blockquote><pre>
-~$ cd prc-tools-2.1
-~/prc-tools-2.1$ ln -s ../binutils-2.9.1 binutils
-~/prc-tools-2.1$ ln -s ../gdb-5.0 gdb
-~/prc-tools-2.1$ ln -s ../gcc-2.95.3 gcc
-~/prc-tools-2.1$ ln -s ../make-3.77 make
-~/prc-tools-2.1$ cd ..
+~$ cd prc-tools-srcdir
+~/prc-tools-srcdir$ ln -s ../binutils-2.9.1 binutils
+~/prc-tools-srcdir$ ln -s ../gdb-5.0 gdb
+~/prc-tools-srcdir$ ln -s ../gcc-2.95.3 gcc
+~/prc-tools-srcdir$ ln -s ../make-3.77 make
+~/prc-tools-srcdir$ cd ..
 </pre></blockquote>
 (On Windows, if you use any non-Cygwin programs in your build (such as the
 texi2html perl script), you should use <code>mv</code> instead of
@@ -158,12 +174,14 @@ their source trees:
 ~$ mkdir build
 ~$ cd build
 ~/build$ mkdir empty
-~/build$ ../prc-tools-2.1/configure --target=m68k-palmos \
+~/build$ ../prc-tools-srcdir/configure --target=m68k-palmos \
          --enable-languages=c,c++ \
 	 --with-headers=`pwd`/empty
 </pre></blockquote>
 
-These parameters specify the following:
+(The parameters above must be given, with whatever values are appropriate,
+because their defaults will cause problems.)  In addition to the standard
+configure options, the following options can be used:
 <dl>
 <dt>
 <code>--target=m68k-palmos</code>
@@ -190,8 +208,8 @@ easier for now.  :-)
 <code>--with-build-sdk[=-palmosX]</code>
 <dd>
 Select an installed Palm OS SDK with which to build the runtime code.
-By default, the header files in <code>prc-tools/bootstrap</code> are used,
-which provide just enough functionality to compile the startup code.
+By default, the header files in prc-tools's <code>bootstrap</code> directory
+are used, which provide just enough functionality to compile the startup code.
 <dt>
 <code><a name="palmdev-prefix">--with-palmdev-prefix=/opt/palmdev</a></code>
 <dd>
@@ -207,22 +225,6 @@ Additional directories which should be searched for SDK headers and libraries.
 This can be set to provide compatibility with earlier prc-tools releases which
 looked in <code>/usr/local/palmdev</code>.  By default, no additional
 directories are searched.
-<dt>
-<code>--prefix=/usr/local</code>
-<br>
-<code>--exec-prefix=</code><i>prefix</i>
-<dd>
-Use these configure parameters to install the package somewhere other than
-the default <code>/usr/local</code>.  On Windows, the prebuilt binary is
-configured with
-<code>--prefix=/prc-tools --exec-prefix=/prc-tools/H-i586-cygwin32</code>
-and then Cygwin
-<a href="http://sources.redhat.com/cygwin/cygwin-ug-net/using-utils.html#MOUNT">mounts</a>
-are used to map the files from anywhere.  Alternatively, if you want to
-install these files into the same directories that Cygwin uses, follow
-<a href="http://www.xraylith.wisc.edu/~khan/software/gnu-win32/">Mumit Khan's
-instructions</a> and use <code>--prefix=/cygnus/cygwin-b20
---exec-prefix=/cygnus/cygwin-b20/H-i586-cygwin32</code>.
 </dl>
 
 <h2>Building and installing</h2>
@@ -247,7 +249,6 @@ are interleaved:
 ~/build$ su
 ~/build# make install-gcc
 ~/build# make install-wrappers
-~/build# make install-palmdev
 ~/build# ^D
 ~/build$ make all-target
 ~/build$ su
@@ -261,8 +262,8 @@ The multistage process is needed because GCC requires binutils to be installed
 before it can be built (or we could use the
 <a href="http://www.objsw.com/CrossGCC/FAQ-4.html#ss4.2">unified binutils/gcc
 tree</a> trick, but that would cause other problems for us); and in turn
-<code>prc-tools-2.1/crt</code> needs GCC to be installed before it can be
-built.
+the run-time support code such as that in the <code>crt</code> subdirectory
+needs GCC to be installed before it can be built.
 
 <p>
 There are further details in the GCC distribution's
@@ -282,6 +283,9 @@ these, you need to do it separately:
 ~/build/doc$ su
 ~/build/doc# make install-html
 </pre></blockquote>
+
+<p><hr>
+<i>To the <a href="http://prc-tools.sourceforge.net/">prc-tools website</a></i>
 
 </body>
 </html>
