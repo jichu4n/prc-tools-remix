@@ -1141,12 +1141,6 @@ application @{ "Dr McCoy" DAFp copy-prevention @}
 multiple code @{ editfns viewfns @}
 @end example
 
-@sc{Note:} some details of definition file syntax are subject to change as
-we figure out just what ought to be in a definition file.  For example,
-it's unclear what the best way to handle filenames is:  whether they
-should appear in the file at all, or whether, for example, hack traps
-should match corresponding filenames on the @code{build-prc} command line.
-
 @section Specifying the kind of project
 
 You can specify the database header attributes which appeared in an
