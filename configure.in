@@ -45,6 +45,15 @@ AC_SUBST(htmldocs_enabled)
 AC_SUBST(install_htmldocs_enabled)
 
 
+AC_ARG_ENABLE(languages,
+[  --enable-languages=...  build compilers for the specified languages only],
+[case ",${enableval}," in
+   *,c++,* | *,all,*)	install_cxx_libs='$(INSTALL_CXX_LIBS)' ;;
+   *)			install_cxx_libs= ;;
+ esac], [AC_MSG_ERROR(--enable-languages must be used)])
+AC_SUBST(install_cxx_libs)
+
+
 AC_CANONICAL_SYSTEM
 
 AC_ARG_ENABLE(targets,

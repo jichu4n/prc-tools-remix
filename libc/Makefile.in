@@ -25,9 +25,12 @@ CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
-INSTALL_DIRS	= $(INSTALL_DIRS_@target_cpu@)
-INSTALL_HEADERS	= $(INSTALL_HEADERS_@target_cpu@)
-INSTALL_LIBS	= $(INSTALL_LIBS_@target_cpu@)
+INSTALL_DIRS     = $(INSTALL_DIRS_@target_cpu@)
+INSTALL_HEADERS  = $(INSTALL_HEADERS_@target_cpu@)
+INSTALL_C_LIBS   = $(INSTALL_C_LIBS_@target_cpu@)
+INSTALL_CXX_LIBS = $(INSTALL_CXX_LIBS_@target_cpu@)
+
+INSTALL_LIBS = $(INSTALL_C_LIBS) @install_cxx_libs@
 
 LIBC_OBJS = $(LIBC_OBJS_@target_cpu@)
 LIBG_OBJS = $(LIBG_OBJS_@target_cpu@)
@@ -42,9 +45,10 @@ INSTALL_HFILES = $(INCDIR)/errno.h $(INCDIR)/malloc.h \
 		 $(INCDIR)/sys/types.h
 
 
-INSTALL_DIRS_m68k    = include lib lib/mown-gp
-INSTALL_HEADERS_m68k = stdlib.h
-INSTALL_LIBS_m68k    = libc.a mown-gp/libc.a libg.a mown-gp/libg.a libstdc++.a
+INSTALL_DIRS_m68k     = include lib lib/mown-gp
+INSTALL_HEADERS_m68k  = stdlib.h
+INSTALL_C_LIBS_m68k   = libc.a mown-gp/libc.a libg.a mown-gp/libg.a
+INSTALL_CXX_LIBS_m68k = libstdc++.a
 
 LIBC_OBJS_m68k = \
 	conio.o vsprintf.o printf.o setjmp.o \
@@ -64,9 +68,10 @@ LIBC_OBJS_m68k = \
 LIBG_OBJS_m68k =
 
 
-INSTALL_DIRS_arm    = lib
-INSTALL_HEADERS_arm =
-INSTALL_LIBS_arm    = libc.a libstdc++.a
+INSTALL_DIRS_arm     = lib
+INSTALL_HEADERS_arm  =
+INSTALL_C_LIBS_arm   = libc.a
+INSTALL_CXX_LIBS_arm = libstdc++.a
 
 # The strtok() function is missing from the list of objects for ARM
 # because, requiring a global, it doesn't work in an armlet.

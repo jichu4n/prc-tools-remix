@@ -33,9 +33,10 @@ CFLAGS = -O5 -fno-builtin -Wall -W -g \
 
 MOWN_GP_FILES = mown-gp/crt0.o mown-gp/scrt0.o mown-gp/gdbstub.o \
   mown-gp/libcrt.a
-INSTALL_FILES = crt0.o gdbstub.o libcrt.a libnoexcept.a libnfm.a \
-  text_64k text_64k_palmos3 \
-  $(MOWN_GP_FILES)
+INSTALL_C_LIBS   = crt0.o gdbstub.o libcrt.a libnfm.a text_64k text_64k_palmos3
+INSTALL_CXX_LIBS = libnoexcept.a
+
+INSTALL_FILES = $(INSTALL_C_LIBS) @install_cxx_libs@ $(MOWN_GP_FILES)
 
 all: $(INSTALL_FILES)
 

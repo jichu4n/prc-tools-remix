@@ -43,9 +43,6 @@
 
 * Use .PHONY properly in all our makefiles.
 
-* If C++ is not in --enable-languages, we shouldn't try to build C++ target
-  support (e.g. new12.cc).  Currently the build fails.
-
 * Find a less hackish way to suppress [un]protoize and gcov.
 
 * Add a post-install script to the Cygwin build to do install-info.
