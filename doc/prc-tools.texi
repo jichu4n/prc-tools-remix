@@ -1506,11 +1506,6 @@ Add an AppInfo block with the contents of @var{file} to the database.
 @itemx --sortinfo @var{file}
 Add a SortInfo block with the contents of @var{file} to the database.
 
-@item -t @var{type}
-@itemx --type @var{type}
-Set the database's type to @var{type}, overriding any type it may get from
-a definition file or elsewhere.
-
 @item -l
 Build a GLib shared library; this is equivalent to specifying a project
 kind of ``glib'' in a definition file.  In particular, it changes the
@@ -1529,6 +1524,19 @@ Build a HackMaster hack; this is equivalent to specifying a project kind
 of ``hack'' in a definition file.  In particular, it changes the default
 database type, requires all bfd executables to be marked as stand-alone,
 and influences resource checking.
+
+@item -t @var{type}
+@itemx --type @var{type}
+Set the database's type to @var{type}, overriding any type it may get from
+a definition file or elsewhere.
+
+Note that this affects @emph{only} the type recorded in the database
+header; in particular, it does not change build-prc's notion of the kind
+of project being generated (@pxref{Definition files, project kinds}), nor
+does it influence resource checking.  If you do not want the database to
+be checked as if it is an application, you must either tell build-prc what
+it @emph{really} is, by using a definition file or one of the options
+listed above, or, as a last resort, suppress resource checking entirely.
 
 @item -c @var{crid}
 @itemx --creator @var{crid}
