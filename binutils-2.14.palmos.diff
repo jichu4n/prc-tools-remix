@@ -1,6 +1,6 @@
-diff -urN orig-binutils-2.13.2.1/ChangeLogs.palmos binutils-2.13.2.1/ChangeLogs.palmos
---- orig-binutils-2.13.2.1/ChangeLogs.palmos	Thu Jan  1 00:00:00 1970
-+++ binutils-2.13.2.1/ChangeLogs.palmos	Wed May 15 17:51:52 2002
+diff -urN orig-binutils-2.14/ChangeLogs.palmos binutils-2.14/ChangeLogs.palmos
+--- orig-binutils-2.14/ChangeLogs.palmos	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/ChangeLogs.palmos	Wed May 15 17:51:52 2002
 @@ -0,0 +1,81 @@
 +Collect all the changelog entries here for use on the eventual submission
 +to the FSF:
@@ -83,10 +83,10 @@ diff -urN orig-binutils-2.13.2.1/ChangeLogs.palmos binutils-2.13.2.1/ChangeLogs.
 +      * Makefile.am (em68kcoff.c): Depend upon m68kcoff.em rather than
 +      generic.em.
 +      * Makefile.in (em68kcoff.c): Likewise.
-diff -urN orig-binutils-2.13.2.1/bfd/Makefile.am binutils-2.13.2.1/bfd/Makefile.am
---- orig-binutils-2.13.2.1/bfd/Makefile.am	Thu Nov  7 17:55:14 2002
-+++ binutils-2.13.2.1/bfd/Makefile.am	Mon Feb 10 19:28:30 2003
-@@ -289,6 +289,9 @@
+diff -urN orig-binutils-2.14/bfd/Makefile.am binutils-2.14/bfd/Makefile.am
+--- orig-binutils-2.14/bfd/Makefile.am	Mon Apr 21 15:24:18 2003
++++ binutils-2.14/bfd/Makefile.am	Fri May 16 01:15:43 2003
+@@ -305,6 +305,9 @@
  	pei-mips.lo \
  	peigen.lo \
  	ppcboot.lo \
@@ -96,7 +96,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/Makefile.am binutils-2.13.2.1/bfd/Makefile.
  	reloc16.lo \
  	riscix.lo \
  	sparclinux.lo \
-@@ -444,6 +447,9 @@
+@@ -467,6 +470,9 @@
  	pe-mips.c \
  	pei-mips.c \
  	ppcboot.c \
@@ -106,7 +106,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/Makefile.am binutils-2.13.2.1/bfd/Makefile.
  	reloc16.c \
  	riscix.c \
  	sparclinux.c \
-@@ -1414,6 +1420,9 @@
+@@ -1465,6 +1471,9 @@
    $(INCDIR)/coff/pe.h libcoff.h $(INCDIR)/bfdlink.h coffcode.h \
    peicode.h libpei.h
  ppcboot.lo: ppcboot.c $(INCDIR)/safe-ctype.h $(INCDIR)/filenames.h
@@ -116,10 +116,10 @@ diff -urN orig-binutils-2.13.2.1/bfd/Makefile.am binutils-2.13.2.1/bfd/Makefile.
  reloc16.lo: reloc16.c $(INCDIR)/filenames.h $(INCDIR)/bfdlink.h \
    genlink.h $(INCDIR)/coff/internal.h libcoff.h
  riscix.lo: riscix.c $(INCDIR)/filenames.h libaout.h \
-diff -urN orig-binutils-2.13.2.1/bfd/Makefile.in binutils-2.13.2.1/bfd/Makefile.in
---- orig-binutils-2.13.2.1/bfd/Makefile.in	Thu Nov  7 17:55:27 2002
-+++ binutils-2.13.2.1/bfd/Makefile.in	Mon Feb 10 19:28:30 2003
-@@ -417,6 +417,9 @@
+diff -urN orig-binutils-2.14/bfd/Makefile.in binutils-2.14/bfd/Makefile.in
+--- orig-binutils-2.14/bfd/Makefile.in	Fri May  2 19:06:14 2003
++++ binutils-2.14/bfd/Makefile.in	Fri May 16 01:15:43 2003
+@@ -432,6 +432,9 @@
  	pei-mips.lo \
  	peigen.lo \
  	ppcboot.lo \
@@ -129,7 +129,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/Makefile.in binutils-2.13.2.1/bfd/Makefile.
  	reloc16.lo \
  	riscix.lo \
  	sparclinux.lo \
-@@ -573,6 +576,9 @@
+@@ -595,6 +598,9 @@
  	pe-mips.c \
  	pei-mips.c \
  	ppcboot.c \
@@ -139,7 +139,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/Makefile.in binutils-2.13.2.1/bfd/Makefile.
  	reloc16.c \
  	riscix.c \
  	sparclinux.c \
-@@ -1944,6 +1950,9 @@
+@@ -1998,6 +2004,9 @@
    $(INCDIR)/coff/pe.h libcoff.h $(INCDIR)/bfdlink.h coffcode.h \
    peicode.h libpei.h
  ppcboot.lo: ppcboot.c $(INCDIR)/safe-ctype.h $(INCDIR)/filenames.h
@@ -149,28 +149,27 @@ diff -urN orig-binutils-2.13.2.1/bfd/Makefile.in binutils-2.13.2.1/bfd/Makefile.
  reloc16.lo: reloc16.c $(INCDIR)/filenames.h $(INCDIR)/bfdlink.h \
    genlink.h $(INCDIR)/coff/internal.h libcoff.h
  riscix.lo: riscix.c $(INCDIR)/filenames.h libaout.h \
-diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k.c
---- orig-binutils-2.13.2.1/bfd/coff-m68k.c	Tue Sep 18 11:57:22 2001
-+++ binutils-2.13.2.1/bfd/coff-m68k.c	Sun Nov 10 05:28:22 2002
-@@ -67,6 +67,9 @@
+diff -urN orig-binutils-2.14/bfd/coff-m68k.c binutils-2.14/bfd/coff-m68k.c
+--- orig-binutils-2.14/bfd/coff-m68k.c	Sat Nov 30 09:39:35 2002
++++ binutils-2.14/bfd/coff-m68k.c	Tue Jun 24 00:37:47 2003
+@@ -67,6 +67,8 @@
  #define RELOC_SPECIAL_FN m68kcoff_common_addend_special_fn
  #endif
  
-+static boolean coff_m68k_bfd_print_private_bfd_data
++static bfd_boolean coff_m68k_bfd_print_private_bfd_data
 +  PARAMS ((bfd *, PTR));
-+
- static boolean m68k_coff_is_local_label_name PARAMS ((bfd *, const char *));
+ static bfd_boolean m68k_coff_is_local_label_name
+   PARAMS ((bfd *, const char *));
  
- /* On the delta, a symbol starting with L% is local.  We won't see
-@@ -107,6 +110,7 @@
-     HOWTO (R_PCRWORD,	       0,  1, 	16, true,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP16",   true, 0x0000ffff,0x0000ffff, false),
-     HOWTO (R_PCRLONG,	       0,  2, 	32, true,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP32",   true, 0xffffffff,0xffffffff, false),
-     HOWTO (R_RELLONG_NEG,      0, -2, 	32, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "-32",	true, 0xffffffff,0xffffffff, false),
-+    HOWTO (R_RELENDWORD,       0,  1, 	16, false, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "END16",	true, 0x0000ffff,0x0000ffff, false),
+@@ -108,6 +110,7 @@
+     HOWTO (R_PCRWORD,	       0,  1, 	16, TRUE,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP16",   TRUE, 0x0000ffff,0x0000ffff, FALSE),
+     HOWTO (R_PCRLONG,	       0,  2, 	32, TRUE,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP32",   TRUE, 0xffffffff,0xffffffff, FALSE),
+     HOWTO (R_RELLONG_NEG,      0, -2, 	32, FALSE, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "-32",	TRUE, 0xffffffff,0xffffffff, FALSE),
++    HOWTO (R_RELENDWORD,       0,  1, 	16, FALSE, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "END16",	TRUE, 0x0000ffff,0x0000ffff, FALSE),
    };
  #endif /* not ONLY_DECLARE_RELOCS */
  
-@@ -149,6 +153,7 @@
+@@ -150,6 +153,7 @@
      case R_PCRWORD:	internal->howto = m68kcoff_howto_table + 4; break;
      case R_PCRLONG:	internal->howto = m68kcoff_howto_table + 5; break;
      case R_RELLONG_NEG:	internal->howto = m68kcoff_howto_table + 6; break;
@@ -178,7 +177,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
      }
  }
  
-@@ -156,6 +161,9 @@
+@@ -157,6 +161,9 @@
  m68k_howto2rtype (internal)
       reloc_howto_type *internal;
  {
@@ -188,7 +187,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
    if (internal->pc_relative)
      {
        switch (internal->bitsize)
-@@ -193,6 +201,7 @@
+@@ -194,6 +201,7 @@
      case BFD_RELOC_16_PCREL:	return m68kcoff_howto_table + 4;
      case BFD_RELOC_32_PCREL:	return m68kcoff_howto_table + 5;
        /* FIXME: There doesn't seem to be a code for R_RELLONG_NEG.  */
@@ -196,7 +195,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
      }
    /*NOTREACHED*/
  }
-@@ -207,6 +216,46 @@
+@@ -208,6 +216,46 @@
  
  #define coff_bfd_reloc_type_lookup m68k_reloc_type_lookup
  
@@ -221,7 +220,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
 +  info = coff_data (sec->output_section->owner)->link_info;
 +
 +  edata = coff_link_hash_lookup (coff_hash_table (info), "edata",
-+				 false, false, true);
++				 FALSE, FALSE, TRUE);
 +
 +  if (edata && (edata->root.type == bfd_link_hash_defined
 +		|| edata->root.type == bfd_link_hash_defweak))
@@ -243,7 +242,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
  #ifndef COFF_COMMON_ADDEND
  #ifndef coff_rtype_to_howto
  
-@@ -219,10 +268,10 @@
+@@ -220,10 +268,10 @@
  
  static reloc_howto_type *
  m68kcoff_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
@@ -256,7 +255,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
       struct internal_syment *sym ATTRIBUTE_UNUSED;
       bfd_vma *addendp;
  {
-@@ -236,6 +285,9 @@
+@@ -237,6 +285,9 @@
    if (howto->pc_relative)
      *addendp += sec->vma;
  
@@ -266,7 +265,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
    return howto;
  }
  
-@@ -379,7 +431,7 @@
+@@ -380,7 +431,7 @@
  
  static reloc_howto_type *
  m68kcoff_common_addend_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
@@ -275,7 +274,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
       asection *sec;
       struct internal_reloc *rel;
       struct coff_link_hash_entry *h;
-@@ -396,6 +448,9 @@
+@@ -397,6 +448,9 @@
    if (howto->pc_relative)
      *addendp += sec->vma;
  
@@ -285,7 +284,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
    if (sym != NULL && sym->n_scnum == 0 && sym->n_value != 0)
      {
        /* This is a common symbol.  The section contents include the
-@@ -505,21 +560,194 @@
+@@ -506,21 +560,194 @@
  	    targetsec = NULL;
  	}
  
@@ -308,12 +307,12 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
 +      bfd_put_16 (abfd, 0, p + 10);
      }
  
-   return true;
+   return TRUE;
  }
  #endif /* neither ONLY_DECLARE_RELOCS not STATIC_RELOCS  */
  
 +/* Print the contents of ABFD's `.reloc' section to the file PTR.  */
-+static boolean
++static bfd_boolean
 +coff_m68k_bfd_print_private_bfd_data (abfd, ptr)
 +     bfd *abfd;
 +     PTR ptr;
@@ -325,7 +324,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
 +
 +  relocs_sec = bfd_get_section_by_name (abfd, ".reloc");
 +  if (relocs_sec == NULL)
-+    return true;
++    return TRUE;
 +
 +  fprintf (f, "\nEMBEDDED RELOCATION RECORDS:");
 +
@@ -333,7 +332,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
 +  if (relocs_size == 0)
 +    {
 +      fprintf (f, " (none)\n\n");
-+      return true;
++      return TRUE;
 +    }
 +  else
 +    fprintf (f, "\n");
@@ -471,7 +470,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
 +  free (relocs);
 +  free (relsec_contents);
 +
-+  return true;
++  return TRUE;
 +}
 +
  #define coff_bfd_is_local_label_name m68k_coff_is_local_label_name
@@ -483,10 +482,10 @@ diff -urN orig-binutils-2.13.2.1/bfd/coff-m68k.c binutils-2.13.2.1/bfd/coff-m68k
  #include "coffcode.h"
  
  #ifndef TARGET_SYM
-diff -urN orig-binutils-2.13.2.1/bfd/config.bfd binutils-2.13.2.1/bfd/config.bfd
---- orig-binutils-2.13.2.1/bfd/config.bfd	Thu Nov  7 17:57:50 2002
-+++ binutils-2.13.2.1/bfd/config.bfd	Mon Feb 10 19:28:30 2003
-@@ -196,6 +196,10 @@
+diff -urN orig-binutils-2.14/bfd/config.bfd binutils-2.14/bfd/config.bfd
+--- orig-binutils-2.14/bfd/config.bfd	Mon Jun  2 22:35:20 2003
++++ binutils-2.14/bfd/config.bfd	Fri Jun 13 11:00:26 2003
+@@ -219,6 +219,10 @@
      targ_defvec=bfd_elf32_littlearm_oabi_vec
      targ_selvecs=bfd_elf32_bigarm_oabi_vec
      ;;
@@ -497,7 +496,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/config.bfd binutils-2.13.2.1/bfd/config.bfd
  
    thumb-*-coff)
      targ_defvec=armcoff_little_vec
-@@ -646,6 +650,10 @@
+@@ -696,6 +700,10 @@
      targ_selvecs=ieee_vec
      targ_underscore=yes
      ;;
@@ -508,10 +507,10 @@ diff -urN orig-binutils-2.13.2.1/bfd/config.bfd binutils-2.13.2.1/bfd/config.bfd
  
    m88*-harris-cxux* | m88*-*-dgux* | m88*-*-sysv4*)
      targ_defvec=bfd_elf32_m88k_vec
-diff -urN orig-binutils-2.13.2.1/bfd/configure.in binutils-2.13.2.1/bfd/configure.in
---- orig-binutils-2.13.2.1/bfd/configure.in	Thu Jan  2 02:23:03 2003
-+++ binutils-2.13.2.1/bfd/configure.in	Mon Feb 10 19:28:30 2003
-@@ -712,6 +712,8 @@
+diff -urN orig-binutils-2.14/bfd/configure.in binutils-2.14/bfd/configure.in
+--- orig-binutils-2.14/bfd/configure.in	Thu Jun 12 16:25:46 2003
++++ binutils-2.14/bfd/configure.in	Tue Jun 24 00:27:38 2003
+@@ -737,6 +737,8 @@
      pdp11_aout_vec)		tb="$tb pdp11.lo" ;;
      pmac_xcoff_vec)		tb="$tb coff-rs6000.lo xcofflink.lo" ;;
      ppcboot_vec)		tb="$tb ppcboot.lo" ;;
@@ -520,10 +519,10 @@ diff -urN orig-binutils-2.13.2.1/bfd/configure.in binutils-2.13.2.1/bfd/configur
      riscix_vec)			tb="$tb aout32.lo riscix.lo" ;;
      rs6000coff64_vec)		tb="$tb coff64-rs6000.lo xcofflink.lo aix5ppc-core.lo"; target_size=64 ;;
      rs6000coff_vec)		tb="$tb coff-rs6000.lo xcofflink.lo" ;;
-diff -urN orig-binutils-2.13.2.1/bfd/configure binutils-2.13.2.1/bfd/configure
---- orig-binutils-2.13.2.1/bfd/configure	Thu Jan  2 02:23:03 2003
-+++ binutils-2.13.2.1/bfd/configure	Mon Feb 10 19:28:30 2003
-@@ -6198,6 +6198,8 @@
+diff -urN orig-binutils-2.14/bfd/configure binutils-2.14/bfd/configure
+--- orig-binutils-2.14/bfd/configure	Thu Jun 12 16:25:46 2003
++++ binutils-2.14/bfd/configure	Tue Jun 24 00:29:00 2003
+@@ -6275,6 +6275,8 @@
      pdp11_aout_vec)		tb="$tb pdp11.lo" ;;
      pmac_xcoff_vec)		tb="$tb coff-rs6000.lo xcofflink.lo" ;;
      ppcboot_vec)		tb="$tb ppcboot.lo" ;;
@@ -532,9 +531,9 @@ diff -urN orig-binutils-2.13.2.1/bfd/configure binutils-2.13.2.1/bfd/configure
      riscix_vec)			tb="$tb aout32.lo riscix.lo" ;;
      rs6000coff64_vec)		tb="$tb coff64-rs6000.lo xcofflink.lo aix5ppc-core.lo"; target_size=64 ;;
      rs6000coff_vec)		tb="$tb coff-rs6000.lo xcofflink.lo" ;;
-diff -urN orig-binutils-2.13.2.1/bfd/prc-arm.c binutils-2.13.2.1/bfd/prc-arm.c
---- orig-binutils-2.13.2.1/bfd/prc-arm.c	Thu Jan  1 00:00:00 1970
-+++ binutils-2.13.2.1/bfd/prc-arm.c	Wed Aug 14 12:53:11 2002
+diff -urN orig-binutils-2.14/bfd/prc-arm.c binutils-2.14/bfd/prc-arm.c
+--- orig-binutils-2.14/bfd/prc-arm.c	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/bfd/prc-arm.c	Wed Aug 14 12:53:11 2002
 @@ -0,0 +1,50 @@
 +/* BFD back-end for the Palm OS PRC resource database format.
 +   Copyright 2002 John Marshall.  (For now.)
@@ -586,9 +585,9 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc-arm.c binutils-2.13.2.1/bfd/prc-arm.c
 +		     bfd_getl32, bfd_getl_signed_32, bfd_putl32,
 +		     bfd_getl16, bfd_getl_signed_16, bfd_putl16,
 +		     &arm_backend_data);
-diff -urN orig-binutils-2.13.2.1/bfd/prc-m68k.c binutils-2.13.2.1/bfd/prc-m68k.c
---- orig-binutils-2.13.2.1/bfd/prc-m68k.c	Thu Jan  1 00:00:00 1970
-+++ binutils-2.13.2.1/bfd/prc-m68k.c	Wed Aug 14 13:35:35 2002
+diff -urN orig-binutils-2.14/bfd/prc-m68k.c binutils-2.14/bfd/prc-m68k.c
+--- orig-binutils-2.14/bfd/prc-m68k.c	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/bfd/prc-m68k.c	Wed Aug 14 13:35:35 2002
 @@ -0,0 +1,64 @@
 +/* BFD back-end for the Palm OS PRC resource database format.
 +   Copyright 2002 John Marshall.  (For now.)
@@ -654,9 +653,9 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc-m68k.c binutils-2.13.2.1/bfd/prc-m68k.c
 +		     bfd_getb32, bfd_getb_signed_32, bfd_putb32,
 +		     bfd_getb16, bfd_getb_signed_16, bfd_putb16,
 +		     &m68k_backend_data);
-diff -urN orig-binutils-2.13.2.1/bfd/prc.c binutils-2.13.2.1/bfd/prc.c
---- orig-binutils-2.13.2.1/bfd/prc.c	Thu Jan  1 00:00:00 1970
-+++ binutils-2.13.2.1/bfd/prc.c	Wed Aug 14 21:06:28 2002
+diff -urN orig-binutils-2.14/bfd/prc.c binutils-2.14/bfd/prc.c
+--- orig-binutils-2.14/bfd/prc.c	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/bfd/prc.c	Fri May 16 01:15:43 2003
 @@ -0,0 +1,407 @@
 +/* BFD back-end for the Palm OS PRC resource database format.
 +   Copyright 2002 John Marshall.  (For now.)
@@ -682,9 +681,9 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.c binutils-2.13.2.1/bfd/prc.c
 +#include "libbfd.h"
 +#include "prc.h"
 +
-+static boolean swap_in_header
++static bfd_boolean swap_in_header
 +  PARAMS ((bfd *abfd, asection *sec, struct palmos_prc_header *header));
-+static boolean swap_in_resource_headers
++static bfd_boolean swap_in_resource_headers
 +  PARAMS ((bfd *abfd, unsigned int n,
 +	   struct palmos_prc_resource_header *headers));
 +
@@ -704,7 +703,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.c binutils-2.13.2.1/bfd/prc.c
 +#define RSRCENTRY_SIZE	10
 +
 +/* Read from SEC if non-NULL, otherwise directly from the start of ABFD.  */
-+static boolean
++static bfd_boolean
 +swap_in_header (abfd, sec, header)
 +     bfd *abfd;
 +     asection *sec;
@@ -715,13 +714,13 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.c binutils-2.13.2.1/bfd/prc.c
 +  if (sec)
 +    {
 +      if (! bfd_get_section_contents (abfd, sec, raw, 0, sizeof raw))
-+	return false;
++	return FALSE;
 +    }
 +  else
 +    {
 +      if (bfd_seek (abfd, (file_ptr) 0, SEEK_SET) != 0
 +	  || bfd_bread (raw, sizeof raw, abfd) != sizeof raw)
-+	return false;
++	return FALSE;
 +    }
 +
 +  memcpy (header->name, &raw[0], 32);
@@ -745,10 +744,10 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.c binutils-2.13.2.1/bfd/prc.c
 +  header->nextlist_offset = bfd_h_get_32 (abfd, &raw[0x48]);
 +  header->nresources	  = bfd_h_get_16 (abfd, &raw[0x4c]);
 +
-+  return true;
++  return TRUE;
 +}
 +
-+static boolean
++static bfd_boolean
 +swap_in_resource_headers (abfd, n, headers)
 +     bfd *abfd;
 +     unsigned int n;
@@ -757,13 +756,13 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.c binutils-2.13.2.1/bfd/prc.c
 +  unsigned int i;
 +
 +  if (bfd_seek (abfd, (file_ptr) HEADER_SIZE, SEEK_SET) != 0)
-+    return false;
++    return FALSE;
 +
 +  for (i = 0; i < n; i++)
 +    {
 +      char raw[RSRCENTRY_SIZE];
 +      if (bfd_bread (raw, sizeof raw, abfd) != sizeof raw)
-+	return false;
++	return FALSE;
 +
 +      memcpy (headers[i].type, &raw[0], 4);
 +      headers[i].type[4] = '\0';
@@ -771,16 +770,16 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.c binutils-2.13.2.1/bfd/prc.c
 +      headers[i].offset  = bfd_h_get_32 (abfd, &raw[6]);
 +    }
 +
-+  return true;
++  return TRUE;
 +}
 +
-+static boolean
++static bfd_boolean
 +printable_string_p (const char *s)
 +{
 +  while (*s)
 +    if (! ISPRINT (*s++))
-+      return false;
-+  return true;
++      return FALSE;
++  return TRUE;
 +}
 +
 +/* We use SEC_LINKER_CREATED to signify arcane processing; namely a section,
@@ -811,11 +810,11 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.c binutils-2.13.2.1/bfd/prc.c
 +    sec->flags |= SEC_READONLY;
 +}
 +
-+boolean
++bfd_boolean
 +_bfd_prc_mkobject (abfd)
 +     bfd *abfd ATTRIBUTE_UNUSED;
 +{
-+  return true;
++  return TRUE;
 +}
 +
 +const bfd_target *
@@ -954,13 +953,13 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.c binutils-2.13.2.1/bfd/prc.c
 +      offset = tie_down_section (abfd, sec, offset);
 +}
 +
-+boolean
++bfd_boolean
 +_bfd_prc_write_object_contents (abfd)
 +     bfd *abfd;
 +{
 +  /* FIXME This is not yet implemented.  */
 +  compute_section_file_positions (abfd, HEADER_SIZE);
-+  return true;
++  return TRUE;
 +}
 +
 +asymbol *
@@ -1026,7 +1025,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.c binutils-2.13.2.1/bfd/prc.c
 +
 +/* FIXME: internationalise me! */
 +
-+boolean
++bfd_boolean
 +_bfd_prc_bfd_print_private_bfd_data (abfd, ptr)
 +     bfd *abfd;
 +     PTR ptr;
@@ -1063,11 +1062,11 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.c binutils-2.13.2.1/bfd/prc.c
 +  /* FIXME: Output the dates too, if we can be bothered converting from
 +     Palm OS's seconds-since-1904-01-01T00:00:00 format.  */
 +
-+  return true;
++  return TRUE;
 +}
-diff -urN orig-binutils-2.13.2.1/bfd/prc.h binutils-2.13.2.1/bfd/prc.h
---- orig-binutils-2.13.2.1/bfd/prc.h	Thu Jan  1 00:00:00 1970
-+++ binutils-2.13.2.1/bfd/prc.h	Wed Aug 14 13:35:18 2002
+diff -urN orig-binutils-2.14/bfd/prc.h binutils-2.14/bfd/prc.h
+--- orig-binutils-2.14/bfd/prc.h	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/bfd/prc.h	Fri May 16 01:15:43 2003
 @@ -0,0 +1,134 @@
 +/* BFD back-end for the Palm OS PRC resource database format.
 +   Copyright 2002 John Marshall.  (For now.)
@@ -1118,9 +1117,9 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.h binutils-2.13.2.1/bfd/prc.h
 +    PARAMS ((const struct palmos_prc_header *, const char *));
 +};
 +
-+extern boolean _bfd_prc_mkobject PARAMS ((bfd *));
++extern bfd_boolean _bfd_prc_mkobject PARAMS ((bfd *));
 +extern const bfd_target *_bfd_prc_object_p PARAMS ((bfd *));
-+extern boolean _bfd_prc_write_object_contents PARAMS ((bfd *));
++extern bfd_boolean _bfd_prc_write_object_contents PARAMS ((bfd *));
 +
 +#define _bfd_prc_bfd_copy_private_bfd_data \
 +  _bfd_generic_bfd_copy_private_bfd_data
@@ -1131,7 +1130,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.h binutils-2.13.2.1/bfd/prc.h
 +#define _bfd_prc_bfd_copy_private_symbol_data \
 +  _bfd_generic_bfd_copy_private_symbol_data
 +#define _bfd_prc_bfd_set_private_flags	  _bfd_generic_bfd_set_private_flags
-+extern boolean _bfd_prc_bfd_print_private_bfd_data PARAMS ((bfd *, PTR));
++extern bfd_boolean _bfd_prc_bfd_print_private_bfd_data PARAMS ((bfd *, PTR));
 +
 +extern long _bfd_prc_get_symtab_upper_bound PARAMS ((bfd *));
 +extern long _bfd_prc_get_symtab PARAMS ((bfd *, asymbol **));
@@ -1203,11 +1202,11 @@ diff -urN orig-binutils-2.13.2.1/bfd/prc.h binutils-2.13.2.1/bfd/prc.h
 +    NULL,  /* No alternative endianness backend. */		\
 +    (PTR) (backend_data)					\
 +  }
-diff -urN orig-binutils-2.13.2.1/bfd/targets.c binutils-2.13.2.1/bfd/targets.c
---- orig-binutils-2.13.2.1/bfd/targets.c	Thu Nov  7 17:55:14 2002
-+++ binutils-2.13.2.1/bfd/targets.c	Mon Feb 10 19:28:30 2003
-@@ -654,6 +654,8 @@
- extern const bfd_target pdp11_aout_vec;
+diff -urN orig-binutils-2.14/bfd/targets.c binutils-2.14/bfd/targets.c
+--- orig-binutils-2.14/bfd/targets.c	Tue Apr  1 17:50:27 2003
++++ binutils-2.14/bfd/targets.c	Fri May 16 01:15:43 2003
+@@ -678,6 +678,8 @@
+ extern const bfd_target pef_xlib_vec;
  extern const bfd_target pmac_xcoff_vec;
  extern const bfd_target ppcboot_vec;
 +extern const bfd_target prc_littlearm_vec;
@@ -1215,7 +1214,7 @@ diff -urN orig-binutils-2.13.2.1/bfd/targets.c binutils-2.13.2.1/bfd/targets.c
  extern const bfd_target riscix_vec;
  extern const bfd_target rs6000coff64_vec;
  extern const bfd_target rs6000coff_vec;
-@@ -964,6 +966,11 @@
+@@ -1015,6 +1017,11 @@
  #endif
  	&ppcboot_vec,
  #if 0
@@ -1224,13 +1223,13 @@ diff -urN orig-binutils-2.13.2.1/bfd/targets.c binutils-2.13.2.1/bfd/targets.c
 +	&prc_m68k_vec,
 +#endif
 +#if 0
- 	/* We have no way of distinguishing these from other a.out variants */
+ 	/* We have no way of distinguishing these from other a.out variants.  */
  	&riscix_vec,
  #endif
-diff -urN orig-binutils-2.13.2.1/config.sub binutils-2.13.2.1/config.sub
---- orig-binutils-2.13.2.1/config.sub	Sun Jul 14 03:14:52 2002
-+++ binutils-2.13.2.1/config.sub	Mon Feb 10 19:28:30 2003
-@@ -275,6 +275,10 @@
+diff -urN orig-binutils-2.14/config.sub binutils-2.14/config.sub
+--- orig-binutils-2.14/config.sub	Mon Jun  2 22:35:43 2003
++++ binutils-2.14/config.sub	Tue Jun 24 00:30:08 2003
+@@ -287,6 +287,10 @@
  		echo Invalid configuration \`$1\': machine \`$basic_machine\' not recognized 1>&2
  		exit 1
  		;;
@@ -1241,9 +1240,9 @@ diff -urN orig-binutils-2.13.2.1/config.sub binutils-2.13.2.1/config.sub
  	# Recognize the basic CPU types with company name.
  	580-* \
  	| a29k-* \
-diff -urN orig-binutils-2.13.2.1/gas/config/m68k-parse.h binutils-2.13.2.1/gas/config/m68k-parse.h
---- orig-binutils-2.13.2.1/gas/config/m68k-parse.h	Fri Mar  9 00:24:22 2001
-+++ binutils-2.13.2.1/gas/config/m68k-parse.h	Wed May 15 17:51:52 2002
+diff -urN orig-binutils-2.14/gas/config/m68k-parse.h binutils-2.14/gas/config/m68k-parse.h
+--- orig-binutils-2.14/gas/config/m68k-parse.h	Fri Mar  9 00:24:22 2001
++++ binutils-2.14/gas/config/m68k-parse.h	Wed May 15 17:51:52 2002
 @@ -240,12 +240,13 @@
    int scale;
  };
@@ -1268,9 +1267,9 @@ diff -urN orig-binutils-2.13.2.1/gas/config/m68k-parse.h binutils-2.13.2.1/gas/c
    /* The type of pic relocation if any.  */
    enum pic_relocation pic_reloc;
  #endif
-diff -urN orig-binutils-2.13.2.1/gas/config/m68k-parse.y binutils-2.13.2.1/gas/config/m68k-parse.y
---- orig-binutils-2.13.2.1/gas/config/m68k-parse.y	Wed Sep 19 07:33:21 2001
-+++ binutils-2.13.2.1/gas/config/m68k-parse.y	Wed May 15 17:51:52 2002
+diff -urN orig-binutils-2.14/gas/config/m68k-parse.y binutils-2.14/gas/config/m68k-parse.y
+--- orig-binutils-2.14/gas/config/m68k-parse.y	Wed Sep 19 07:33:21 2001
++++ binutils-2.14/gas/config/m68k-parse.y	Wed May 15 17:51:52 2002
 @@ -974,7 +974,7 @@
  	tail = 2;
      }
@@ -1292,9 +1291,9 @@ diff -urN orig-binutils-2.13.2.1/gas/config/m68k-parse.y binutils-2.13.2.1/gas/c
        }
    }
  #endif
-diff -urN orig-binutils-2.13.2.1/gas/config/obj-coff.h binutils-2.13.2.1/gas/config/obj-coff.h
---- orig-binutils-2.13.2.1/gas/config/obj-coff.h	Sun Jul 14 03:14:22 2002
-+++ binutils-2.13.2.1/gas/config/obj-coff.h	Mon Feb 10 19:28:30 2003
+diff -urN orig-binutils-2.14/gas/config/obj-coff.h binutils-2.14/gas/config/obj-coff.h
+--- orig-binutils-2.14/gas/config/obj-coff.h	Fri Apr  4 10:15:14 2003
++++ binutils-2.14/gas/config/obj-coff.h	Fri May 16 01:15:43 2003
 @@ -25,6 +25,9 @@
  
  #define OBJ_COFF 1
@@ -1305,9 +1304,9 @@ diff -urN orig-binutils-2.13.2.1/gas/config/obj-coff.h binutils-2.13.2.1/gas/con
  #ifndef BFD_ASSEMBLER
  
  #define WORKING_DOT_WORD
-diff -urN orig-binutils-2.13.2.1/gas/config/tc-m68k.c binutils-2.13.2.1/gas/config/tc-m68k.c
---- orig-binutils-2.13.2.1/gas/config/tc-m68k.c	Mon Oct 28 17:34:09 2002
-+++ binutils-2.13.2.1/gas/config/tc-m68k.c	Mon Feb 10 19:28:30 2003
+diff -urN orig-binutils-2.14/gas/config/tc-m68k.c binutils-2.14/gas/config/tc-m68k.c
+--- orig-binutils-2.14/gas/config/tc-m68k.c	Thu Dec 12 23:16:16 2002
++++ binutils-2.14/gas/config/tc-m68k.c	Mon Feb 10 19:28:30 2003
 @@ -216,7 +216,7 @@
  	 significance of some values (in the branch instruction, for
  	 example).  */
@@ -1338,7 +1337,7 @@ diff -urN orig-binutils-2.13.2.1/gas/config/tc-m68k.c binutils-2.13.2.1/gas/conf
    if (fixP->fx_tcbit && fixP->fx_size == 4)
      return R_RELLONG_NEG;
  #ifdef NO_PCREL_RELOCS
-@@ -879,8 +884,12 @@
+@@ -871,8 +876,12 @@
  }
  
  #else /* !OBJ_ELF */
@@ -1352,47 +1351,47 @@ diff -urN orig-binutils-2.13.2.1/gas/config/tc-m68k.c binutils-2.13.2.1/gas/conf
  
  #define relaxable_symbol(symbol) 1
  
-diff -urN orig-binutils-2.13.2.1/gas/configure.in binutils-2.13.2.1/gas/configure.in
---- orig-binutils-2.13.2.1/gas/configure.in	Wed Oct 30 18:07:32 2002
-+++ binutils-2.13.2.1/gas/configure.in	Mon Feb 10 19:28:30 2003
-@@ -200,6 +200,7 @@
-       arm-*-pe | thumb-*-pe)            fmt=coff em=pe ;;
-       arm-*-riscix*)	                fmt=aout em=riscix ;;
-       arm-*-vxworks)	                fmt=coff ;;
-+      arm-*-palmos*)	                fmt=elf ;;
+diff -urN orig-binutils-2.14/gas/configure.in binutils-2.14/gas/configure.in
+--- orig-binutils-2.14/gas/configure.in	Mon Jun  2 22:35:23 2003
++++ binutils-2.14/gas/configure.in	Tue Jun 24 00:32:05 2003
+@@ -205,6 +205,7 @@
+       arm-*-pe | thumb-*-pe)		fmt=coff em=pe ;;
+       arm-*-riscix*)			fmt=aout em=riscix ;;
+       arm-*-vxworks)			fmt=coff ;;
++      arm-*-palmos*)			fmt=elf ;;
  
-       avr-*-*)		    fmt=elf bfd_gas=yes ;;
+       avr-*-*)				fmt=elf ;;
  
 @@ -347,6 +348,7 @@
-       m68k-*-openbsd*)      fmt=aout em=nbsd bfd_gas=yes ;;
-       m68k-apple-aux*)      fmt=coff em=aux ;;
-       m68k-*-psos*)         fmt=elf em=psos;;
-+      m68k-*-palmos*)       fmt=coff ;;
+       m68k-*-openbsd*)			fmt=aout em=nbsd bfd_gas=yes ;;
+       m68k-apple-aux*)			fmt=coff em=aux ;;
+       m68k-*-psos*)			fmt=elf em=psos;;
++      m68k-*-palmos*)			fmt=coff ;;
  
-       m88k-motorola-sysv3*) fmt=coff em=delt88 ;;
-       m88k-*-coff*)         fmt=coff ;;
-diff -urN orig-binutils-2.13.2.1/gas/configure binutils-2.13.2.1/gas/configure
---- orig-binutils-2.13.2.1/gas/configure	Wed Oct 30 18:07:37 2002
-+++ binutils-2.13.2.1/gas/configure	Mon Feb 10 19:28:30 2003
-@@ -2350,6 +2350,7 @@
-       arm-*-pe | thumb-*-pe)            fmt=coff em=pe ;;
-       arm-*-riscix*)	                fmt=aout em=riscix ;;
-       arm-*-vxworks)	                fmt=coff ;;
-+      arm-*-palmos*)	                fmt=elf ;;
+       m88k-motorola-sysv3*)		fmt=coff em=delt88 ;;
+       m88k-*-coff*)			fmt=coff ;;
+diff -urN orig-binutils-2.14/gas/configure binutils-2.14/gas/configure
+--- orig-binutils-2.14/gas/configure	Mon Jun  2 22:35:23 2003
++++ binutils-2.14/gas/configure	Tue Jun 24 00:33:01 2003
+@@ -2411,6 +2411,7 @@
+       arm-*-pe | thumb-*-pe)		fmt=coff em=pe ;;
+       arm-*-riscix*)			fmt=aout em=riscix ;;
+       arm-*-vxworks)			fmt=coff ;;
++      arm-*-palmos*)			fmt=elf ;;
  
-       avr-*-*)		    fmt=elf bfd_gas=yes ;;
+       avr-*-*)				fmt=elf ;;
  
-@@ -2500,6 +2501,7 @@
-       m68k-*-openbsd*)      fmt=aout em=nbsd bfd_gas=yes ;;
-       m68k-apple-aux*)      fmt=coff em=aux ;;
-       m68k-*-psos*)         fmt=elf em=psos;;
-+      m68k-*-palmos*)       fmt=coff ;;
+@@ -2557,6 +2558,7 @@
+       m68k-*-openbsd*)			fmt=aout em=nbsd bfd_gas=yes ;;
+       m68k-apple-aux*)			fmt=coff em=aux ;;
+       m68k-*-psos*)			fmt=elf em=psos;;
++      m68k-*-palmos*)			fmt=coff ;;
  
-       m88k-motorola-sysv3*) fmt=coff em=delt88 ;;
-       m88k-*-coff*)         fmt=coff ;;
-diff -urN orig-binutils-2.13.2.1/gas/m68k-parse.c binutils-2.13.2.1/gas/m68k-parse.c
---- orig-binutils-2.13.2.1/gas/m68k-parse.c	Mon Aug  5 22:43:47 2002
-+++ binutils-2.13.2.1/gas/m68k-parse.c	Wed May 15 17:51:52 2002
+       m88k-motorola-sysv3*)		fmt=coff em=delt88 ;;
+       m88k-*-coff*)			fmt=coff ;;
+diff -urN orig-binutils-2.14/gas/m68k-parse.c binutils-2.14/gas/m68k-parse.c
+--- orig-binutils-2.14/gas/m68k-parse.c	Sun Apr 27 22:15:14 2003
++++ binutils-2.14/gas/m68k-parse.c	Tue Jun 24 00:17:39 2003
 @@ -2175,7 +2175,7 @@
  	tail = 2;
      }
@@ -1414,10 +1413,10 @@ diff -urN orig-binutils-2.13.2.1/gas/m68k-parse.c binutils-2.13.2.1/gas/m68k-par
        }
    }
  #endif
-diff -urN orig-binutils-2.13.2.1/include/coff/internal.h binutils-2.13.2.1/include/coff/internal.h
---- orig-binutils-2.13.2.1/include/coff/internal.h	Fri Aug 24 02:20:01 2001
-+++ binutils-2.13.2.1/include/coff/internal.h	Wed May 15 17:51:52 2002
-@@ -622,6 +622,10 @@
+diff -urN orig-binutils-2.14/include/coff/internal.h binutils-2.14/include/coff/internal.h
+--- orig-binutils-2.14/include/coff/internal.h	Wed Aug 28 12:38:48 2002
++++ binutils-2.14/include/coff/internal.h	Fri May 16 01:15:43 2003
+@@ -626,6 +626,10 @@
  #define R_LVRT16       132
  #define R_VRT32        133
  
@@ -1428,31 +1427,18 @@ diff -urN orig-binutils-2.13.2.1/include/coff/internal.h binutils-2.13.2.1/inclu
  
  /* This reloc identifies mov.b instructions with a 16bit absolute
     address.  The linker tries to turn insns with this reloc into
-diff -urN orig-binutils-2.13.2.1/include/getopt.h binutils-2.13.2.1/include/getopt.h
---- orig-binutils-2.13.2.1/include/getopt.h	Sun Jul 14 03:14:16 2002
-+++ binutils-2.13.2.1/include/getopt.h	Tue Dec  3 13:50:24 2002
-@@ -112,7 +112,9 @@
-    errors, only prototype getopt for the GNU C library.  */
- extern int getopt (int argc, char *const *argv, const char *shortopts);
- #else
-+#ifndef __cplusplus
- extern int getopt ();
-+#endif /* __cplusplus */
- #endif
- #endif /* !HAVE_DECL_GETOPT */
- 
-diff -urN orig-binutils-2.13.2.1/ld/Makefile.am binutils-2.13.2.1/ld/Makefile.am
---- orig-binutils-2.13.2.1/ld/Makefile.am	Thu Jan  2 01:56:31 2003
-+++ binutils-2.13.2.1/ld/Makefile.am	Mon Feb 10 19:28:30 2003
-@@ -123,6 +123,7 @@
- 	earmelfb_nbsd.o \
+diff -urN orig-binutils-2.14/ld/Makefile.am binutils-2.14/ld/Makefile.am
+--- orig-binutils-2.14/ld/Makefile.am	Thu Apr 24 14:36:07 2003
++++ binutils-2.14/ld/Makefile.am	Fri May 16 01:15:43 2003
+@@ -125,6 +125,7 @@
  	earmelf_oabi.o \
+ 	earmnto.o \
  	earmnbsd.o \
 +	earmpalmos.o \
  	earmpe.o \
  	eavr1200.o \
  	eavr23xx.o \
-@@ -228,6 +229,7 @@
+@@ -242,6 +243,7 @@
  	em68klinux.o \
  	em68klynx.o \
  	em68knbsd.o \
@@ -1460,7 +1446,7 @@ diff -urN orig-binutils-2.13.2.1/ld/Makefile.am binutils-2.13.2.1/ld/Makefile.am
  	em68kpsos.o \
  	em88kbcs.o \
  	emcorepe.o \
-@@ -433,6 +435,9 @@
+@@ -502,6 +504,9 @@
  earmpe.c: $(srcdir)/emulparams/armpe.sh \
    $(srcdir)/emultempl/pe.em $(srcdir)/scripttempl/pe.sc ${GEN_DEPENDS}
  	${GENSCRIPTS} armpe "$(tdir_armpe)"
@@ -1470,7 +1456,7 @@ diff -urN orig-binutils-2.13.2.1/ld/Makefile.am binutils-2.13.2.1/ld/Makefile.am
  eavr85xx.c: $(srcdir)/emulparams/avr85xx.sh \
    $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/elf32avr.sc \
    ${GEN_DEPENDS}
-@@ -866,6 +871,9 @@
+@@ -981,6 +986,9 @@
  em68knbsd.c:	$(srcdir)/emulparams/m68knbsd.sh \
    $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/aout.sc ${GEN_DEPENDS}
  	${GENSCRIPTS} m68knbsd "$(tdir_m68knbsd)"
@@ -1480,18 +1466,18 @@ diff -urN orig-binutils-2.13.2.1/ld/Makefile.am binutils-2.13.2.1/ld/Makefile.am
  em68kpsos.c:	$(srcdir)/emulparams/m68kpsos.sh \
    $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/psos.sc ${GEN_DEPENDS}
  	${GENSCRIPTS} m68kpsos "$(tdir_m68kpsos)"
-diff -urN orig-binutils-2.13.2.1/ld/Makefile.in binutils-2.13.2.1/ld/Makefile.in
---- orig-binutils-2.13.2.1/ld/Makefile.in	Thu Jan  2 01:56:31 2003
-+++ binutils-2.13.2.1/ld/Makefile.in	Mon Feb 10 19:28:30 2003
-@@ -234,6 +234,7 @@
- 	earmelfb_nbsd.o \
+diff -urN orig-binutils-2.14/ld/Makefile.in binutils-2.14/ld/Makefile.in
+--- orig-binutils-2.14/ld/Makefile.in	Thu Apr 24 14:36:07 2003
++++ binutils-2.14/ld/Makefile.in	Fri May 16 01:16:00 2003
+@@ -239,6 +239,7 @@
  	earmelf_oabi.o \
+ 	earmnto.o \
  	earmnbsd.o \
 +	earmpalmos.o \
  	earmpe.o \
  	eavr1200.o \
  	eavr23xx.o \
-@@ -339,6 +340,7 @@
+@@ -356,6 +357,7 @@
  	em68klinux.o \
  	em68klynx.o \
  	em68knbsd.o \
@@ -1499,7 +1485,7 @@ diff -urN orig-binutils-2.13.2.1/ld/Makefile.in binutils-2.13.2.1/ld/Makefile.in
  	em68kpsos.o \
  	em88kbcs.o \
  	emcorepe.o \
-@@ -1156,6 +1158,9 @@
+@@ -1228,6 +1230,9 @@
  earmpe.c: $(srcdir)/emulparams/armpe.sh \
    $(srcdir)/emultempl/pe.em $(srcdir)/scripttempl/pe.sc ${GEN_DEPENDS}
  	${GENSCRIPTS} armpe "$(tdir_armpe)"
@@ -1509,7 +1495,7 @@ diff -urN orig-binutils-2.13.2.1/ld/Makefile.in binutils-2.13.2.1/ld/Makefile.in
  eavr85xx.c: $(srcdir)/emulparams/avr85xx.sh \
    $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/elf32avr.sc \
    ${GEN_DEPENDS}
-@@ -1589,6 +1594,9 @@
+@@ -1707,6 +1712,9 @@
  em68knbsd.c:	$(srcdir)/emulparams/m68knbsd.sh \
    $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/aout.sc ${GEN_DEPENDS}
  	${GENSCRIPTS} m68knbsd "$(tdir_m68knbsd)"
@@ -1519,10 +1505,10 @@ diff -urN orig-binutils-2.13.2.1/ld/Makefile.in binutils-2.13.2.1/ld/Makefile.in
  em68kpsos.c:	$(srcdir)/emulparams/m68kpsos.sh \
    $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/psos.sc ${GEN_DEPENDS}
  	${GENSCRIPTS} m68kpsos "$(tdir_m68kpsos)"
-diff -urN orig-binutils-2.13.2.1/ld/configure.tgt binutils-2.13.2.1/ld/configure.tgt
---- orig-binutils-2.13.2.1/ld/configure.tgt	Mon Oct 28 16:58:12 2002
-+++ binutils-2.13.2.1/ld/configure.tgt	Mon Feb 10 19:28:30 2003
-@@ -237,6 +237,7 @@
+diff -urN orig-binutils-2.14/ld/configure.tgt binutils-2.14/ld/configure.tgt
+--- orig-binutils-2.14/ld/configure.tgt	Thu Jun 12 16:25:52 2003
++++ binutils-2.14/ld/configure.tgt	Tue Jun 24 00:33:59 2003
+@@ -247,6 +247,7 @@
  arm*-*-linux-gnu*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
  arm*-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
  arm*-*-conix*)		targ_emul=armelf ;;
@@ -1530,7 +1516,7 @@ diff -urN orig-binutils-2.13.2.1/ld/configure.tgt binutils-2.13.2.1/ld/configure
  thumb-*-linux-gnu* | thumb-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
  strongarm-*-coff)	targ_emul=armcoff ;;
  strongarm-*-elf)	targ_emul=armelf ;;
-@@ -343,6 +344,7 @@
+@@ -364,6 +365,7 @@
  m68*-*-psos*)		targ_emul=m68kpsos ;;
  m68*-*-rtemscoff*)	targ_emul=m68kcoff ;;
  m68*-*-rtems*)		targ_emul=m68kelf ;;
@@ -1538,9 +1524,9 @@ diff -urN orig-binutils-2.13.2.1/ld/configure.tgt binutils-2.13.2.1/ld/configure
  hppa*64*-*-linux-gnu*)	targ_emul=hppa64linux ;;
  hppa*64*-*)		targ_emul=elf64hppa ;;
  hppa*-*-linux-gnu*)	targ_emul=hppalinux ;;
-diff -urN orig-binutils-2.13.2.1/ld/emulparams/armpalmos.sh binutils-2.13.2.1/ld/emulparams/armpalmos.sh
---- orig-binutils-2.13.2.1/ld/emulparams/armpalmos.sh	Thu Jan  1 00:00:00 1970
-+++ binutils-2.13.2.1/ld/emulparams/armpalmos.sh	Thu Oct 31 02:04:44 2002
+diff -urN orig-binutils-2.14/ld/emulparams/armpalmos.sh binutils-2.14/ld/emulparams/armpalmos.sh
+--- orig-binutils-2.14/ld/emulparams/armpalmos.sh	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/ld/emulparams/armpalmos.sh	Thu Oct 31 02:04:44 2002
 @@ -0,0 +1,6 @@
 +. ${srcdir}/emulparams/armelf.sh
 +SCRIPT_NAME=armpalmos
@@ -1548,17 +1534,17 @@ diff -urN orig-binutils-2.13.2.1/ld/emulparams/armpalmos.sh binutils-2.13.2.1/ld
 +GENERATE_COMBRELOC_SCRIPT=yes
 +unset GENERATE_SHLIB_SCRIPT
 +unset ENTRY
-diff -urN orig-binutils-2.13.2.1/ld/emulparams/m68kpalmos.sh binutils-2.13.2.1/ld/emulparams/m68kpalmos.sh
---- orig-binutils-2.13.2.1/ld/emulparams/m68kpalmos.sh	Thu Jan  1 00:00:00 1970
-+++ binutils-2.13.2.1/ld/emulparams/m68kpalmos.sh	Mon Jun  3 12:15:20 2002
+diff -urN orig-binutils-2.14/ld/emulparams/m68kpalmos.sh binutils-2.14/ld/emulparams/m68kpalmos.sh
+--- orig-binutils-2.14/ld/emulparams/m68kpalmos.sh	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/ld/emulparams/m68kpalmos.sh	Mon Jun  3 12:15:20 2002
 @@ -0,0 +1,4 @@
 +SCRIPT_NAME=m68kpalmos
 +OUTPUT_FORMAT="coff-m68k"
 +ARCH=m68k
 +TEMPLATE_NAME=m68kcoff
-diff -urN orig-binutils-2.13.2.1/ld/emultempl/m68kcoff.em binutils-2.13.2.1/ld/emultempl/m68kcoff.em
---- orig-binutils-2.13.2.1/ld/emultempl/m68kcoff.em	Sun Jul 14 03:14:47 2002
-+++ binutils-2.13.2.1/ld/emultempl/m68kcoff.em	Mon Feb 10 19:28:30 2003
+diff -urN orig-binutils-2.14/ld/emultempl/m68kcoff.em binutils-2.14/ld/emultempl/m68kcoff.em
+--- orig-binutils-2.14/ld/emultempl/m68kcoff.em	Fri Feb 28 02:32:31 2003
++++ binutils-2.14/ld/emultempl/m68kcoff.em	Fri May 16 01:15:43 2003
 @@ -88,22 +88,25 @@
  	{
  	  asection *relsec;
@@ -1599,9 +1585,9 @@ diff -urN orig-binutils-2.13.2.1/ld/emultempl/m68kcoff.em binutils-2.13.2.1/ld/e
        ASSERT (relsec != NULL);
  
        if (! bfd_m68k_coff_create_embedded_relocs (abfd, &link_info,
-diff -urN orig-binutils-2.13.2.1/ld/scripttempl/armpalmos.sc binutils-2.13.2.1/ld/scripttempl/armpalmos.sc
---- orig-binutils-2.13.2.1/ld/scripttempl/armpalmos.sc	Thu Jan  1 00:00:00 1970
-+++ binutils-2.13.2.1/ld/scripttempl/armpalmos.sc	Thu Aug 15 06:07:33 2002
+diff -urN orig-binutils-2.14/ld/scripttempl/armpalmos.sc binutils-2.14/ld/scripttempl/armpalmos.sc
+--- orig-binutils-2.14/ld/scripttempl/armpalmos.sc	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/ld/scripttempl/armpalmos.sc	Thu Aug 15 06:07:33 2002
 @@ -0,0 +1,22 @@
 +cat <<EOF
 +OUTPUT_FORMAT ("${OUTPUT_FORMAT}", "${BIG_OUTPUT_FORMAT}",
@@ -1625,9 +1611,9 @@ diff -urN orig-binutils-2.13.2.1/ld/scripttempl/armpalmos.sc binutils-2.13.2.1/l
 +    .disposn : { *(.disposn) }
 +}
 +EOF
-diff -urN orig-binutils-2.13.2.1/ld/scripttempl/m68kpalmos.sc binutils-2.13.2.1/ld/scripttempl/m68kpalmos.sc
---- orig-binutils-2.13.2.1/ld/scripttempl/m68kpalmos.sc	Thu Jan  1 00:00:00 1970
-+++ binutils-2.13.2.1/ld/scripttempl/m68kpalmos.sc	Thu Jun  6 17:14:30 2002
+diff -urN orig-binutils-2.14/ld/scripttempl/m68kpalmos.sc binutils-2.14/ld/scripttempl/m68kpalmos.sc
+--- orig-binutils-2.14/ld/scripttempl/m68kpalmos.sc	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/ld/scripttempl/m68kpalmos.sc	Thu Jun  6 17:14:30 2002
 @@ -0,0 +1,76 @@
 +# Note that genscripts.sh strips blank lines, but converts lines
 +# matching ^\t$ into blank lines on output.  So we use the latter here.
@@ -1705,9 +1691,9 @@ diff -urN orig-binutils-2.13.2.1/ld/scripttempl/m68kpalmos.sc binutils-2.13.2.1/
 +    .disposn : { *(.disposn) } > disposition_region
 +}
 +EOF
-diff -urN orig-binutils-2.13.2.1/libiberty/fnmatch.c binutils-2.13.2.1/libiberty/fnmatch.c
---- orig-binutils-2.13.2.1/libiberty/fnmatch.c	Fri Dec 29 21:16:02 2000
-+++ binutils-2.13.2.1/libiberty/fnmatch.c	Mon Aug 19 13:31:55 2002
+diff -urN orig-binutils-2.14/libiberty/fnmatch.c binutils-2.14/libiberty/fnmatch.c
+--- orig-binutils-2.14/libiberty/fnmatch.c	Fri Dec 29 21:16:02 2000
++++ binutils-2.14/libiberty/fnmatch.c	Mon Aug 19 13:31:55 2002
 @@ -55,7 +55,9 @@
     program understand `configure --with-gnu-libc' and omit the object files,
     it is simpler to just do this in the source for each such file.  */
