@@ -1274,9 +1274,12 @@ A raw binary resource file (the .grc style filename is produced
 by obj-res).  The contents of a raw file are added to the output as
 a @code{@var{type} #@var{nnnn}} resource, where @var{nnnn} is in hexadecimal.
 
-@c @item  @var{fname}.prc
-@c @itemx @var{fname}.ro
-@c Resource files!  (not implemented yet)
+@item  @var{fname}.prc
+@itemx @var{fname}.ro
+A resource database in @code{.prc} format.  The contents of all the
+resources in a resource database are copied to the output database.
+(The information in the input database's header---name, creator, flags,
+etc---is entirely ignored.)
 
 @item @var{progname}
 Files with no extensions are treated as bfd executables.  Sections from
