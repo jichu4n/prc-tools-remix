@@ -1,9 +1,11 @@
-#ifndef _STDLIB_H_
-#define _STDLIB_H_
+/* This file is part of prc-tools.  */
 
-/* Note: this header is the beginnings of an ISO C stdlib.h.  Probably some
-   of the functions declared below are not actually included in our little
-   libc, or are not correct.  This area needs work!  */
+#ifndef _PRC_TOOLS_STDLIB_H
+#define _PRC_TOOLS_STDLIB_H
+
+/* FIXME As we replace the somewhat borked functions from the old prc-tools
+   sources, we'll move their declarations to this section.  Eventually the
+   section below will disappear.  */
 
 #define __need_size_t
 #define __need_NULL
@@ -19,26 +21,12 @@ extern "C" {
 
 /* Memory allocation */
 
-extern void *malloc (size_t __size);
-extern void free (void *__ptr);
-extern void *calloc (size_t __nmemb, size_t __memb_size);
-extern void *realloc (void *__ptr, size_t __size);
+void *malloc (size_t _size);
+void free (void *_ptr);
+void *calloc (size_t _nmemb, size_t _memb_size);
+void *realloc (void *_ptr, size_t _size);
 
-extern void *__MemPtrNew (unsigned long __size)
-  __attribute__ ((__callseq__ ("trap #15; dc.w 0xa013")));
-
-extern short __MemPtrFree (void *__ptr)
-  __attribute__ ((__callseq__ ("trap #15; dc.w 0xa012")));
-
-extern __inline__ void *
-malloc (size_t __size) {
-  return __MemPtrNew (__size);
-  }
-
-extern __inline__ void
-free (void *__ptr) {
-  if (__ptr)  __MemPtrFree (__ptr);
-  }
+/* FIXME Above here has been updated.  */
 
 /* String conversions */
 
