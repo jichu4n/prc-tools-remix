@@ -1,6 +1,5 @@
 Name: prc-tools
-%define version 2.1
-Version: %{version}
+Version: 2.0.90
 Release: 1
 Summary: GCC and related tools for Palm OS development
 Copyright: GPL
@@ -112,10 +111,12 @@ strip build-prc%{exeext} multigen%{exeext} stubgen%{exeext} obj-res%{exeext} \
 %{target}-strings%{exeext} %{target}-strip%{exeext} \
 %{target}-unprotoize%{exeext}
 cd %{exec_prefix}/lib/gcc-lib/%{target}/2.95.3-kgpd
-strip cc1%{exeext} cc1plus%{exeext} collect2%{exeext} cpp%{exeext}
+strip cc1%{exeext} cc1plus%{exeext} collect2%{exeext} cpp0%{exeext}
 cd %{exec_prefix}/%{target}/bin
 strip ar%{exeext} as%{exeext} gcc%{exeext} ld%{exeext} nm%{exeext} \
 ranlib%{exeext} strip%{exeext}
+cd %{exec_prefix}/%{target}/real-bin
+strip cpp%{exeext} gcc%{exeext} g++%{exeext} c++%{exeext}
 
 cd $RPM_BUILD_DIR/build-prc-tools/doc
 make install-html
@@ -143,11 +144,18 @@ if [ "$1" = 0 ]; then
 fi
 
 %files
+# prc-tools-specific post-linker tools
 %{exec_prefix}/bin/build-prc%{exeext}
-%{exec_prefix}/bin/multigen%{exeext}
-%{exec_prefix}/bin/stubgen%{exeext}
-%{exec_prefix}/bin/obj-res%{exeext}
+%{exec_prefix}/bin/%{target}-multigen%{exeext}
 %{exec_prefix}/bin/%{target}-obj-res%{exeext}
+%{exec_prefix}/bin/%{target}-sdkfind%{exeext}
+%{exec_prefix}/bin/%{target}-stubgen%{exeext}
+# these unadorned names (here for compatibility) will stop being installed soon
+%{exec_prefix}/bin/multigen%{exeext}
+%{exec_prefix}/bin/obj-res%{exeext}
+%{exec_prefix}/bin/stubgen%{exeext}
+
+# generic binutils/gcc/gdb tools
 %{exec_prefix}/bin/%{target}-addr2line%{exeext}
 %{exec_prefix}/bin/%{target}-ar%{exeext}
 %{exec_prefix}/bin/%{target}-as%{exeext}
@@ -189,6 +197,7 @@ fi
 %{exec_prefix}/%{target}/bin/
 %{exec_prefix}/%{target}/include/
 %{exec_prefix}/%{target}/lib/
+%{exec_prefix}/%{target}/real-bin/
 # but not .../sys-include
 
 # PalmDev framework
