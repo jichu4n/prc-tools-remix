@@ -1,6 +1,6 @@
 /* palmdev-prep.c: report on and generate paths to installed SDKs.
 
-   Copyright 2001, 2002 John Marshall.
+   Copyright 2001, 2002, 2003 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -351,7 +351,7 @@ write_main_spec (FILE *f, const struct root *default_sdk,
 		 const struct spec_kind *kind) {
   struct root *root, *sdk;
 
-  fprintf (f, "*%s:\n+ %%{!palmos-none:", kind->spec);
+  fprintf (f, "*%s:\n+ %%(check_palmos_option) %%{!palmos-none:", kind->spec);
 
   for (root = generic_root_list; root; root = root->next)
     kind->write_tree (f, root, kind);
@@ -381,11 +381,26 @@ write_specs (FILE *f, const char *target, const struct root *default_sdk) {
     };
 
   struct root *sdk;
+  int i, n = 0;
 
   for (sdk = sdk_root_list; sdk; sdk = sdk->next) {
     write_sdk_spec (f, sdk, &include);
     write_sdk_spec (f, sdk, &lib);
     }
+
+  fprintf (f, "*check_palmos_option:\n %%{palmos*:%%{!palmos-none:"), n += 2;
+
+  for (sdk = sdk_root_list; sdk; sdk = sdk->next) {
+    fprintf (f, "%%{!palmos%s:", sdk->key), n++;
+    if (strspn (sdk->key, "0123456789") == strlen (sdk->key))
+      fprintf (f, "%%{!palmos%s.0:", sdk->key), n++;
+    }
+
+  fprintf (f, "%%ePalm OS SDK requested via -palmosN could not be found");
+
+  for (i = 0; i < n; i++)
+    putc ('}', f);
+  fprintf (f, "\n\n");
 
   write_main_spec (f, default_sdk, &include);
   write_main_spec (f, default_sdk, &lib);
