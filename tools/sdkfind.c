@@ -131,16 +131,16 @@ prefix_strcmp (const char *s, const char *prefix) {
   }
 
 void
-dump (char **ap) {
+dump (FILE *f, char **ap) {
   while (*ap)
-    printf (" %s", *ap++);
-  putchar ('\n');
+    fprintf (f, " %s", *ap++);
+  putc ('\n', f);
   }
 
 
 int
 main (int argc, char **argv) {
-  int verbose_seen, palmos_seen, retcode, i;
+  int verbose_seen, print_search_dirs_seen, palmos_seen, retcode, i;
   const char *subcmd;
 
   xmalloc_set_program_name (progname);
@@ -155,7 +155,7 @@ main (int argc, char **argv) {
   add_space (argc);
   store = new_string_store ();
 
-  verbose_seen = palmos_seen = 0;
+  verbose_seen = print_search_dirs_seen = palmos_seen = 0;
 
   for (i = 0; i < argc; i++)
     if (prefix_strcmp (argv[i], "-palmos") == 0) {
@@ -167,16 +167,21 @@ main (int argc, char **argv) {
     else {
       if (strcmp (argv[i], "-v") == 0)
 	verbose_seen = 1;
+      else if (strcmp (argv[i], "-print-search-dirs") == 0)
+	print_search_dirs_seen = 1;
       add (argv[i]);
       }
 
-  if (!palmos_seen)
+  if (!palmos_seen && !print_search_dirs_seen)
     add_trees ("");
 
   add (NULL);
 
+  if (print_search_dirs_seen)
+    printf ("palmdev: %s/\n", PALMDEV_PREFIX);
+
   if (strcmp (subcmd, progname) == 0)
-    dump (args + 1);
+    dump (stdout, args + 1);
   else {
     char *errmsg_fmt, *errmsg_arg;
     char full_subcmd[FILENAME_MAX];
@@ -186,8 +191,8 @@ main (int argc, char **argv) {
 	     EXEC_PREFIX, TARGET_ALIAS, subcmd, EXEEXT);
 
     if (verbose_seen) {
-      printf (" [%s]", full_subcmd);
-      dump (args);
+      fprintf (stderr, " [%s]", full_subcmd);
+      dump (stderr, args);
       }
 
     pid = pexecute (full_subcmd, args, progname,

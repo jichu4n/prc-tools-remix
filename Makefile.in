@@ -78,8 +78,8 @@ DRIVER_PROGS = cpp$(exeext) gcc$(exeext) g++$(exeext) c++$(exeext)
 
 install-wrappers:
 	$(INSTALL) -d $(tooldir)/real-bin
-	# Check whether the visible driver understands the -nopalmos option
-	if echo | $(target_alias)-gcc -E - -nopalmos >/dev/null 2>&1; then \
+	if $(target_alias)-gcc -print-search-dirs | grep ^palmdev: >/dev/null; \
+	then \
 	  echo "**"; \
 	  echo "** $(target_alias)-<driver> wrappers already installed"; \
 	  echo "**"; \
