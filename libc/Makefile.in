@@ -29,29 +29,44 @@ CC = $(target_alias)-gcc
 AR = $(target_alias)-ar
 RANLIB = $(target_alias)-ranlib
 
+INSTALL_FILES = $(INSTALL_FILES_@target_cpu@)
+LIBC_OBJS = $(LIBC_OBJS_@target_cpu@)
+LIBG_OBJS = $(LIBG_OBJS_@target_cpu@)
+
 # PRINT_FLOATS huh?
 CFLAGS = -Wall -O2 -fno-builtin -DPRINT_FLOATS \
   -I$(srcdir)/include -I$(srcdir)/../include $(SDKFLAGS) $(MULTIFLAGS)
 
 INSTALL_DIR = $(exec_prefix)/$(target_alias)
 
-OBJS = conio.o vsprintf.o printf.o ctype.o setjmp.o \
-     bcopy.o memmove.o strchr.o strncat.o strspn.o \
-     memscan.o strcmp.o strncmp.o strstr.o \
-     memset.o strcpy.o strncpy.o strtok.o \
-     malloc.o free.o realloc.o calloc.o \
-     memcmp.o strnlen.o strtol.o \
-     memcpy.o strcat.o strlen.o strpbrk.o strtoul.o \
-     abort.o atexit.o bzero.o
-
-GOBJS =
-
 INCDIR = $(srcdir)/include
 INSTALL_HFILES = $(INCDIR)/ctype.h $(INCDIR)/errno.h $(INCDIR)/malloc.h \
 		 $(INCDIR)/setjmp.h $(INCDIR)/stdio.h $(INCDIR)/string.h \
 		 $(INCDIR)/stdlib.h $(INCDIR)/sys/types.h
 
-INSTALL_FILES = libc.a mown-gp/libc.a libg.a mown-gp/libg.a libstdc++.a
+
+INSTALL_FILES_m68k = libc.a mown-gp/libc.a libg.a mown-gp/libg.a libstdc++.a
+
+LIBC_OBJS_m68k = \
+	conio.o vsprintf.o printf.o ctype.o setjmp.o \
+	bcopy.o memmove.o strchr.o strncat.o strspn.o \
+	memscan.o strcmp.o strncmp.o strstr.o \
+	memset.o strcpy.o strncpy.o strtok.o \
+	malloc.o free.o realloc.o calloc.o \
+	memcmp.o strnlen.o strtol.o \
+	memcpy.o strcat.o strlen.o strpbrk.o strtoul.o \
+	abort.o atexit.o bzero.o
+
+LIBG_OBJS_m68k =
+
+
+INSTALL_FILES_arm = libc.a libstdc++.a
+
+LIBC_OBJS_arm = \
+	memcpy.o memset.o
+
+LIBG_OBJS_arm =
+
 
 all: $(INSTALL_FILES)
 
@@ -74,9 +89,9 @@ install: $(INSTALL_FILES) $(INSTALL_HFILES)
 
 all-multilibs: libc.a libg.a
 
-libc.a: $(OBJS)
+libc.a: $(LIBC_OBJS)
 	rm -f libc.a
-	$(AR) cur libc.a $(OBJS)
+	$(AR) cur libc.a $(LIBC_OBJS)
 	$(RANLIB) libc.a
 
 mown-gp/libc.a: sub-multilibs
@@ -90,10 +105,11 @@ sub-multilibs: mown-gp/Makefile
 	  SDKFLAGS="$(SDKFLAGS)" MULTIFLAGS=-mown-gp all-multilibs
 
 
-libg.a: $(OBJS) $(GOBJS)
+libg.a: $(LIBG_OBJS)
 	rm -f libg.a
-	$(AR) cur libg.a $(OBJS) $(GOBJS)
+	$(AR) cur libg.a $(LIBG_OBJS)
 	$(RANLIB) libg.a
+
 
 # Yes, this library really is empty.  But we need it to exist to keep the
 # linker happy if people link with m68k-palmos-g++.

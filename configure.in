@@ -153,8 +153,8 @@ else
 	m68k_target="$target_alias"
 	;;
   arm)	config_subdirs="$config_subdirs binutils gcc"
-  	output_files="$output_files"
-	all_subdirs="$all_subdirs binutils gcc"
+  	output_files="$output_files libc/Makefile"
+	all_subdirs="$all_subdirs binutils gcc libc"
 	;;
   *)	AC_MSG_ERROR($target is not supported as a Palm OS target)
   	;;
