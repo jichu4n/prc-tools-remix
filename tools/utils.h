@@ -1,7 +1,6 @@
 /* utils.h: various utilities.
 
-   Copyright 1998, 1999, 2001, 2002 by John Marshall.
-   <jmarshall@acm.org>
+   Copyright 1998, 1999, 2001, 2002 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -82,10 +81,7 @@ void propt (const char *optname, const char *meaning);
 
    FLAGS contains mainly letters [A-Za-z] indicating copyright holders to be
    printed.  Upper case letters are printed with "Copyright", lower case with
-   "Portions copyright".  See the function for valid letters.
-
-   The character "=" in FLAGS means print "(TARGET_ALIAS prc-tools)" instead
-   of plain "(prc-tools)" on the version line.  */
+   "Portions copyright".  See the function for valid letters.  */
 
 void print_version (const char *canonical_progname, const char *flags);
 

@@ -1,7 +1,6 @@
 /* utils.c: various utilities.
 
-   Copyright (c) 1998, 1999, 2001 by John Marshall.
-   <jmarshall@acm.org>
+   Copyright 1998, 1999, 2001, 2002 John Marshall.
 
    This is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -134,8 +133,6 @@ print_version (const char *canonical_progname, const char *flags) {
   const char *s;
 
   printf ("%s (", canonical_progname);
-  if (strchr (flags, '='))
-    printf ("%s ", TARGET_ALIAS);
   printf ("prc-tools) %s\n", PRC_TOOLS_VERSION);
 
   for (s = flags; *s; s++) {
