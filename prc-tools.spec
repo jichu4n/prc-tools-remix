@@ -1,7 +1,7 @@
 Name: prc-tools
 # The version line is grepped for by configure.  It must be exactly
 # Version<colon><space><versionnumber><newline>
-Version: 2.0.93
+Version: 2.1
 Release: 1
 Summary: GCC and related tools for Palm OS development
 License: GPL
