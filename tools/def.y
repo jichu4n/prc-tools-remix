@@ -18,7 +18,7 @@
  *
  * This is Free Software, under the GNU Public Licence v2 or greater.
  *
- * Relocation added March 1997, Kresten Krab Thorup 
+ * Relocation added March 1997, Kresten Krab Thorup
  * krab@california.daimi.aau.dk
 
  * ptst.c:  build a .prc from a pile of files.
@@ -107,7 +107,7 @@ specific_db_kind:
 	| SYSLIB
 	| HACK
 	;
-	
+
 header_item_list:
 	  /* empty */
 	| header_item_list header_item
@@ -224,7 +224,7 @@ standard_db_type (enum database_kind kind) {
   case DK_HACK:		return "HACK";
   default:		return NULL;
     }
-  }               
+  }
 
 
 struct string_store *lexer_store = NULL;
@@ -291,6 +291,7 @@ read_def_file (const char *fname, const struct def_callbacks *callbacks) {
   else
     error ("can't open def file '%s': @P", parser_fname);
   }
+
 
 static void default_i (int i UNUSED_PARAM) {}
 static void default_str (const char *s UNUSED_PARAM) {}
