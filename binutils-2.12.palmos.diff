@@ -649,13 +649,13 @@ diff -urN orig-binutils-2.12/ld/configure.tgt binutils-2.12/ld/configure.tgt
  strongarm-*-coff)	targ_emul=armcoff ;;
  strongarm-*-elf)	targ_emul=armelf ;;
 @@ -308,6 +309,7 @@
- m68*-*-netbsd*)		targ_emul=m68knbsd ;;
  m68*-*-psos*)		targ_emul=m68kpsos ;;
- m68*-*-rtems*)		targ_emul=m68kcoff ;;
+ m68*-*-rtemscoff*)	targ_emul=m68kcoff ;;
+ m68*-*-rtems*)		targ_emul=m68kelf ;;
 +m68*-*-palmos*)		targ_emul=m68kcoff ;;
+ hppa*64*-*-linux-gnu*)	targ_emul=hppa64linux ;;
  hppa*64*-*)		targ_emul=elf64hppa ;;
  hppa*-*-linux-gnu*)	targ_emul=hppalinux ;;
- hppa*-*-*elf*)		targ_emul=hppaelf ;;
 diff -urN orig-binutils-2.12/ld/emultempl/m68kcoff.em binutils-2.12/ld/emultempl/m68kcoff.em
 --- orig-binutils-2.12/ld/emultempl/m68kcoff.em	Tue Mar 13 07:14:27 2001
 +++ binutils-2.12/ld/emultempl/m68kcoff.em	Mon Apr 15 18:11:43 2002
