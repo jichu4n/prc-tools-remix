@@ -315,14 +315,18 @@ them.  @code{MemHandle} corrects this historical accident.)
 People wanting to write library header files capable of interacting with
 any SDK have a dilemma:  which to use, old- or new-style type names?
 
-You can use old-style names by instructing users to include
+You can use old-style names by instructing developers to include
 @file{PalmCompatibility.h} before including your header file if they are
 using the 3.5 SDK.  But this is not very satisfactory:  the onus shouldn't
-be on users to get this right, and you might prefer to use new-style names.
+be on developers to get this right, and you might prefer to use new-style
+names.
 
 You can ensure new-style names are available simply by including
-@file{NewTypes.h} at the top of your header file.  Including this header
-provides the following:
+@file{NewTypes.h} at the top of your header file, and instructing developers
+to include at least @file{Common.h}/@file{PalmTypes.h} before your header.
+(They are probably including @file{Pilot.h}/@file{PalmOS.h} anyway.)
+
+Including @file{NewTypes.h} provides the following:
 
 @itemize @bullet
 @item
