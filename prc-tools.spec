@@ -29,18 +29,18 @@ BuildRequires: texinfo
 
 %description
 A complete compiler tool chain for building Palm OS applications in C or C++.
-Includes (patched versions of) binutils 2.12, gdb 5.0, and GCC 2.95.3, along
+Includes (patched versions of) binutils 2.12, GDB 5.0, and GCC 2.95.3, along
 with various post-linker tools to produce Palm OS .prc files.
 
 You will also need a Palm OS SDK and some way of creating resources, such as
 PilRC.
 
 %package htmldocs
-Summary: GCC, binutils, gdb, make, and prc-tools documentation as HTML
+Summary: GCC, GDB, binutils, make, and prc-tools documentation as HTML
 Group: Development/Palm OS
 Prefix: %{palmdev_prefix}
 %description htmldocs
-GCC, binutils, gdb, make, and general prc-tools documentation in HTML
+GCC, GDB, binutils, make, and general prc-tools documentation in HTML
 format.  The various native development packages and the main prc-tools
 package, respectively, provide exactly this documentation in info format.
 This optional package is for those who prefer HTML-formatted documentation.
