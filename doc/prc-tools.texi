@@ -4,8 +4,8 @@
 @settitle Using PRC-Tools
 @c @footnotestyle separate
 
-@set update-month October 2001
-@set update-date 16 @value{update-month}
+@set update-month April 2002
+@set update-date 5 @value{update-month}
 @set prc-tools-version 2.0.93
 
 @c %**end of header
@@ -31,8 +31,8 @@ This file documents the use of PRC-Tools, version @value{prc-tools-version}.
 
 @vskip 0pt plus 1filll
 
-Copyright @copyright{} 2000 Palm Computing, Inc. or its subsidiaries@*
-Portions copyright @copyright{} 1998, 2001 John Marshall
+Copyright @copyright{} 1998, 2001, 2002 John Marshall@*
+Portions copyright @copyright{} 2000 Palm, Inc. or its subsidiaries
 
 @sp 2
 Permission is granted to make and distribute verbatim copies of
@@ -76,7 +76,7 @@ last modified on @value{update-date}.
 * multigen::          Generate support files for multiple code resources.
 * stubgen::             ...or for shared libraries.
 * obj-res::           Make resources from a bfd executable.
-* sdkfind::           Supply -I and -L options for searching Palm OS SDKs.
+* palmdev-prep::      Inform GCC of the locations of Palm OS SDKs.
 @end detailmenu
 
 @c * Index::
@@ -125,11 +125,12 @@ This option implies @samp{-mextralogues}.
 
 @item -palmos@var{N}
 Select system header files and libraries for Palm OS SDK version @var{N}.
-By default, the SDK selected by the @file{sdk} symlink in the PalmDev directory
-(usually @file{/opt/palmdev} or @file{C:\PalmDev}) will be used.
+By default, the SDK selected as the default SDK the last time
+@code{palmdev-prep} was run will be used (@pxref{palmdev-prep}).
 
-This option is not handled by GCC directly, but rather via the @code{sdkfind}
-utility (@pxref{sdkfind}).
+@item -palmos-none
+Don't add any Palm OS SDK directories or other directories from any PalmDev
+trees to the include and library search paths.
 @end table
 
 There is also a @samp{-mno-@var{X}} option corresponding to each of the
@@ -1212,16 +1213,16 @@ need to use obj-res anymore, but it is still supported for backwards
 compatibility.)  There are also @code{multigen} and @code{stubgen},
 which generate various support files.
 
-Other miscellaneous tools include @code{sdkfind}, which is invoked
-automatically to set up appropriate include paths for the Palm OS SDK with
-which you wish to build.
+Other miscellaneous tools include @code{palmdev-prep}, which informs GCC of
+the locations of Palm OS SDKs and the like.  You should run it whenever you
+upgrade prc-tools or install new SDKs or modify existing ones.
 
 @menu
 * build-prc::
 * multigen::
 * stubgen::
 * obj-res::
-* sdkfind::
+* palmdev-prep::
 @end menu
 
 
@@ -1476,79 +1477,50 @@ Compression of the data #0 resource is simple minded.
 @code{obj-res} was written by D.Jeff Dionne, relocation by Kresten Krab Thorup.
 
 
-@node sdkfind
-@section sdkfind
+@node palmdev-prep
+@section palmdev-prep
 
-@findex sdkfind
-
-@example
-sdkfind -print-search-dirs
-
-sdkfind [ -v ] [ -palmos@var{n} ] [ -nopalmos ] @dots{}
-@end example
-
-The @code{sdkfind} utility expands @code{-palmos@var{n}} options into the
-corresponding GCC options (@code{-isystem} and @code{-L}) needed for the
-compiler to be able to use all the headers and libraries provided by the
-SDK.
-
-This utility is installed as a wrapper around @code{m68k-palmos-gcc} and the
-other compiler drivers.  Thus options such as @code{-palmos@var{n}} can be
-used with @code{m68k-palmos-gcc} just as if GCC itself understood them.
-Behind the scenes, @code{sdkfind} expands the options and then calls the
-real GCC compiler driver.
-
-It can also be used directly so that its effects can be observed, or if you
-wish to use it explicitly with the real compiler driver:
+@findex palmdev-prep
 
 @example
-/path/to/m68k-palmos/real-bin/gcc @dots{} `m68k-palmos-sdkfind`
+palmdev-prep [ -d @var{sdk} | --default @var{sdk} ]
+             [ -r | --remove ]
+             [ -q | --quiet | --silent ] [ -v | --verbose ]
+             [ --dump-specs @var{target} ]
+             [ @var{directory}@dots{} ]
 @end example
+
+@c FIXME FIXME FIXME
+Palmdev-prep is the best thing since sliced bread, and is certainly a better
+solution than sdkfind.  We really should say some more about what it's good
+for here.
 
 @table @code
-@item -print-search-dirs
-Print the list of configured PalmDev installation directories.
+@item -d @var{sdk}
+@itemx --default @var{sdk}
+When GCC is invoked without any @code{-palmos@var{N}} options, the SDK chosen
+to be the default SDK during the last invocation of palmdev-prep will be used.
+This option specifies that @var{SDK} should be the default; if you don't
+choose a default this way yourself, palmdev-prep will choose the highest SDK
+detected as the default.
 
-@item -palmos@var{n}
-Search for a @file{sdk-@var{n}} directory in the configured PalmDev
-installation directories.  Anything at all may be specified for @var{n};
-if @var{n} starts with a hyphen or is empty, the extra hyphen from @code{sdk-}
-will be suppressed.  As a special case, if @var{n} is of the form
-@code{@var{x}.0} both @file{sdk-@var{x}.0} and @file{sdk-@var{x}} will be
-searched for.
+@item -r
+@itemx --remove
+Remove all files installed by palmdev-prep.
 
-First the configured PalmDev directories are examined in turn, and include
-path (@code{-isystem}) options are generated for each directory within an
-@file{include} subdirectory of a PalmDev directory.  Similarly library path
-(@code{-L}) options are generated for each directory within a
-@file{m68k-palmos-coff} subdirectory of a @file{lib} subdirectory of a
-PalmDev directory.
-
-Then the configured PalmDev directories are reexamined in turn, and the first
-one that directly contains a subdirectory named @file{sdk-@var{n}} is selected.
-(If none does, @code{sdkfind} prints a warning to that effect.)
-
-Include path (@code{-isystem}) options are generated for each directory
-within an @file{include} subdirectory in the selected @file{sdk-@var{n}}
-directory, and library path (@code{-L}) options are generated for each
-directory within @file{lib/m68k-palmos-coff} in the selected @file{sdk-@var{n}}
-directory.
-
-If the selected @file{sdk-@var{n}} directory does not contain a subdirectory
-named @file{include}, @code{sdkfind} prints a warning stating that the selected
-directory does not contain an SDK.
-
-@item -nopalmos
-If you do not use a @code{-palmos@var{n}} option, by default the @code{sdk}
-directory will be searched for, i.e., it is as if there were a @code{-palmos}
-option specified.
-
-Using @code{-nopalmos} suppresses this, thus preventing @code{sdkfind} from
-generating any @code{-isystem} or @code{-L} options.
+@item -q
+@itemx --quiet
+@itemx --silent
+Suppress the normal listing showing the SDKs found and their validity.
 
 @item -v
-Print (on standard error output) the command, with options expanded, executed
-to run the compilation.
+@itemx --verbose
+Display details of files modified and actions taken by palmdev-prep.
+
+@item --dump-specs @var{target}
+Write a specs file describing the PalmDev headers and libraries for
+@var{target} to standard output, instead performing of the normal installation
+actions.  This is for use while prc-tools itself is being built.
 @end table
 
 
