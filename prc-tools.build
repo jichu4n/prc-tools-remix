@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/sh -e
 #  Execute this script to produce a minimally "package"-like binary tarball
 
 # This script is pretty much just a stripped-down version of prc-tools.spec
@@ -39,9 +39,6 @@ touch "gcc/gcc/cstamp-h.in"
   --prefix=$prefix \
   ${mandir:+--mandir=$mandir} ${infodir:+--infodir=$infodir}
 
-# HACK: For some reason, libiberty isn't being built.  Do it explicitly for now
-(cd gcc/libiberty; make)
-
 make
 
 #install
@@ -60,11 +57,15 @@ cp -p README COPYING $DESTDIR$docdir
 : ${bindir:=$exec_prefix/bin} ${libdir:=$exec_prefix/lib}
 : ${infodir:=$prefix/info} ${datadir:=$prefix/share}
 
-strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/*/bin/* \
-  $DESTDIR$libdir/gcc-lib/*/*/c*
+strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/*/bin/*
+# This picks up all the executable backends, but avoids crt*.o files and such
+strip $DESTDIR$libdir/gcc-lib/*/*/*[012]*
 
 #package
 : ${PKGBASE:=`pwd`/prc-tools} ${PKGSHORTTAIL:=-binary} ${PKGTAIL:=$PKGSHORTTAIL}
+
+rm -f $PKGBASE$PKGTAIL.tar* $PKGBASE-arm$PKGTAIL.tar* \
+      $PKGBASE-htmldocs$PKGTAIL.tar* $PKGBASE-htmldocs$PKGSHORTTAIL.zip
 
 (cd $DESTDIR; tar cvf $PKGBASE$PKGTAIL.tar \
   `echo "
