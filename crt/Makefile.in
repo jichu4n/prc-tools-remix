@@ -1,6 +1,7 @@
 # Makefile for prc-tools crt files.
 #
-# Copyright (c) 1998, 1999 Palm Computing, Inc. or its subsidiaries.
+# Copyright 2001, 2002, 2003 John Marshall.
+# Portions copyright (c) 1998, 1999 Palm Computing, Inc. or its subsidiaries.
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify
