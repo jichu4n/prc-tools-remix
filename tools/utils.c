@@ -289,18 +289,6 @@ chomp (char *s) {
   }
 
 
-char *
-standard_db_type (enum database_kind kind) {
-  switch (kind) {
-  case DK_APPLICATION:  return "appl";
-  case DK_GLIB:         return "GLib";
-  case DK_SYSLIB:       return "libr";
-  case DK_HACK:         return "HACK";
-  default:              return NULL;
-    }
-  }               
-
-
 #define SS_BUFSIZE  4000
 
 struct string_store_buffer {

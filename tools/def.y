@@ -55,6 +55,7 @@ extern int lexer_lineno ();
 
 void yyerror (char *s);
 
+static char *standard_db_type (enum database_kind kind);
 static unsigned long lookup_trapno (const char *name);
 %}
 
@@ -212,6 +213,18 @@ static void
 print_warning (const char *message) {
   warning ("[%s:%d] %s", parser_fname, lexer_lineno (), message);
   }
+
+
+static char *
+standard_db_type (enum database_kind kind) {
+  switch (kind) {
+  case DK_APPLICATION:	return "appl";
+  case DK_GLIB:		return "GLib";
+  case DK_SYSLIB:	return "libr";
+  case DK_HACK:		return "HACK";
+  default:		return NULL;
+    }
+  }               
 
 
 struct string_store *lexer_store = NULL;

@@ -114,8 +114,6 @@ enum database_kind {
   DK_GENERIC
   };
 
-char *standard_db_type (enum database_kind kind);
-
 
 struct string_store;
 
