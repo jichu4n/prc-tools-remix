@@ -3,6 +3,60 @@ AC_INIT(prc-tools.spec)
 
 AC_CONFIG_SUBDIRS(binutils gdb gcc make)
 
+
+palmdev_prefix=/opt/palmdev
+
+AC_ARG_WITH(palmdev-prefix,
+[  --with-palmdev-prefix=DIR
+                          where to look for SDKs [/opt/palmdev]],
+[case "${withval}" in
+yes|no)	AC_MSG_ERROR(bad value ${withval} given for palmdev prefix) ;;
+*)	palmdev_prefix="${withval}" ;;
+esac])
+
+AC_SUBST(palmdev_prefix)
+
+
+palmdev_path=
+
+AC_ARG_WITH(palmdev-path,
+[  --with-palmdev-path=DIRS
+                          additional places to look for SDKs [none]],
+[case "${withval}" in
+yes)	AC_MSG_ERROR(bad value ${withval} given for palmdev path) ;;
+no)	;;
+*)	palmdev_path="${withval}" ;;
+esac])
+
+AC_SUBST(palmdev_path)
+
+
+build_sdk='$(BOOTSTRAP_SDKFLAGS)'
+
+AC_ARG_WITH(build-sdk,
+[  --with-build-sdk=FLAGS  which SDK to build runtime [internal bootstrap SDK]],
+[case "${withval}" in
+yes)	build_sdk="-palmos" ;;
+no)	;;
+*)	build_sdk=$with_build_sdk ;;
+esac])
+
+AC_SUBST(build_sdk)
+
+
+static_cxxlibs=
+
+AC_ARG_WITH(shared-libstdcxx-for-tools,
+[  --without-shared-libstdcxx-for-tools
+                          try not to use shared libstdc++ in build-prc [with]],
+[case "${withval}" in
+no)	static_cxxlibs='$(STATIC_CXXLIBS)' ;;
+*)	;;
+esac])
+
+AC_SUBST(static_cxxlibs)
+
+
 AC_CANONICAL_SYSTEM
 
 AC_PROG_CC
@@ -14,32 +68,9 @@ AC_PROG_LEX
 AC_PROG_YACC
 AC_EXEEXT
 
-AC_ARG_WITH(build-sdk,
-[  --with-build-sdk=FLAGS  which SDK to build runtime [internal bootstrap SDK]],
-[case "${withval}" in
-yes)	build_sdk="-palmos" ;;
-no)	;;
-*)	build_sdk=$with_build_sdk ;;
-esac])
-
-if test x$build_sdk = x; then
-  build_sdk='$(BOOTSTRAP_SDKFLAGS)'
-fi
-
-AC_SUBST(build_sdk)
-
-AC_ARG_WITH(shared-libstdcxx-for-tools,
-[  --without-shared-libstdcxx-for-tools
-                          try not to use shared libstdc++ in build-prc [with]],
-[case "${withval}" in
-no)	static_cxxlibs='$(STATIC_CXXLIBS)' ;;
-*)	;;
-esac])
-AC_SUBST(static_cxxlibs)
-
 AC_MSG_CHECKING([prc-tools package version])
 if test -f $srcdir/prc-tools.spec; then
-  prc_tools_version=`grep ^Version: $srcdir/prc-tools.spec | sed 's/.*: //'`
+  prc_tools_version=`grep '^Version:' $srcdir/prc-tools.spec | sed 's/.*: //'`
 else
   prc_tools_version=unknown
 fi

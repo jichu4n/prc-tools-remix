@@ -33,9 +33,9 @@ Previous SDKs require modifications to be usable with this version of
 prc-tools; you can download suitably patched SDKs from
 <a href="http://www.palm.com/devzone/tools/gcc/#sdks">Palm's devzone</a>.
 </ul>
-By convention, prc-tools looks for SDKs in <code>/usr/local/palmdev</code>
+By convention, prc-tools looks for SDKs in <code>/opt/palmdev</code>
 on Unix, or <code>C:\PalmDev</code> on Windows.  (You will get to configure
-where GCC looks for SDKs <a href="#sharedstatedir">later</a>.  These are
+where GCC looks for SDKs <a href="#palmdev-prefix">later</a>.  These are
 the values which the prebuilt binaries use on the various platforms, and it
 seems like a useful convention to follow.)
 
@@ -160,8 +160,7 @@ their source trees:
 ~/build$ mkdir empty
 ~/build$ ../prc-tools-2.1/configure --target=m68k-palmos \
          --enable-languages=c,c++ \
-	 --with-headers=`pwd`/empty \
-	 --sharedstatedir=/usr/local/palmdev
+	 --with-headers=`pwd`/empty
 </pre></blockquote>
 
 These parameters specify the following:
@@ -193,14 +192,23 @@ easier for now.  :-)
 Select an installed Palm OS SDK with which to build the runtime code.
 By default, the files in <code>prc-tools/sdk-bootstrap</code> are used,
 which provide just enough functionality to compile the startup code.
+(But the bootstrap SDK is not currently written, so you <b>need to use
+this option</b>.)
 <dt>
-<code><a name="sharedstatedir">--sharedstatedir=/usr/local/palmdev</a></code>
+<code><a name="palmdev-prefix">--with-palmdev-prefix=/opt/palmdev</a></code>
 <dd>
-(There's a bit of a hack here :-))  This is where the tool chain
+This is where the tool chain
 will look for Palm OS SDK headers and libraries and so on.
 You can put this wherever you like; by convention, we use
-<code>/usr/local/palmdev</code> on Unix and <code>/PalmDev</code>
-on Windows.
+<code>/opt/palmdev</code> on Unix and <code>/PalmDev</code>
+on Windows.  By default, the tool chain will look in <code>/opt/palmdev</code>.
+<dt>
+<code>--with-palmdev-path=/usr/local/palmdev:/somewhere/else</code>
+<dd>
+Additional directories which should be searched for SDK headers and libraries.
+This can be set to provide compatibility with earlier prc-tools releases which
+looked in <code>/usr/local/palmdev</code>.  By default, no additional
+directories are searched.
 <dt>
 <code>--prefix=/usr/local</code>
 <br>

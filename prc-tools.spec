@@ -93,7 +93,7 @@ cd $RPM_BUILD_DIR/build-prc-tools
   --prefix=%{prefix} --exec-prefix=%{exec_prefix} \
   --with-headers=$RPM_BUILD_DIR/build-prc-tools/empty \
   --without-shared-libstdcxx-for-tools \
-  --sharedstatedir=%{palmdev_prefix}
+  --palmdev-prefix=%{palmdev_prefix}
 
 cd $RPM_BUILD_DIR/build-prc-tools/doc
 make html

@@ -15,7 +15,7 @@ SHELL = /bin/sh
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
-palmdev_prefix = @sharedstatedir@
+palmdev_prefix = @palmdev_prefix@
 infodir = @infodir@
 htmldir = $(palmdev_prefix)/doc
 
