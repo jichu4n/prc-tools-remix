@@ -105,24 +105,15 @@ cd build
 [ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
 
 %post
+# Given foo.info, install-info will check for both foo.info and foo.info.gz
 if /bin/sh -c 'install-info --version' >/dev/null 2>&1; then
-  # tidy up after bug in 2.0 spec file :-(
-  if [ -f /usr/info/dir ] && grep prc-tools /usr/info/dir; then
-    install-info --remove --info-dir=/usr/info %{prefix}/info/prc-tools.info
-    true
-  fi
-
-  if [ -f %{prefix}/info/dir ]; then
-    install-info --info-dir=%{prefix}/info %{prefix}/info/prc-tools.info
-  fi
+  install-info --info-dir=%{_infodir} %{_infodir}/prc-tools.info
 fi
 
 %preun
 if [ "$1" = 0 ]; then
   if /bin/sh -c 'install-info --version' >/dev/null 2>&1; then
-    if [ -f %{prefix}/info/dir ]; then
-      install-info --remove --info-dir=%{prefix}/info %{prefix}/info/prc-tools.info
-    fi
+    install-info --remove --info-dir=%{_infodir} %{_infodir}/prc-tools.info
   fi
 fi
 
