@@ -1,11 +1,12 @@
 Name: prc-tools
-Version: 2.0
+%define version 2.1
+Version: %{version}
 Release: 1
 Summary: GCC and related tools for Palm OS development
 Copyright: GPL
 URL: http://www.palm.com/devzone/tools/gcc/
 Group: Development/Tools
-Source0: http://www.palm.com/devzone/tools/gcc/dist/prc-tools-2.0.tar.gz
+Source0: http://www.palm.com/devzone/tools/gcc/dist/prc-tools-%{version}.tar.gz
 Source1: ftp://sourceware.cygnus.com/pub/binutils/releases/binutils-2.9.1.tar.gz
 Source2: ftp://sourceware.cygnus.com/pub/gdb/releases/gdb-4.18.tar.gz
 Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-2.95.2/gcc-2.95.2.tar.gz
@@ -84,7 +85,7 @@ mkdir build-prc-tools/empty
 # The --with-headers bit is a nasty hack to try to make fixinc happy on
 # Solaris and simultaneously stop it from doing anything.
 cd $RPM_BUILD_DIR/build-prc-tools
-../prc-tools-2.0/configure --target=%{target} --enable-languages=c,c++ \
+../prc-tools-%{version}/configure --target=%{target} --enable-languages=c,c++ \
   --prefix=%{prefix} --exec-prefix=%{exec_prefix} \
   --with-headers=$RPM_BUILD_DIR/build-prc-tools/empty \
   --sharedstatedir=%{palmdev_prefix}
@@ -112,22 +113,22 @@ make install-html
 
 %post
 if /bin/sh -c 'install-info --version' >/dev/null 2>&1; then
-  dirfile=
-  if [ -f %{prefix}/info/dir ]; then dirfile=%{prefix}/info/dir; fi
-  if [ -f /usr/info/dir ]; then dirfile=/usr/info/dir; fi
-  if [ x$dirfile != x ]; then
-    install-info --dir-file=$dirfile %{prefix}/info/prc-tools.info
+  # tidy up after bug in 2.0 spec file :-(
+  if [ -f /usr/info/dir ] && grep prc-tools /usr/info/dir; then
+    install-info --remove --info-dir=/usr/info %{prefix}/info/prc-tools.info
+    true
+  fi
+
+  if [ -f %{prefix}/info/dir ]; then
+    install-info --info-dir=%{prefix}/info %{prefix}/info/prc-tools.info
   fi
 fi
 
 %preun
 if [ "$1" = 0 ]; then
   if /bin/sh -c 'install-info --version' >/dev/null 2>&1; then
-    infodir=none
-    if [ -f %{prefix}/info/dir ]; then infodir=%{prefix}/info; fi
-    if [ -f /usr/info/dir ]; then infodir=/usr/info; fi
-    if [ x$infodir != x ]; then
-      install-info --remove --dir-file=$dirfile %{prefix}/info/prc-tools.info
+    if [ -f %{prefix}/info/dir ]; then
+      install-info --remove --info-dir=%{prefix}/info %{prefix}/info/prc-tools.info
     fi
   fi
 fi
