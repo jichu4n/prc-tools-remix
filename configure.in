@@ -73,6 +73,7 @@ bfd_configure_args=
 extra_dependencies=/dev/null
 extra_target_configs=
 first_enabled_target=.
+m68k_target=
 
 AC_SUBST(extra_subdirs)
 AC_SUBST(configure_args)
@@ -80,6 +81,7 @@ AC_SUBST(bfd_configure_args)
 AC_SUBST_FILE(extra_dependencies)
 AC_SUBST(extra_target_configs)
 AC_SUBST(first_enabled_target)
+AC_SUBST(m68k_target)
 
 target_gcc_prereqs=
 target_gcc_flags=
@@ -122,6 +124,10 @@ if test -n "$enable_targets"; then
     extra_subdirs="$extra_subdirs $targ"
     all_subdirs="$all_subdirs $targ"
     (echo; echo "$targ: $targ/config.status") >> $extra_dependencies
+    case "$targ" in
+      m68k-*) m68k_target="$targ" ;;
+      *) ;;
+    esac
   done
 
   if test x$enable_generic != xno; then
@@ -144,6 +150,7 @@ else
   m68k)	config_subdirs="$config_subdirs binutils gcc gdb"
   	output_files="$output_files crt/Makefile libc/Makefile libm/Makefile"
 	all_subdirs="$all_subdirs binutils gcc gdb crt libc libm"
+	m68k_target="$target_alias"
 	;;
   arm)	config_subdirs="$config_subdirs binutils gcc"
   	output_files="$output_files"

@@ -21,8 +21,7 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 libdir = @libdir@
-target = @target@
-target_alias = @target_alias@
+m68k_target = @m68k_target@
 exeext = @EXEEXT@
 
 INSTALL = @INSTALL@
@@ -53,10 +52,9 @@ PALMDEV_PREP_DEFINES = \
 PFD = libpfd.a
 
 GENERIC_PROGS = build-prc$(exeext) palmdev-prep$(exeext)
+M68K_PROGS = obj-res$(exeext) multigen$(exeext) stubgen$(exeext)
 
-PREFIXED_PROGS = obj-res$(exeext) multigen$(exeext) stubgen$(exeext)
-
-INSTALL_FILES = $(GENERIC_PROGS) $(PREFIXED_PROGS)
+INSTALL_FILES = $(GENERIC_PROGS) $(M68K_PROGS)
 
 all: $(INSTALL_FILES)
 
@@ -66,10 +64,12 @@ install: $(INSTALL_FILES)
 	  echo $${f}; \
 	  $(INSTALL) $${f} $(bindir)/$${f}; \
 	done
-	for f in $(PREFIXED_PROGS); do \
-	  echo $${f}; \
-	  $(INSTALL) $${f} $(bindir)/$(target_alias)-$${f}; \
-	done
+	if test -n "$(m68k_target)"; then \
+	  for f in $(M68K_PROGS); do \
+	    echo $${f}; \
+	    $(INSTALL) $${f} $(bindir)/$(m68k_target)-$${f}; \
+	  done; \
+	fi
 
 
 .SUFFIXES: .cpp
