@@ -73,19 +73,19 @@ strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/$target/bin/* \
 (cd $DESTDIR; tar cvf $PKGBASE$PKGTAIL.tar \
   `echo "
     $bindir/*
-    $libdir/gcc-lib/$target
     $exec_prefix/$target
+    $libdir/gcc-lib/$target
     $datadir/prc-tools
     $infodir/prc-tools*
     $docdir/COPYING
     $docdir/README
-  " | sed 's:^ */::'`)
+  " | sed 's:^ */::' | sort`)
 bzip2 $PKGBASE$PKGTAIL.tar
 
 (cd $DESTDIR; tar cvf $PKGBASE-htmldocs$PKGTAIL.tar \
   `echo "
     $docdir/[^CR]*
-  " | sed 's:^ */::'`)
+  " | sed 's:^ */::' | sort`)
 bzip2 $PKGBASE-htmldocs$PKGTAIL.tar
 
 if /bin/sh -c 'zip -h' >/dev/null 2>&1; then
