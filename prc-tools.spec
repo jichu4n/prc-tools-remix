@@ -131,4 +131,5 @@ fi
 %doc COPYING README
 
 %files htmldocs
+%defattr(-, root, root)
 %doc %{palmdev_prefix}/doc
