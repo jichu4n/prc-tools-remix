@@ -18,22 +18,22 @@
 
 #include "crt.h"
 
-int
-_GdbStartDebug (UInt16 flags)
+static void
+StartDebug (UInt16 cmd UNUSED_PARAM, void *pbp UNUSED_PARAM, UInt16 flags)
 {
   UInt32 feature = 0;
 
   if (! (flags & (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagSubCall)))
-    return 0;
+    return;
 
   FtrGet ('gdbS', 0, &feature);
   if (feature != 0x12BEEF34)
-    return 0;
+    return;
 
   asm("
-       lea data_start@END(%%a5),%%a1
+       lea %0,%%a1
        move.l %%a1,%%d2
-       lea bss_start@END(%%a5),%%a1
+       lea %1,%%a1
        move.l %%a1,%%d1
        lea start(%%pc),%%a0
        move.l %%a0,%%d0
@@ -41,7 +41,8 @@ _GdbStartDebug (UInt16 flags)
        lea PilotMain(%%pc),%%a0
        move.l #0x12BEEF34, %%d3
        trap #8
-       " : : : "d0", "d1", "d2", "d3", "a1", "a0");
-
-  return 1;
+       " : : "g" (data_start), "g" (bss_start)
+         : "d0", "d1", "d2", "d3", "a1", "a0");
 }
+
+static void *hook __attribute__ ((section ("bhook"), unused)) = StartDebug;

@@ -1006,7 +1006,7 @@ As on any other platform, you instruct GCC to produce debugging information
 by compiling with the @samp{-g} option.
 
 Some debuggers targeting Palm OS, notably GDB, also need your application
-to have a special stub (called @code{_GdbStartDebug}) in its startup code so
+to have a special stub (called @code{StartDebug}) in its startup code so
 that they can attach to the running application successfully.
 
 To include this stub, you also need to @emph{link} with @samp{-g}.

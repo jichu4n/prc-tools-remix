@@ -55,10 +55,6 @@ start ()
   if (mainFlags & sysAppLaunchFlagNewGlobals)
     __do_ctors ();
 
-#ifdef DASHG
-  _GdbStartDebug (mainFlags);
-#endif
-
   result = PilotMain (mainCmd, mainPBP, mainFlags);
 
   if (mainFlags & sysAppLaunchFlagNewGlobals)

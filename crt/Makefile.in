@@ -29,7 +29,7 @@ RANLIB = $(target_alias)-ranlib
 # CFLAGS = -O5 -fomit-frame-pointer -fno-builtin -Wall -W
 CFLAGS = -O5 -fno-builtin -Wall -W -I$(srcdir)/../include $(SDKFLAGS)
 
-INSTALL_FILES = crt0.o gcrt0.o scrt0.o libcrt.a libcrt-owngp.a \
+INSTALL_FILES = crt0.o gdbstub.o scrt0.o libcrt.a libcrt-owngp.a \
   libnoexcept.a libnfm.a
 
 all: $(INSTALL_FILES)
@@ -44,15 +44,13 @@ install: $(INSTALL_FILES)
 
 crt0.o: crt0.c ../include/NewTypes.h crt.h
 
-gcrt0.o: crt0.c ../include/NewTypes.h crt.h
-	$(CC) $(CFLAGS) -DDASHG -c -o $@ $(srcdir)/crt0.c
-
 scrt0.o: scrt0.c ../include/NewTypes.h crt.h palmos_GLib.h
 	$(CC) $(CFLAGS) -mown-gp -c -o $@ $(srcdir)/scrt0.c
 
+gdbstub.o: gdbstub.c ../include/NewTypes.h crt.h
 
 CRTLIB_SRCS = \
-  hooks.c gdbstub.c palmos_GLib.c dreloc.c \
+  hooks.c palmos_GLib.c dreloc.c \
   ../include/NewTypes.h crt.h
 
 libcrt.a: $(CRTLIB_SRCS)

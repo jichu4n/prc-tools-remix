@@ -6,6 +6,7 @@ extern void __do_dtors (void);
 extern void _GccRelocateData (void);
 extern void _RelocateChain (Int16 offset, void *base);
 
-extern int _GdbStartDebug (UInt16);
+extern char data_start;
+extern char bss_start;
 
 #define UNUSED_PARAM  __attribute__ ((unused))

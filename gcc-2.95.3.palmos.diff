@@ -4946,7 +4946,7 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68k.md gcc-2.95.3/gcc/config/m68k/m68
  ;; This is the first machine-dependent peephole optimization.
 diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h gcc-2.95.3/gcc/config/m68k/m68kpalmos.h
 --- orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Wed Dec 31 16:00:00 1969
-+++ gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Tue Mar 20 17:00:17 2001
++++ gcc-2.95.3/gcc/config/m68k/m68kpalmos.h	Mon Sep  3 02:07:59 2001
 @@ -0,0 +1,313 @@
 +/* Definitions of target machine for GNU compiler.  "naked" 68020,
 +   COFF object files and debugging, version.
@@ -5133,13 +5133,13 @@ diff -urN orig-gcc-2.95.3/gcc/config/m68k/m68kpalmos.h gcc-2.95.3/gcc/config/m68
 +
 +#undef STARTFILE_SPEC
 +#define STARTFILE_SPEC \
-+  "%{!shared:%{!g:crt0%O%s}%{g:gcrt0%O%s}} %{shared:scrt0%O%s}"
++  "%{!shared:crt0.o%s} %{shared:scrt0.o%s} %{g:gdbstub.o%s}"
++
++#undef ENDFILE_SPEC
++#define ENDFILE_SPEC "-lcrt"
 +
 +#undef LIB_SPEC
 +#define LIB_SPEC "%{!shared:%{g*:-lg} %{!p:%{!pg:-lc}}%{p:-lc_p}%{pg:-lc_p}}"
-+
-+#define LIBGCC_SPEC "%{!shared:-lcrt}%{shared:-lscrt} -lgcc"
-+/* {!static:-lGLib} ??? */
 +
 +#undef CPP_SUBTARGET_SPEC
 +#define CPP_SUBTARGET_SPEC "\
