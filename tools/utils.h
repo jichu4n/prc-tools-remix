@@ -53,6 +53,7 @@ void propt (const char *optname, const char *meaning);
 
 
 enum file_type {
+  FT_UNKNOWN,
   FT_RAW,	/* .grc or .bin */
   FT_BFD,	/* executable (no extension) */
   FT_PRC,	/* .prc or .ro */

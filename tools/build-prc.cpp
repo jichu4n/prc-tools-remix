@@ -474,12 +474,7 @@ main (int argc, char** argv) {
   if (!work_desired)
     return EXIT_SUCCESS;
 
-  if (optind >= argc) {
-    usage();
-    return EXIT_FAILURE;
-    }
-
-  enum file_type first = file_type (argv[optind]);
+  enum file_type first = (optind < argc)? file_type (argv[optind]) : FT_UNKNOWN;
 
   if (first == FT_PRC && !output_fname) {  // Old-style arguments
     if (argc - optind >= 3) {
@@ -504,9 +499,19 @@ main (int argc, char** argv) {
     }
   else {  // New-style arguments
     if (!output_fname) {
-      static char fname[FILENAME_MAX];
-      strcpy (fname, argv[optind]);
-      output_fname = basename_with_changed_extension (fname, ".prc");
+      if (optind < argc) {
+	static char fname[FILENAME_MAX];
+	strcpy (fname, argv[optind]);
+	output_fname = basename_with_changed_extension (fname, ".prc");
+	}
+      else {
+	/* We need either an -o option or an input filename to construct
+	   an output filename.  In the absence of both, just give the usage
+	   because the most likely case is "build-prc" by itself without
+	   any arguments at all.  */
+	usage();
+	nerrors++;
+	}
       }
     }
 
