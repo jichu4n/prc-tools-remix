@@ -29,21 +29,6 @@ AC_SUBST(palmdev_prefix)
 AC_DEFINE_UNQUOTED(PALMDEV_PREFIX, "${palmdev_prefix}")
 
 
-palmdev_path=${palmdev_prefix}
-
-AC_ARG_WITH(palmdev-extra-path,
-[  --with-palmdev-extra-path=DIRS
-                          additional places to look for SDKs [none]],
-[case "${withval}" in
-yes)	AC_MSG_ERROR(bad value ${withval} given for palmdev path) ;;
-no)	;;
-*)	palmdev_path="${palmdev_path}:${withval}" ;;
-esac])
-
-AC_SUBST(palmdev_path)
-AC_DEFINE_UNQUOTED(PALMDEV_PATH, "${palmdev_path}")
-
-
 build_sdk='$(BOOTSTRAP_SDKFLAGS)'
 
 AC_ARG_WITH(build-sdk,
