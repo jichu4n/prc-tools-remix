@@ -74,10 +74,11 @@ make_code (bfd* abfd, asection* sec) {
    the start of the block, we insert a jump to it.  */
 
 static Datablock
-make_main_code (bfd* abfd, asection* sec, bool appl) {
+make_main_code (bfd* abfd, asection* sec, bool /*appl*/) {
   Datablock res = make_code (abfd, sec);
 
-  unsigned int entry = bfd_get_start_address (abfd);
+  unsigned int entry =
+      (bfd_get_start_address (abfd) - bfd_section_vma (abfd, sec));
 
   if (entry > 32766) {	// ???
     ewhere ("0x%x", entry);
