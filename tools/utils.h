@@ -22,10 +22,14 @@ extern const char *progname;
 
 extern int nerrors, nwarnings;
 
+/* Use these macros to improve warnings when compiling with GCC.  */
+
 #ifdef __GNUC__
 #define PRINTF_FUNC(fmt, first)  __attribute__ ((format (printf, fmt, first)))
+#define UNUSED_PARAM		 __attribute__ ((unused))
 #else
 #define PRINTF_FUNC(fmt, first)
+#define UNUSED_PARAM
 #endif
 
 /* These functions increment either NERRORS or NWARNINGS respectively, and
@@ -70,7 +74,6 @@ TREE *opentree (int flags, const char *path_format, ...) PRINTF_FUNC (2, 3);
 const char *readtree (TREE *tree);
 void closetree (TREE *tree);
 
-#undef PRINTF_FUNC
 
 extern int propt_tab;
 void propt (const char *optname, const char *meaning);

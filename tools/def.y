@@ -37,12 +37,6 @@
 #include "def.h"
 #include "pfdheader.h"
 
-#ifdef __GNUC__
-#define UNUSED_PARAM __attribute__ ((unused))
-#else
-#define UNUSED_PARAM
-#endif
-
 static const struct def_callbacks *call;
 static struct database_header db;
 static const char *parser_fname;
