@@ -599,7 +599,7 @@ main (int argc, char **argv) {
       write_specs (stdout, dump_target, default_sdk);
     else if (generic_root_list || sdk_root_list) {
       const char *target;
-      int ntargets;
+      int ntargets, done;
       DIR *dir = NULL;
       const char *message = "...done";
 
@@ -619,11 +619,12 @@ main (int argc, char **argv) {
 	  }
 	}
 
-      if (default_sdk) {
-	TREE *tree = opentree (FILES, "%s/%s",
-			       default_sdk->prefix, default_sdk->sub[include]);
+      remove_file (0, trapnumbers_fname);
+      for (sdk = default_sdk, done = 0;
+	   sdk && ! done;
+	   sdk = find (sdk_root_list, sdk->base)) {
+	TREE *tree = opentree (FILES, "%s/%s", sdk->prefix, sdk->sub[include]);
 	const char *header_fname;
-	remove_file (0, trapnumbers_fname);
 	while ((header_fname = readtree (tree)) != NULL) {
 	  const char *base = lbasename (header_fname);
 	  if (matches ("coretraps.h", base) || matches ("systraps.h", base)) {
@@ -636,6 +637,7 @@ main (int argc, char **argv) {
 		write_traps (f, header_text);
 		fclose (f);
 
+		done = 1;
 		if (verbose)
 		  printf ("Parsed trap numbers in '%s'\n"
 			  "  and wrote them to '%s'\n",
