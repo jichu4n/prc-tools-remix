@@ -18,7 +18,7 @@ target_alias = @target_alias@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 
-BOOTSTRAP_SDKFLAGS = -I$(srcdir)/../sdk-bootstrap -nopalmos
+BOOTSTRAP_SDKFLAGS = -DBOOTSTRAP -I$(srcdir)/../bootstrap -nopalmos
 SDKFLAGS = @build_sdk@
 
 CC = $(target_alias)-gcc

@@ -8,10 +8,14 @@
  *  Modified 19981104 by John Marshall  <jmarshall@acm.org>
  */
 
+#ifdef BOOTSTRAP
+#include "bootstrap.h"
+#else
 #include <SystemMgr.h>
 #include <FeatureMgr.h>
-
 #include "NewTypes.h"
+#endif
+
 #include "crt.h"
 
 int

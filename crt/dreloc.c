@@ -9,11 +9,16 @@
  *  Modified 20000425 by John Marshall  <john_w_marshall@palm.com>
  */
 
+#include <stddef.h>
+#ifdef BOOTSTRAP
+#include "bootstrap.h"
+#else
 #include <SystemMgr.h>
 #include <MemoryMgr.h>
 #include <DataMgr.h>
-
 #include "NewTypes.h"
+#endif
+
 #include "crt.h"
 
 extern char data_start;

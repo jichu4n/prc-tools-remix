@@ -7,6 +7,11 @@
 
 #include "stdio.h"
 
+#ifdef BOOTSTRAP
+#include "bootstrap.h"
+#include "bootstrap-ui.h"
+#else
+
 #include <StringMgr.h>
 #include <Font.h>
 #include <Rect.h>
@@ -16,6 +21,8 @@
 
 #if SDK_VERSION < 35
 #define winUp  up
+#endif
+
 #endif
 
 #define XB 5

@@ -21,7 +21,7 @@ target_alias = @target_alias@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 
-BOOTSTRAP_SDKFLAGS = -I$(srcdir)/../sdk-bootstrap -nopalmos
+BOOTSTRAP_SDKFLAGS = -DBOOTSTRAP -I$(srcdir)/../bootstrap -nopalmos
 SDKFLAGS = @build_sdk@
 
 CC = $(target_alias)-gcc
@@ -149,7 +149,7 @@ libgr.sa: libg.a
 	$(RANLIB) libg.sa
 
 .S.o:
-	$(CC) $(TARGETFLAGS) $(DEFINES) -c $<
+	$(CC) $(TARGETFLAGS) $(SDKFLAGS) $(DEFINES) -c $<
 
 clean:
 	-rm -f *.[oa] Libc* libcstub* *.grc *.exp *.sa Libg* libgstub*

@@ -1,9 +1,14 @@
+#include <stddef.h>
+#ifdef BOOTSTRAP
+#include "bootstrap.h"
+#else
 #include <SystemMgr.h>
 #include <MemoryMgr.h>
 #include <DataMgr.h>
 #include <ErrorMgr.h>
-
 #include "NewTypes.h"
+#endif
+
 #include "palmos_GLib.h"
 #include "crt.h"
 

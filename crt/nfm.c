@@ -4,18 +4,20 @@
    domain.  In particular, object code compiled from this code may be
    freely linked into your programs.  */
 
+#ifndef BOOTSTRAP
 #include <ErrorMgr.h>
 #include "NewTypes.h"
 
-#if SDK_VERSION >= 35 && !defined BOOTSTRAP_SDK
-
+/* Recent SDKs enable GCC to call selectorized traps such as the New Float
+   Manager traps.  */
+#if SDK_VERSION >= 35
 #include <FloatMgr.h>
 #define FTRAP(sel)  FLOAT_EM_TRAP(sysFloat##sel)
+#endif
+#endif
 
-#else
-
-/* Earlier SDKs don't enable GCC to call selectorized traps such as the New
-   Float Manager traps, so we define the relevant machinery ourselves.  */
+/* Otherwise we define the relevant machinery ourselves.  */
+#ifndef FTRAP
 
 #define Str(X)  #X
 

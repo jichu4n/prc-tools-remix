@@ -1,9 +1,13 @@
+#ifdef BOOTSTRAP
+#include "bootstrap.h"
+#else
 #include <FeatureMgr.h>
 #include <DataMgr.h>
 #include <StringMgr.h>
 #include <ErrorMgr.h>
-
 #include "NewTypes.h"
+#endif
+
 #include "palmos_GLib.h"
 
 #if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)

@@ -4,10 +4,14 @@
 
    This code is in the public domain.  */
 
-#include "stdlib.h"
-
+#ifdef BOOTSTRAP
+#include "bootstrap.h"
+#else
 #include <MemoryMgr.h>
 #include "NewTypes.h"
+#endif
+
+#include "stdlib.h"
 
 #ifdef Lmalloc
 

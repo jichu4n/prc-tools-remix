@@ -1,4 +1,8 @@
+#ifdef BOOTSTRAP
+#include "bootstrap.h"
+#else
 #include <StringMgr.h>
+#endif
 
 #include <stdio.h>
 #include <sys/types.h>

@@ -4,10 +4,14 @@
 
    This code is in the public domain.  */
 
-#include "stdlib.h"
-
+#ifdef BOOTSTRAP
+#include "bootstrap.h"
+#else
 #include <MemoryMgr.h>
 #include "NewTypes.h"
+#endif
+
+#include "stdlib.h"
 
 /* This is a global variable.  So atexit functions are only called for
    launch codes with globals (surprise!).  This isn't too bad because

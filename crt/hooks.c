@@ -8,11 +8,15 @@
  *  Modified 19981104 by John Marshall  <jmarshall@acm.org>
  */
 
+#ifdef BOOTSTRAP
+#include "bootstrap.h"
+#else
 /* All we really want is Common.h/PalmTypes.h.  This is a header which gives
    us that and not too much else.  */
 #include <ErrorMgr.h>
-
 #include "NewTypes.h"
+#endif
+
 #include "crt.h"
 
 extern UInt32 start ();

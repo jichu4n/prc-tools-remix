@@ -8,6 +8,10 @@
  *  Modified 19981104 by John Marshall  <jmarshall@acm.org>
  */
 
+#ifdef BOOTSTRAP
+#include "bootstrap.h"
+#else
+
 #include <SystemMgr.h>
 #include <SoundMgr.h>
 
@@ -16,6 +20,8 @@
 #if SDK_VERSION < 35
 #define NON_PORTABLE
 #include <SystemPrv.h>
+#endif
+
 #endif
 
 #include "crt.h"

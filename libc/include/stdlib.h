@@ -9,8 +9,9 @@
 #define __need_NULL
 #include <stddef.h>
 
-/* for sysRandomMax */
+#ifndef sysRandomMax
 #include <SysUtils.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
