@@ -1,6 +1,6 @@
 # Makefile for prc-tools.
 #
-# Copyright (c) 1999 Palm Computing, Inc. or its subsidiaries.
+# Copyright (c) 1999-2001 Palm Computing, Inc. or its subsidiaries.
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify
@@ -130,3 +130,21 @@ install-palmdev:
 	$(INSTALL) -d $(palmdev_prefix)/lib/$(target)
 	$(INSTALL_DATA) $(srcdir)/COPYING $(palmdev_prefix)/doc/COPYING
 	$(INSTALL_DATA) $(srcdir)/README $(palmdev_prefix)/doc/README
+
+
+distdir = prc-tools-@prc_tools_version@
+
+distfoo:
+	-rm -rf $(distdir)
+	mkdir $(distdir)
+	-chmod 777 $(distdir)
+	(cd $(srcdir) \
+	 && ls | grep -v $(distdir) | egrep -v '(binutils|gcc|gdb|make)$$' \
+	 | egrep -v '(test|dist)$$' \
+	 | tar cf - -T -) \
+	| (cd $(distdir) && tar xf -)
+	-chmod -R a+rw $(distdir)
+	-rm -f $(distdir).tar $(distdir).tar.gz
+	tar cf $(distdir).tar $(distdir)
+	gzip -9 $(distdir).tar
+	-rm -rf $(distdir)
