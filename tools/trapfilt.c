@@ -8,6 +8,8 @@
    the Free Software Foundation; either version 2, or (at your option)
    any later version.  */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -61,13 +63,11 @@ filter (FILE *f) {
 int
 main (int argc, char **argv) {
   struct string_store *name_store = new_string_store ();
-  char systrap_fname[FILENAME_MAX];
+  const char systrap_fname[] = PALMDEV_PREFIX"/lib/trapnumbers";
   FILE *f;
   int i;
 
   set_progname (argv[0]);
-
-  sprintf (systrap_fname, "%s/lib/trapnumbers", PALMDEV_PREFIX);
 
   if ((f = fopen (systrap_fname, "r")) != NULL) {
     load_systraps (f, name_store);
