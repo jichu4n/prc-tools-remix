@@ -30,7 +30,7 @@ do_unpack () {
     autoconf
   fi
 
-  for pkg in binutils-2.11.2 gcc-2.95.3 gdb-5.0; do
+  for pkg in binutils-2.12 gcc-2.95.3 gdb-5.0; do
     basepkg=`echo $pkg | sed 's/-.*//'`
     rm -rf $basepkg $pkg
     tar xfz ../srcz/$pkg.tar.gz
