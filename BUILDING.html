@@ -116,10 +116,6 @@ run-time support on the device, and patches against
 You will need to download source for each of these packages separately, either
 from a <a href="http://www.gnu.org/order/ftp.html">GNU mirror</a> or from
 <a href="http://prc-tools.sourceforge.net/misc/">http://prc-tools.sourceforge.net/misc/</a>.
-Prc-tools also includes patches to generate HTML documentation for
-<a href="http://www.gnu.org/software/make/make.html">make</a>;
-if you want to generate this, you will also need
-<a href="ftp://ftp.gnu.org/pub/gnu/make/">make-3.77</a> source code.
 
 <p>
 (Note that the patches are in unified diff format and some
@@ -136,11 +132,8 @@ the patches:
 ~$ tar xfz binutils-2.12.tar.gz
 ~$ tar xfz gdb-5.0.tar.gz
 ~$ tar xfz gcc-2.95.3.tar.gz
-~$ tar xfz make-3.77.tar.gz
 ~$ cat prc-tools-srcdir/*.palmos.diff | patch -p0
 </pre></blockquote>
-(Omit <code>make-3.77.tar.gz</code> and <code>make-docs-3.77.palmos.diff</code>
-if you don't want to generate make documentation.)
 
 <p>
 On Windows, you should also apply the Cygwin-specific patches:
@@ -166,13 +159,21 @@ integrated into just one build:
 ~/prc-tools-srcdir$ ln -s ../binutils-2.12 binutils
 ~/prc-tools-srcdir$ ln -s ../gdb-5.0 gdb
 ~/prc-tools-srcdir$ ln -s ../gcc-2.95.3 gcc
-~/prc-tools-srcdir$ ln -s ../make-3.77 make
 ~/prc-tools-srcdir$ cd ..
 </pre></blockquote>
 (On Windows, if you use any non-Cygwin programs in your build (such as the
 texi2html perl script), you should use <code>mv</code> instead of
 <code>ln -s</code> since non-Cygwin programs can't see through Cygwin's
 symlinks.)
+
+<p>
+You can optionally generate HTML versions of the documentation for
+prc-tools, binutils, GDB, GCC, and also for
+<a href="http://www.gnu.org/software/make/make.html">make</a>.
+To generate the make documentation, you'll also need to make
+<a href="ftp://ftp.gnu.org/pub/gnu/make/">GNU Make</a> source code available
+similarly, as <code>prc-tools-srcdir/make</code>.
+(This has been tested with versions 3.77 of 3.79.1 of GNU Make.)
 
 <h2>Configuring</h2>
 
