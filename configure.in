@@ -103,11 +103,12 @@ AC_SUBST(doc_prereqs)
 
 if test -n "$enable_targets"; then
   # Collect up the arguments that were given to configure, except for
-  # --enable-targets, which we're going to break apart.
+  # --enable-targets, which we're going to break apart, and arguments
+  # that are only of interest on the generic side.
   for arg
   do
     case "$arg" in
-      --enable-targets*) ;;
+      --enable-targets* | --with-palmdev-prefix* | --enable-html-docs*) ;;
       *" "*|*"	"*|*[\[\]\~\#\$\^\&\*\(\)\{\}\\\|\;\<\>\?]*)
 	 configure_args="$configure_args '$arg'" ;;
       *) configure_args="$configure_args $arg" ;;
@@ -116,7 +117,7 @@ if test -n "$enable_targets"; then
 
   case "$configure_args" in
     *cache-file*) ;;
-    *) configure_args="$configure_args --cache-file=`pwd`/config.cache" ;;
+    *) configure_args="$configure_args --cache-file=../config.cache" ;;
   esac
 
   extra_dependencies=Makefile.extradeps
