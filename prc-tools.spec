@@ -151,10 +151,11 @@ fi
 %{_libdir}/gcc-lib/m68k*
 %{_datadir}/prc-tools
 %endif
-# Native packages provide gcc.info* etc, so we limit ourselves to this one
+# Native packages provide gcc.info* and gcc.1 etc, so we limit ourselves to
+# these prc-tools-specific ones
 %doc %{_infodir}/prc-tools*
-# Similarly, the native packages have already provided equivalent manpages
-#%doc %{_mandir}/man1/*
+%doc %{_mandir}/man1/build-prc*
+%doc %{_mandir}/man1/palmdev-prep*
 
 %doc COPYING README
 

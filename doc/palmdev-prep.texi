@@ -1,11 +1,16 @@
+@c man title  palmdev-prep  Prepare PalmDev trees for use with prc-tools
+
 @example
+@c man begin SYNOPSIS
 palmdev-prep [ -d @var{sdk} | --default @var{sdk} ]
              [ -r | --remove ]
              [ -q | --quiet | --silent ] [ -v | --verbose ]
              [ --dump-specs @var{target} ]
              [ @var{directory}@dots{} ]
+@c man end
 @end example
 
+@c man begin DESCRIPTION
 Most Palm OS programs use functions from the Palm OS API, so need to
 @code{#include} various Palm OS header files and perhaps also to link
 with static libraries such as Palm OS Glue.
@@ -57,7 +62,9 @@ It also detects @file{include}, @file{Incs}, @file{lib}, and
 @file{GCC Libraries} directories immediately within each root directory
 specified, causing them to be searched @emph{after} all those corresponding
 to the particular SDK in use.
+@c man end
 
+@c man begin OPTIONS
 @table @code
 @item -d @var{sdk}
 @itemx --default @var{sdk}
@@ -102,7 +109,9 @@ install or remove a Palm OS SDK or other development material
 @item
 want to change which SDK is to be used by default.
 @end itemize
+@c man end
 
+@c man begin NOTES
 For the curious: @code{palmdev-prep} creates a GCC specs file that converts
 @code{-palmos@var{N}} options into the corresponding set of @code{-isystem}
 and @code{-L} options (@pxref{Spec Files, specs, Specifying subprocesses
@@ -110,3 +119,10 @@ and the switches to pass to them, gcc, Using and Porting GCC}).  This is how
 it is able to affect later unrelated invocations of GCC.  This file is
 inside one of GCC's internal directories, so on a typical Unix installation
 you need to be a privileged user to write to it.
+@c man end
+
+@ignore
+@c man begin SEEALSO
+gcc(1), build-prc(1), and the Info entries for @file{prc-tools} et al.
+@c man end
+@end ignore

@@ -1,4 +1,7 @@
+@c man title  build-prc  Palm OS post-linker
+
 @example
+@c man begin SYNOPSIS
 build-prc [ -l ] [ -L ] [ -t @var{type} ] @var{prcfile} @var{app-name} @var{crid} @var{file}@dots{}
 
 build-prc [ -o @var{file} | --output @var{file} ]
@@ -18,8 +21,10 @@ build-prc [ -o @var{file} | --output @var{file} ]
           [ --no-check-header ] [ --no-check-resources ]
           [ --no-check ]
           @var{file}@dots{}
+@c man end
 @end example
 
+@c man begin DESCRIPTION
 @code{build-prc} reads resources from the input files given and
 combines them into one output Palm OS .prc resource data file.  There are
 two styles of build-prc command line:  in the old style, the first three
@@ -65,7 +70,9 @@ the filename for its output .prc file.  In an old-style command line,
 @var{prcfile} is used as is.  In a new-style command line, the output
 filename is formed by removing the extension, if any, from the first
 file argument and appending `.prc'.
+@c man end
 
+@c man begin OPTIONS
 @table @code
 @item -o @var{file}
 @itemx --output @var{file}
@@ -173,3 +180,12 @@ executable from the build-prc invocation.
 Suppress all checking of the generated database; this is equivalent to using
 all of the @code{--no-check-@var{foo}} options listed above.
 @end table
+@c man end
+
+@ignore
+@c man begin SEEALSO
+gcc(1), cpp(1), as(1), ld(1), gdb(1),
+and the Info entries for @file{prc-tools}, @file{gcc}, @file{cpp},
+@file{as}, @file{ld}, and @file{gdb}.
+@c man end
+@end ignore

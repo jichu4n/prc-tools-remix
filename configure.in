@@ -1,6 +1,6 @@
 dnl Autoconf configure script for prc-tools.
 dnl
-dnl Copyright 2000, 2001, 2002 John Marshall.
+dnl Copyright 2000, 2001, 2002, 2003 John Marshall.
 dnl
 dnl This is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -265,30 +265,43 @@ else
 fi
 AC_SUBST(INTLLIBS)
 
-AC_CHECK_PROG(TEXI2HTML, texi2html, texi2html, false)
-if test -n "$htmldocs_enabled"; then
-  # Check that texi2html understands its new-style (e.g. -out_file) arguments
-  if test $TEXI2HTML != false &&
-     $TEXI2HTML -out_file /dev/null /dev/null >/dev/null 2>/dev/null
-  then :
+if test x$enable_generic != xno; then
+  # Building manpages requires binutils to be in the tree (which was
+  # checked above) and a recent Pod::Man
+  AC_MSG_CHECKING([for recent Pod::Man])
+  if (perl -e 'use 1.10 Pod::Man') >/dev/null 2>&1; then
+    AC_MSG_RESULT(yes)
+    manpages_enabled=man
+    install_manpages_enabled=install-man
   else
-    AC_MSG_ERROR(modern texi2html needed to build HTML documentation)
+    AC_MSG_RESULT(no)
+    manpages_enabled=''
+    install_manpages_enabled=''
   fi
-  # In a multi-target build, hmtldocs needs to ensure that this is configured
-  # before it tries to "make info" over there.
-  if test $first_enabled_target != .; then
-    doc_prereqs="$first_enabled_target/config.status"
-  fi
-fi
+  AC_SUBST(manpages_enabled)
+  AC_SUBST(install_manpages_enabled)
 
-AC_MSG_CHECKING([prc-tools package version])
-if test -f $srcdir/prc-tools.spec; then
+  AC_CHECK_PROG(TEXI2HTML, texi2html, texi2html, false)
+  if test -n "$htmldocs_enabled"; then
+    # Check that texi2html understands its new-style (e.g. -out_file) arguments
+    if test $TEXI2HTML != false &&
+       $TEXI2HTML -out_file /dev/null /dev/null >/dev/null 2>/dev/null
+    then :
+    else
+      AC_MSG_ERROR(modern texi2html needed to build HTML documentation)
+    fi
+    # In a multi-target build, hmtldocs needs to ensure that this is configured
+    # before it tries to "make info" over there.
+    if test $first_enabled_target != .; then
+      doc_prereqs="$first_enabled_target/config.status"
+    fi
+  fi
+
+  AC_MSG_CHECKING([prc-tools package version])
   prc_tools_version=`grep '^Version:' $srcdir/prc-tools.spec | sed 's/.*: //'`
-else
-  prc_tools_version=unknown
+  AC_MSG_RESULT($prc_tools_version)
+  AC_SUBST(prc_tools_version)
 fi
-AC_MSG_RESULT($prc_tools_version)
-AC_SUBST(prc_tools_version)
 
 AC_CONFIG_SUBDIRS($config_subdirs)
 AC_OUTPUT($output_files)

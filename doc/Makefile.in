@@ -1,6 +1,6 @@
 # Makefile for prc-tools documentation.
 #
-# Copyright 2001, 2002 John Marshall.
+# Copyright 2001, 2002, 2003 John Marshall.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 palmdev_prefix = @palmdev_prefix@
 infodir = @infodir@
+mandir = @mandir@
 htmldir = @htmldocs_prefix@
 
 INSTALL = @INSTALL@
@@ -27,13 +28,15 @@ MAKEINFOFLAGS =
 MAKEHTML = @TEXI2HTML@
 MAKEHTMLFLAGS = -split node
 
-all: info @htmldocs_enabled@
+all: info @manpages_enabled@ @htmldocs_enabled@
 
 info: prc-tools.info
 
+man: build-prc.1 palmdev-prep.1
+
 html: prc-tools.html index.html index.texi.html
 
-install: install-info @install_htmldocs_enabled@
+install: install-info @install_manpages_enabled@ @install_htmldocs_enabled@
 
 install-info: info
 	$(INSTALL) -d $(infodir)
@@ -47,6 +50,11 @@ install-info: info
 	  else true; fi; \
 	else true; fi
 
+install-man: man
+	$(INSTALL) -d $(mandir)/man1
+	$(INSTALL_DATA) build-prc.1 $(mandir)/man1/build-prc.1
+	$(INSTALL_DATA) palmdev-prep.1 $(mandir)/man1/palmdev-prep.1
+
 install-html: html
 	$(INSTALL) -d $(htmldir)
 	$(INSTALL_DATA) index.texi.html $(htmldir)/index.html
@@ -56,7 +64,7 @@ install-html: html
 	  $(INSTALL_DATA) $$f $(htmldir)/texi/$$f; \
 	done
 
-.PHONY: all info html install install-info install-html clean
+.PHONY: all info man html install install-info install-man install-html clean
 
 
 prc-tools.info: prc-tools.texi build-prc.texi palmdev-prep.texi version.texi
@@ -72,6 +80,24 @@ prc-tools.ps: prc-tools.dvi
 prc-tools.html: prc-tools.texi build-prc.texi palmdev-prep.texi version.texi
 	-@rm -f prc-tools[_.]*html
 	$(MAKEHTML) $(MAKEHTMLFLAGS) -I $(srcdir) $(srcdir)/prc-tools.texi
+
+.SUFFIXES: .texi .1
+
+MAKEPOD = perl $(srcdir)/../binutils/etc/texi2pod.pl
+
+POD2MAN = perl -e '\
+  use Pod::Man ();							\
+  my ($$release, $$date) =						\
+    split /\n/, `makeinfo -Dshowversion --no-headers version.texi`;	\
+  $$_ = shift; s/\..*//; y/a-z/A-Z/;					\
+  Pod::Man->new (name => $$_, section => 1, center => "User Commands",	\
+    release => $$release, date => $$date)->parse_from_filehandle;'
+
+.texi.1:
+	$(MAKEPOD) -D`basename $< .texi` $< | $(POD2MAN) $@ > $@
+
+build-prc.1: build-prc.texi version.texi
+palmdev-prep.1: palmdev-prep.texi version.texi
 
 # We also generate HTML copies of the various tools' user manuals.  Since
 # they don't all (yet) provide HTML documentation targets in their makefiles,
@@ -146,7 +172,7 @@ html-subtargets:
 
 
 clean:
-	-rm -f prc-tools.info*
+	-rm -f prc-tools.info* *.1
 	-rm -f *.aux *.log *.toc *.fn *.vr *.cp *.pg *.ky *.tp *.cps *.fns
 	-rm -f prc-tools.dvi prc-tools.ps
 	-rm -f html-subtargets *.html

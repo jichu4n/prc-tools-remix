@@ -5,3 +5,9 @@
 @set updatedfull  3 @value{updatedmonth}
 
 @set version @prc_tools_version@
+
+@c Use "makeinfo -Dshowversion --no-headers" to print out the version data.
+@ifset showversion
+prc-tools @value{version}
+@*@value{updatedmonth}
+@end ifset
