@@ -437,20 +437,6 @@ stack (unsigned long stack_size) {
   }
 
 static void
-trap (unsigned int resid, unsigned int vector, const char* fname) {
-  Datablock res (2);
-  unsigned char* s = res.writable_contents();
-  put_word (s, vector);
-  add_resource (deffname, ResKey ("trap", resid), res);
-
-  if (fname) {
-
-    }
-  else {
-    }
-  }
-
-static void
 version_resource (unsigned long resid, const char* text) {
   // tver resources are null-terminated
   long size = strlen (text) + 1;
@@ -683,7 +669,6 @@ main (int argc, char** argv) {
     def_funcs.multicode_section = multicode_section;
     def_funcs.data = data;
     def_funcs.stack = stack;
-    def_funcs.trap = trap;
     def_funcs.version_resource = version_resource;
     deffname = argv[optind++];
     read_def_file (deffname, &def_funcs);

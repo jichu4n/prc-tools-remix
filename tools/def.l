@@ -145,7 +145,6 @@ database		return DATABASE;
 code			return CODE;
 data			return DATA;
 
-trap			return TRAP;
 multiple		return MULTIPLE;
 export			return EXPORT;
 stack			return STACK;

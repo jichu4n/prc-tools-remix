@@ -56,17 +56,15 @@ extern int lexer_lineno ();
 void yyerror (char *s);
 
 static char *standard_db_type (enum database_kind kind);
-static unsigned long lookup_trapno (const char *name);
 %}
 
 %union {
   unsigned long uint;
   char *str;
   enum database_kind kind;
-  struct { unsigned int vector; char *fname; } trap;
   }
 
-%token	MULTIPLE CODE DATA TRAP EXPORT STACK
+%token	MULTIPLE CODE DATA EXPORT STACK
 %token	VERSION MODNO
 %token	READONLY APPINFO_DIRTY BACKUP OK_TO_INSTALL_NEWER RESET_AFTER_INSTALL
 %token	COPY_PREVENTION STREAM HIDDEN LAUNCHABLE_DATA RECYCLABLE BUNDLE
@@ -76,9 +74,8 @@ static unsigned long lookup_trapno (const char *name);
 %token	<kind>	APPLICATION GLIB SYSLIB HACK DATABASE
 
 %type	<kind>	project_kind specific_db_kind
-%type	<uint>	trap_vector trap_list resource_number
+%type	<uint>	resource_number
 %type	<str>	str_or_file
-%type	<trap>	trap
 
 %%
 
@@ -137,31 +134,9 @@ def_list:
 	;
 
 def:
-	  trap_def
-	| version_def
+	  version_def
 	| multiple_code_def
 	| export_def
-	;
-
-trap_def:
-	  TRAP '{' trap_list '}'
-	;
-
-trap_list:
-	  /* empty */		{ $$ = 1000; }
-	| trap_list trap	{ call->trap ($1, $2.vector, $2.fname);
-				  $$ = $1 + 1; }
-	;
-
-trap:
-	  trap_vector	{ $$.vector = $1; $$.fname = NULL; }
-	| trap_vector FNAME
-			{ $$.vector = $1; $$.fname = $2; }
-	;
-
-trap_vector:
-	  UINT		{ $$ = $1; }
-	| STR		{ $$ = lookup_trapno ($1); }
 	;
 
 version_def:
@@ -229,47 +204,10 @@ standard_db_type (enum database_kind kind) {
 
 struct string_store *lexer_store = NULL;
 
-static char *trapno_text = NULL;
-
-static unsigned long
-lookup_trapno (const char *name) {
-  static int trapfile_missing = 0;
-
-  char *record;
-  int namelen;
-
-#if 0
-/* The configury involved in finding the TRAPNO_FNAME has changed
-   significantly.  We'll reenable this stuff and do it right when we
-   implement HACK support in .def files, i.e., when it'll be useful.  */
-  if (trapno_text == NULL && !trapfile_missing) {
-    long length;
-    if ((trapno_text = slurp_file (TRAPNO_FNAME, "r", &length)) == NULL) {
-      error ("can't open config file '%s': @P", TRAPNO_FNAME);
-      trapfile_missing = 1;
-      }
-    }
-#endif
-
-  if (trapfile_missing)
-    return 0;
-
-  namelen = strlen (name);
-  for (record = trapno_text+1; (record = strstr (record, name)); record++)
-    if (record[-1] == '<' && record[namelen] == '>')
-      return strtoul (&record[namelen+1], NULL, 0);
-
-  error ("[%s:%d] unknown systrap '%s'", parser_fname, lexer_lineno (), name);
-  return 0;
-  }
-
-
 static void
 cleanup () {
   free_string_store (lexer_store);
-  free (trapno_text);
   }
-
 
 void
 read_def_file (const char *fname, const struct def_callbacks *callbacks) {
@@ -296,9 +234,6 @@ read_def_file (const char *fname, const struct def_callbacks *callbacks) {
 static void default_i (int i UNUSED_PARAM) {}
 static void default_str (const char *s UNUSED_PARAM) {}
 static void default_ul (unsigned long ul UNUSED_PARAM) {}
-static void default_ui_ui_str (unsigned int ui1 UNUSED_PARAM,
-			       unsigned int ui2 UNUSED_PARAM,
-			       const char *s UNUSED_PARAM) {}
 static void default_kind_dh (enum database_kind k UNUSED_PARAM,
 			     const struct database_header *h UNUSED_PARAM) {}
 static void default_ul_str (unsigned long ul UNUSED_PARAM,
@@ -308,7 +243,6 @@ struct def_callbacks default_def_callbacks = {
   default_kind_dh,
   default_str,
   default_str,
-  default_ui_ui_str,
   default_i,
   default_ul,
   default_ul_str
