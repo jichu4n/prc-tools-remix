@@ -24,7 +24,7 @@ AutoReqProv: no
 %ifnos cygwin
 %define prefix /usr/local
 %define exec_prefix %{prefix}
-%define palmdev_prefix /usr/local/palmdev
+%define palmdev_prefix /opt/palmdev
 %define exeext %{nil}
 %else
 %define prefix /prc-tools
@@ -93,7 +93,9 @@ cd $RPM_BUILD_DIR/build-prc-tools
   --prefix=%{prefix} --exec-prefix=%{exec_prefix} \
   --with-headers=$RPM_BUILD_DIR/build-prc-tools/empty \
   --without-shared-libstdcxx-for-tools \
-  --palmdev-prefix=%{palmdev_prefix}
+  --with-build-sdk=-palmos \
+  --with-palmdev-prefix=%{palmdev_prefix} \
+  --with-palmdev-extra-path=/usr/local/palmdev
 
 cd $RPM_BUILD_DIR/build-prc-tools/doc
 make html
