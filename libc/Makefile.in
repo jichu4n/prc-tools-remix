@@ -130,6 +130,9 @@ abs.o labs.o llabs.o: abs.c ../include/stdlib.h
 div.o ldiv.o lldiv.o: division.c ../include/stdlib.h
 	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/division.c
 
+memcpy.o memset.o: memstring.c ../include/string.h
+	$(CC) $(CFLAGS) -c -o $@ -DL`basename $@ .o` $(srcdir)/memstring.c
+
 conio.o: conio.c include/stdio.h $(bootstrap_h) ../bootstrap/bootstrap-ui.h
 
 
