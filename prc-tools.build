@@ -61,8 +61,8 @@ cp -p README COPYING $DESTDIR$docdir
 : ${bindir:=$exec_prefix/bin} ${libdir:=$exec_prefix/lib}
 : ${mandir:=$prefix/man} ${infodir:=$prefix/info} ${datadir:=$prefix/share}
 
-(cd $DESTDIR$bindir  && rm -f *-cpp *-gcc-* *-gcov *-gccbug)
-(cd $DESTDIR$libdir  && rm -f ../*/bin/[cg]++)
+(cd $DESTDIR$bindir  && rm -f *-cpp* *-gcc-* *-gcov* *-gccbug*)
+(cd $DESTDIR$libdir  && rm -f ../*/bin/[cg]++*)
 (cd $DESTDIR$libdir  && rm -rf gcc-lib/*/*/install-tools)
 
 strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/*/bin/*
