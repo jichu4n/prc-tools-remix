@@ -59,11 +59,16 @@ rm -rf $DESTDIR $DESTDIR-htmldocs
 mkdir -p $DESTDIR$docdir
 cp -p README COPYING $DESTDIR$docdir
 
-#package
-: ${PKGBASE:=`pwd`/prc-tools} ${PKGSHORTTAIL:=-binary} ${PKGTAIL:=$PKGSHORTTAIL}
+#policy
 : ${exec_prefix=$prefix}
 : ${bindir:=$exec_prefix/bin} ${libdir:=$exec_prefix/lib}
 : ${infodir:=$prefix/info}
+
+strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/$target/bin/* \
+  $DESTDIR$libdir/gcc-lib/$target/*/c*
+
+#package
+: ${PKGBASE:=`pwd`/prc-tools} ${PKGSHORTTAIL:=-binary} ${PKGTAIL:=$PKGSHORTTAIL}
 
 (cd $DESTDIR; tar cvf $PKGBASE$PKGTAIL.tar \
   `echo "
