@@ -17,7 +17,7 @@
 
 void *
 malloc (size_t size) {
-  return MemPtrNew (size);
+  return MemPtrNew (size? size : 1);
   }
 
 #endif

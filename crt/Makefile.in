@@ -77,7 +77,7 @@ sub-multilibs: mown-gp/Makefile
 	$(MAKE) MULTIFLAGS=-mown-gp `echo $(MOWN_GP_FILES) | sed 's,[^ /]*/,,g'`
 
 
-NOEXCEPTLIB_OBJS = new.o newnt.o del.o vdel.o delnt.o vdelnt.o
+NOEXCEPTLIB_OBJS = new.o vnew.o newnt.o vnewnt.o del.o vdel.o delnt.o vdelnt.o
 
 libnoexcept.a: $(NOEXCEPTLIB_OBJS)
 	-rm -f libnoexcept.a
