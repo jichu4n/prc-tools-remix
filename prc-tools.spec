@@ -18,14 +18,13 @@ NoSource: 3
 NoSource: 4
 BuildRoot: %{_tmppath}/%{name}-root
 
-%define prefix /usr/local
-%define exec_prefix %{prefix}
-%define palmdev_prefix /opt/palmdev
-%define exeext %{nil}
-
-# The target used to be `m68k-palmos-coff'.  Some people may want to leave
+# The target used to be 'm68k-palmos-coff'.  Some people may want to leave
 # it thus to avoid changing their makefiles a little bit.
 %define target m68k-palmos
+
+# This is the canonical place to look for Palm OS-related header files and
+# such on Unix-like file systems.
+%define palmdev_prefix /opt/palmdev
 
 %description
 A complete compiler tool chain for building Palm OS applications in C or C++.
@@ -60,21 +59,27 @@ mv ../make-3.77 make
 # have autoconf installed.
 touch gcc/gcc/cstamp-h.in
 
-cd $RPM_BUILD_DIR
-rm -rf build-prc-tools
-mkdir build-prc-tools
-mkdir build-prc-tools/empty
+mkdir build
+mkdir build/empty
 
 %build
 # The --with-headers bit is a nasty hack to try to make fixinc happy on
 # Solaris and simultaneously stop it from doing anything.
-cd $RPM_BUILD_DIR/build-prc-tools
-../prc-tools-%{version}/configure --target=%{target} --enable-languages=c,c++ \
-  --prefix=%{prefix} --exec-prefix=%{exec_prefix} \
-  --with-headers=$RPM_BUILD_DIR/build-prc-tools/empty \
-  --without-shared-libstdcxx-for-tools \
+cd build
+../configure \
+  --target=%{target} \
+  --enable-languages=c,c++ \
+  --with-headers=`pwd`/empty \
   --with-palmdev-prefix=%{palmdev_prefix} \
-  --with-palmdev-extra-path=/usr/local/palmdev
+  --without-shared-libstdcxx-for-tools \
+  --prefix=%{_prefix} --exec-prefix=%{_exec_prefix} \
+  --bindir=%{_bindir} --sbindir=%{_sbindir} --libexecdir=%{_libexecdir} \
+  --localstatedir=%{_localstatedir} --sharedstatedir=%{_sharedstatedir} \
+  --sysconfdir=%{_sysconfdir} --datadir=%{_datadir} \
+  --includedir=%{_includedir} --libdir=%{_libdir} \
+  --mandir=%{_mandir} --infodir=%{_infodir}
+
+make
 
 ## FIXME
 ## cd $RPM_BUILD_DIR/build-prc-tools/doc
@@ -82,12 +87,8 @@ cd $RPM_BUILD_DIR/build-prc-tools
 
 %install
 [ ${RPM_BUILD_ROOT:-/} != / ] && rm -rf $RPM_BUILD_ROOT
-# Yes, we really are doing most of the build in the install script.  This is
-# because we need binutils installed before we can build GCC, and we need GCC
-# installed before we can build the target crt and lib stuff.  Probably we'll
-# eventually tidy this up and do a proper unified binutils/gcc tree thing.
-cd $RPM_BUILD_DIR/build-prc-tools
-make all-install
+cd build
+%makeinstall
 
 ## FIXME
 ## cd $RPM_BUILD_DIR/build-prc-tools/doc
