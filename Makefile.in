@@ -18,8 +18,6 @@ subdirs = @all_extant_subdirs@
 all: $(subdirs)
 
 .PHONY: all install clean
-.PHONY: crt doc include libc libm tools
-.PHONY: binutils real-binutils gcc real-gcc gdb make
 
 BUILT_AS = binutils/gas/as-new$(exeext)
 BUILT_LD = binutils/ld/ld-new$(exeext)
@@ -39,6 +37,9 @@ targetlib_flags = @targetlib_flags@
 
 SDKFLAGS = -DBOOTSTRAP -I$${abssrcdir}/bootstrap \
 	   -specs=$${abssrcdir}/bootstrap/bootstrap-specs -palmos-none
+
+.PHONY: crt doc include libc libm tools
+.PHONY: binutils real-binutils gcc real-gcc gdb make
 
 binutils: binutils.stamp
 
