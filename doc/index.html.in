@@ -39,8 +39,7 @@ The remainder are the user manuals for the various
 The tools described in these manuals can be configured for use with
 several different targets.  Historically, prc-tools was configured for
 <code>m68k-palmos-coff</code>; nowadays it is normally configured for
-<code>m68k-palmos</code>.  In the future, <code>arm-palmos</code> will
-be a typical configuration too.
+<code>m68k-palmos</code> and <code>arm-palmos</code>.
 
 <p>
 These manuals refer to the tools they describe using their generic
