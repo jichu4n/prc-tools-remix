@@ -56,8 +56,8 @@ LIBC_OBJS_m68k = \
 	tolower.o toupper.o \
 	malloc.o free.o realloc.o calloc.o \
 	abs.o labs.o llabs.o div.o ldiv.o lldiv.o \
-	memcmp.o strnlen.o strtol.o \
-	memcpy.o strcat.o strlen.o strpbrk.o strtoul.o \
+	memcmp.o strnlen.o \
+	memcpy.o strcat.o strlen.o strpbrk.o \
 	abort.o atexit.o bzero.o
 
 LIBG_OBJS_m68k =

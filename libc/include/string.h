@@ -45,9 +45,6 @@ extern size_t strnlen(const char *,size_t);
 extern size_t strspn(const char *,const char *);
 extern int strcmp(const char *,const char *);
 extern int strncmp(const char *,const char *,size_t);
-extern unsigned long strtoul(const char *cp,char **endp,unsigned int base);
-
-extern signed long strtol(const char *cp,char **endp,unsigned int base);
 extern int intodec(char * dest,signed int arg,unsigned short places,unsigned int base);
 
 extern void * memmove(void *,const void *,size_t);
