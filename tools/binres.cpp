@@ -57,7 +57,7 @@
    can report read errors just once, here, instead of in every caller.  */
 
 static bool
-get_section_contents (bfd *abfd, asection* sec,
+get_section_contents (bfd* abfd, asection* sec,
 		      void* buffer, file_ptr offset, bfd_size_type count) {
   bool success = bfd_get_section_contents (abfd, sec, buffer, offset, count);
   if (! success)
