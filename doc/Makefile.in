@@ -28,13 +28,9 @@ MAKEINFOFLAGS =
 MAKEHTML = texi2html
 MAKEHTMLFLAGS = -D USERMANUALONLY -split node
 
-all:
+all: prc-tools.info
 
-install:
-
-info: prc-tools.info
-
-install-info: info
+install: all
 	$(INSTALL) -d $(infodir)
 	rm -f $(infodir)/prc-tools.info*
 	for f in prc-tools.info*; do \
