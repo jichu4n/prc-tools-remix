@@ -5,7 +5,7 @@
 @c @footnotestyle separate
 
 @set update-month June 2002
-@set update-date 11 @value{update-month}
+@set update-date 13 @value{update-month}
 @set prc-tools-version 2.1.90
 
 @c %**end of header
@@ -339,6 +339,19 @@ all typedeffed appropriately.
 @item
 The macro @code{SDK_VERSION} is defined to one of 10, 20, 30, 31, 35, 40,
 and so on, indicating the SDK version which is in use.
+@end itemize
+
+@subsection Standalone.h
+
+@findex @file{Standalone.h}
+
+Including @file{Standalone.h} provides the macros listed below, which
+facilitate building stand-alone code resources. @xref{Stand-alone code}.
+
+@itemize @w{}
+@item @code{STANDALONE_CODE_RESOURCE_ID (@var{res_id})}
+@item @code{STANDALONE_CODE_RESOURCE_TYPE_ID (@var{res_type}, @var{res_id})}
+@item @code{HACKMASTER_TRAP (@var{vector})}
 @end itemize
 
 
@@ -964,9 +977,89 @@ library projects in the sample code collection.)
 
 
 @node Stand-alone code
-@section Stand-alone code
+@section Stand-alone code resources
 
-FIXME
+@cindex Stand-alone code resource
+@cindex HackMaster hacks
+@cindex Section, @code{.disposn}
+@cindex Section, @code{.trap}
+@cindex ARMlet
+
+Normally build-prc processes a bfd executable as a full-blown executable,
+converting its @code{.data}, @code{.bss}, and @code{.text} and any other
+code sections into the corresponding Palm OS resources, as appropriate.
+
+However if the bfd executable contains certain sections that are special
+to build-prc, its @code{.text} section will be converted into a stand-alone
+code resource instead, and the other sections listed above will be
+discarded (producing warnings) if present.
+
+These ``special sections'' are @code{.disposn} (which is an abbreviation of
+@emph{disposition}) and @code{.trap}.  They are interpreted as follows:
+
+@itemize @bullet
+@item
+The first two bytes of a @code{.disposn} section, if present, specify the
+generated resource's @sc{id}, while (if the section is at least six bytes in
+length) the next four bytes specify its type.  If the @code{.disposn} section
+is only two bytes in length, the generated resource's type will be a suitable
+default dependent on the architecture of the bfd executable: @code{code} for
+68000 or @code{armc} for @sc{arm}.
+
+@item
+The first two bytes of a @code{.trap} section, if present, are converted
+into a @code{TRAP} resource.  If a @code{.disposn} section is also present,
+the @code{TRAP} resource will have the @sc{id} specified by that section;
+otherwise (when the project definition file specifies the Hack project kind),
+@code{TRAP} and @code{code} resources converted from successive bfd executables
+are numbered consecutively from 1000.
+@end itemize
+
+@noindent
+Note that these two-byte integer fields are interpreted according to the
+native endianness of the bfd executable in which they occur.
+
+@subheading Producing a stand-alone code resource
+
+There is nothing special about compiling code that is to become stand-alone,
+other than that you must not use global data or any extra code resources,
+because stand-alone code, by definition, cannot have such things.
+
+There are considerations at link time, related to the lack of startup code:
+
+@itemize @bullet
+@item
+Stand-alone code needs to be called directly; in particular, the startup code
+for a Palm OS application or GLib shared library is certainly not appropriate.
+Hence you should link using GCC's @code{-nostartfiles} option (@pxref{Link
+Options, options, Options for Linking, gcc, Using and Porting GCC}).
+
+@item
+If the bfd executable's @emph{entry point} is not at offset 0 within its
+@code{.text} section, build-prc will insert an appropriate jump instruction
+at the start of the generated code resource.  Thus a stand-alone code resource
+can always be jumped to by jumping to its beginning.
+
+You specify the entry point at link time:  in short, it is a function named
+@code{start()} by default, or you can set it with the @code{-e} option
+(@pxref{Entry Point, entry point, Setting the entry point, ld, Using ld}).
+@end itemize
+
+You can easily set up the special sections marking your code as stand-alone
+by using the following macros, provided in @file{Standalone.h}:
+
+@table @code
+@item STANDALONE_CODE_RESOURCE_ID (@var{id})
+@itemx STANDALONE_CODE_RESOURCE_TYPE_ID (@var{type}, @var{id})
+Mark the executable as a stand-alone code resource, of type @var{type}
+(or a suitable default for the first form) and @sc{id} @var{id}.
+
+@item HACKMASTER_TRAP (@var{vector})
+Mark the executable as a stand-alone code resource, and add a @code{TRAP}
+resource containing @var{vector}, which may be any C constant expression,
+for example, a numeric constant or even a @code{sysTrap@var{foo}} constant
+as defined in a Palm OS SDK's @file{CoreTraps.h}.
+@end table
 
 
 @node Definition files
@@ -975,8 +1068,8 @@ FIXME
 A project may optionally contain a definition file, which is read by
 @code{build-prc} and also by several other utilities.  This file is
 used to specify various miscellaneous properties of the project, such
-as database header flags, names of multiple sections, exported library
-functions, and vectors of systraps to be hacked.
+as database header flags, names of multiple sections, and exported library
+functions.
 
 @section General syntax
 
@@ -1068,9 +1161,10 @@ warning rather than being converted, unless you also use the @code{data}
 miscellaneous flag.
 
 @item hack
-Build a HackMaster hack, with a default type of @code{HACK}.  Code
-sections in bfd executables are processed according to trap clauses,
-and any data sections elicit warnings from build-prc.
+Build a HackMaster hack, with a default type of @code{HACK}.  All bfd
+executables given should be marked as stand-alone code sections, and any
+data sections or extra code sections present will elicit warnings from
+build-prc (@pxref{Stand-alone code}).
 
 @item database
 This implies no special handling of the bfd executable, and so builds a
@@ -1152,26 +1246,6 @@ between releases of your library, it is important to avoid changing the
 ordinal positions of function names.  For example, new functions being added
 to an existing library should be added at the end of the export clause, after
 the existing functions names.
-
-
-@section Listing HackMaster trap patches
-
-This clause is yet to be implemented; it will be something like
-
-@example
-trap @{ @var{vector} <@var{filename}> @dots{} @}
-@end example
-
-
-@section Adding standalone code resources
-
-This clause is yet to be implemented; it will be something like
-
-@example
-code @var{id} <@var{filename}>
-@end example
-
-It may be that it is better simply to list these on the command line.
 
 
 @node Debugging
@@ -1378,8 +1452,11 @@ resources in a resource database are copied to the output database.
 etc---is entirely ignored.)
 
 @item @var{progname}
-Files with no extensions are treated as bfd executables.  Sections from
-a bfd executable are converted to resources according to a definition
+Files with no extensions are treated as bfd executables.  If a bfd
+executable contains either a @code{.disposn} or a @code{.trap} section,
+its @code{.text} section is converted to a stand-alone code resource
+accordingly (@pxref{Stand-alone code}).  Otherwise, its code and data
+sections are converted to resources according to a definition
 file, or, if there is no definition file, as if the @code{application}
 project kind was specified.
 @end table
