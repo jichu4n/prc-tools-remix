@@ -97,12 +97,13 @@ install-wrappers:
 	|| $(INSTALL) ./g++$(exeext) ./c++$(exeext)
 	# Replace the visible drivers in $(bindir) with the wrapper
 	cd $(bindir); \
+	target_sdkfind=$(target_alias)-sdkfind$(exeext); \
 	for drv in $(DRIVER_PROGS); do \
 	  if test -f $(target_alias)-$${drv}; then \
 	    rm -f $(target_alias)-$${drv}; \
-	    ln $(target_alias)-sdkfind $(target_alias)-$${drv} \
-	    || ln -s $(target_alias)-sdkfind $(target_alias)-$${drv} \
-	    || $(INSTALL) ./${target_alias}-sdkfind ./${target_alias}-$${drv}; \
+	    ln $${target_sdkfind} $(target_alias)-$${drv} \
+	    || ln -s $${target_sdkfind} $(target_alias)-$${drv} \
+	    || $(INSTALL) ./$${target_sdkfind} ./$(target_alias)-$${drv}; \
 	  fi; \
 	done
 	# and in $(tooldir)/bin
@@ -110,9 +111,9 @@ install-wrappers:
 	for drv in $(DRIVER_PROGS); do \
 	  if test -f $${drv}; then \
 	    rm -f $${drv}; \
-	    ln sdkfind $${drv} \
-	    || ln -s sdkfind $${drv} \
-	    || $(INSTALL) ./sdkfind ./$${drv}; \
+	    ln sdkfind$(exeext) $${drv} \
+	    || ln -s sdkfind$(exeext) $${drv} \
+	    || $(INSTALL) ./sdkfind$(exeext) ./$${drv}; \
 	  fi; \
 	done
 
