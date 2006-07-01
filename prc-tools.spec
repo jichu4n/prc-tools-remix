@@ -8,7 +8,7 @@ License: GPL
 URL: http://prc-tools.sourceforge.net/
 Group: Development/Palm OS
 Source0: http://dl.sourceforge.net/prc-tools/prc-tools-%{version}.tar.gz
-Source1: ftp://ftp.gnu.org/pub/gnu/binutils/binutils-2.15.tar.bz2
+Source1: ftp://ftp.gnu.org/pub/gnu/binutils/binutils-2.16.1.tar.bz2
 Source2: ftp://gcc.gnu.org/pub/gcc/releases/gcc-3.3.1/gcc-core-3.3.1.tar.bz2
 Source3: ftp://gcc.gnu.org/pub/gcc/releases/gcc-3.3.1/gcc-g++-3.3.1.tar.bz2
 Source4: ftp://sources.redhat.com/pub/gdb/releases/gdb-5.3.tar.bz2
@@ -40,7 +40,7 @@ BuildRequires: texinfo
 
 %description
 A complete compiler tool chain for building Palm OS applications in C or C++.
-Includes (patched versions of) binutils 2.15, GCC 2.95.3, and GDB 5.3,
+Includes (patched versions of) binutils 2.16.1, GCC 2.95.3, and GDB 5.3,
 along with various post-linker tools to produce Palm OS .prc files.
 
 You will also need a Palm OS SDK and some way of creating user interface
@@ -52,7 +52,7 @@ Group: Development/Palm OS
 Requires: prc-tools >= 2.2
 %description arm
 A compiler tool chain for building Palm OS armlets in C or C++.
-Includes (patched versions of) binutils 2.15 and GCC 3.3.1, and requires
+Includes (patched versions of) binutils 2.16.1 and GCC 3.3.1, and requires
 the various post-linker tools from a corresponding prc-tools package.
 
 Note that this version of ARM prc-tools does not provide startup code or
