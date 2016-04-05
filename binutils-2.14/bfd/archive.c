@@ -121,7 +121,7 @@ DESCRIPTION
 
  Regular files with long names (or embedded spaces, for BSD variants):
  "/18             " - SVR4 style, name at offset 18 in name table.
- "#1/23           " - Long name (or embedded paces) 23 characters long,
+ "#1/23           " - Long name (or embedded spaces) 23 characters long,
 		      BSD 4.4 style, full name follows header.
 		      Implemented for reading, not writing.
  " 18             " - Long name 18 characters long, extended pseudo-BSD.
@@ -159,6 +159,22 @@ struct ar_cache {
 
 #define arch_eltdata(bfd) ((struct areltdata *) ((bfd)->arelt_data))
 #define arch_hdr(bfd) ((struct ar_hdr *)arch_eltdata(bfd)->arch_header)
+
+void
+_bfd_ar_spacepad (char *p, size_t n, const char *fmt, long val)
+{
+  static char buf[20];
+  size_t len;
+  snprintf (buf, sizeof (buf), fmt, val);
+  len = strlen (buf);
+  if (len < n)
+    {
+      memcpy (p, buf, len);
+      memset (p + len, ' ', n - len);
+    }
+  else
+    memcpy (p, buf, n);
+}
 
 static char *get_extended_arelt_filename
   PARAMS ((bfd *arch, const char *name));
@@ -1327,17 +1343,8 @@ _bfd_construct_extended_name_table (abfd, trailing_slash, tabloc, tablen)
 	      strptr[thislen + 1] = '\012';
 	    }
 	  hdr->ar_name[0] = ar_padchar (current);
-	  /* We know there will always be enough room (one of the few
-	     cases where you may safely use sprintf).  */
-	  sprintf ((hdr->ar_name) + 1, "%-d", (unsigned) (strptr - *tabloc));
-	  /* Kinda Kludgy.  We should just use the returned value of
-	     sprintf but not all implementations get this right.  */
-	  {
-	    char *temp = hdr->ar_name + 2;
-	    for (; temp < hdr->ar_name + maxname; temp++)
-	      if (*temp == '\0')
-		*temp = ' ';
-	  }
+          _bfd_ar_spacepad (hdr->ar_name + 1, maxname - 1, "%-ld",
+                            (unsigned) (strptr - *tabloc));
 	  strptr += thislen + 1;
 	  if (trailing_slash)
 	    ++strptr;
@@ -1389,7 +1396,6 @@ bfd_ar_hdr_from_filesystem (abfd, filename, member)
   struct stat status;
   struct areltdata *ared;
   struct ar_hdr *hdr;
-  char *temp, *temp1;
   bfd_size_type amt;
 
   if (member && (member->flags & BFD_IN_MEMORY) != 0)
@@ -1417,39 +1423,31 @@ bfd_ar_hdr_from_filesystem (abfd, filename, member)
   /* ar headers are space padded, not null padded!  */
   memset ((PTR) hdr, ' ', sizeof (struct ar_hdr));
 
-  strncpy (hdr->ar_fmag, ARFMAG, 2);
-
-  /* Goddamned sprintf doesn't permit MAXIMUM field lengths.  */
-  sprintf ((hdr->ar_date), "%-12ld", (long) status.st_mtime);
+  _bfd_ar_spacepad (hdr->ar_date, sizeof (hdr->ar_date), "%-12ld",
+                    (long) status.st_mtime);
 #ifdef HPUX_LARGE_AR_IDS
   /* HP has a very "special" way to handle UID/GID's with numeric values
      > 99999.  */
   if (status.st_uid > 99999)
-    hpux_uid_gid_encode (hdr->ar_gid, (long) status.st_uid);
+    hpux_uid_gid_encode (hdr->ar_uid, (long) status.st_uid);
   else
 #endif
-    sprintf ((hdr->ar_uid), "%ld", (long) status.st_uid);
+    _bfd_ar_spacepad (hdr->ar_uid, sizeof (hdr->ar_uid), "%ld",
+                      (long) status.st_uid);
 #ifdef HPUX_LARGE_AR_IDS
   /* HP has a very "special" way to handle UID/GID's with numeric values
      > 99999.  */
   if (status.st_gid > 99999)
-    hpux_uid_gid_encode (hdr->ar_uid, (long) status.st_gid);
+    hpux_uid_gid_encode (hdr->ar_gid, (long) status.st_gid);
   else
 #endif
-  sprintf ((hdr->ar_gid), "%ld", (long) status.st_gid);
-  sprintf ((hdr->ar_mode), "%-8o", (unsigned int) status.st_mode);
-  sprintf ((hdr->ar_size), "%-10ld", (long) status.st_size);
-  /* Correct for a lossage in sprintf whereby it null-terminates.  I cannot
-     understand how these C losers could design such a ramshackle bunch of
-     IO operations.  */
-  temp = (char *) hdr;
-  temp1 = temp + sizeof (struct ar_hdr) - 2;
-  for (; temp < temp1; temp++)
-    {
-      if (*temp == '\0')
-	*temp = ' ';
-    }
-  strncpy (hdr->ar_fmag, ARFMAG, 2);
+    _bfd_ar_spacepad (hdr->ar_gid, sizeof (hdr->ar_gid), "%ld",
+                      (long) status.st_gid);
+  _bfd_ar_spacepad (hdr->ar_mode, sizeof (hdr->ar_mode), "%-8lo",
+                    (unsigned int) status.st_mode);
+  _bfd_ar_spacepad (hdr->ar_size, sizeof (hdr->ar_size), "%-10ld",
+                    (long) status.st_size);
+  memcpy (hdr->ar_fmag, ARFMAG, 2);
   ared->parsed_size = status.st_size;
   ared->arch_header = (char *) hdr;
 
@@ -1685,7 +1683,6 @@ _bfd_write_archive_contents (arch)
   /* If no .o's, don't bother to make a map.  */
   bfd_boolean hasobjects = FALSE;
   bfd_size_type wrote;
-  unsigned int i;
   int tries;
 
   /* Verify the viability of all entries; if any of them live in the
@@ -1751,15 +1748,12 @@ _bfd_write_archive_contents (arch)
     {
       struct ar_hdr hdr;
 
-      memset ((char *) (&hdr), 0, sizeof (struct ar_hdr));
-      strcpy (hdr.ar_name, ename);
+      memset (&hdr, ' ', sizeof (struct ar_hdr));
+      memcpy (hdr.ar_name, ename, strlen (ename));
       /* Round size up to even number in archive header.  */
-      sprintf (&(hdr.ar_size[0]), "%-10d",
-	       (int) ((elength + 1) & ~(bfd_size_type) 1));
-      strncpy (hdr.ar_fmag, ARFMAG, 2);
-      for (i = 0; i < sizeof (struct ar_hdr); i++)
-	if (((char *) (&hdr))[i] == '\0')
-	  (((char *) (&hdr))[i]) = ' ';
+      _bfd_ar_spacepad (hdr.ar_size, sizeof (hdr.ar_size), "%-10ld",
+                        (int) ((elength + 1) & ~(bfd_size_type) 1));
+      memcpy (hdr.ar_fmag, ARFMAG, 2);
       if ((bfd_bwrite ((PTR) &hdr, (bfd_size_type) sizeof (struct ar_hdr), arch)
 	   != sizeof (struct ar_hdr))
 	  || bfd_bwrite (etable, elength, arch) != elength)
@@ -1996,25 +1990,22 @@ bsd_write_armap (arch, elength, map, orl_count, stridx)
   unsigned int count;
   struct ar_hdr hdr;
   struct stat statbuf;
-  unsigned int i;
 
   firstreal = mapsize + elength + sizeof (struct ar_hdr) + SARMAG;
 
   stat (arch->filename, &statbuf);
-  memset ((char *) (&hdr), 0, sizeof (struct ar_hdr));
-  sprintf (hdr.ar_name, RANLIBMAG);
+  memset (&hdr, ' ', sizeof (struct ar_hdr));
+  memcpy (hdr.ar_name, RANLIBMAG, strlen (RANLIBMAG));
   /* Remember the timestamp, to keep it holy.  But fudge it a little.  */
   bfd_ardata (arch)->armap_timestamp = statbuf.st_mtime + ARMAP_TIME_OFFSET;
   bfd_ardata (arch)->armap_datepos = (SARMAG
 				      + offsetof (struct ar_hdr, ar_date[0]));
-  sprintf (hdr.ar_date, "%ld", bfd_ardata (arch)->armap_timestamp);
-  sprintf (hdr.ar_uid, "%ld", (long) getuid ());
-  sprintf (hdr.ar_gid, "%ld", (long) getgid ());
-  sprintf (hdr.ar_size, "%-10d", (int) mapsize);
-  strncpy (hdr.ar_fmag, ARFMAG, 2);
-  for (i = 0; i < sizeof (struct ar_hdr); i++)
-    if (((char *) (&hdr))[i] == '\0')
-      (((char *) (&hdr))[i]) = ' ';
+  _bfd_ar_spacepad (hdr.ar_date, sizeof (hdr.ar_date), "%ld",
+                    bfd_ardata (arch)->armap_timestamp);
+  _bfd_ar_spacepad (hdr.ar_uid, sizeof (hdr.ar_uid), "%ld", (long) getuid ());
+  _bfd_ar_spacepad (hdr.ar_gid, sizeof (hdr.ar_gid), "%ld", (long) getgid ());
+  _bfd_ar_spacepad (hdr.ar_size, sizeof (hdr.ar_size), "%-10ld", (int) mapsize);
+  memcpy (hdr.ar_fmag, ARFMAG, 2);
   if (bfd_bwrite ((PTR) &hdr, (bfd_size_type) sizeof (struct ar_hdr), arch)
       != sizeof (struct ar_hdr))
     return FALSE;
@@ -2080,7 +2071,6 @@ _bfd_archive_bsd_update_armap_timestamp (arch)
 {
   struct stat archstat;
   struct ar_hdr hdr;
-  unsigned int i;
 
   /* Flush writes, get last-write timestamp from file, and compare it
      to the timestamp IN the file.  */
@@ -2100,11 +2090,9 @@ _bfd_archive_bsd_update_armap_timestamp (arch)
   bfd_ardata (arch)->armap_timestamp = archstat.st_mtime + ARMAP_TIME_OFFSET;
 
   /* Prepare an ASCII version suitable for writing.  */
-  memset (hdr.ar_date, 0, sizeof (hdr.ar_date));
-  sprintf (hdr.ar_date, "%ld", bfd_ardata (arch)->armap_timestamp);
-  for (i = 0; i < sizeof (hdr.ar_date); i++)
-    if (hdr.ar_date[i] == '\0')
-      (hdr.ar_date)[i] = ' ';
+  memset (hdr.ar_date, ' ', sizeof (hdr.ar_date));
+  _bfd_ar_spacepad (hdr.ar_date, sizeof (hdr.ar_date), "%ld",
+                    bfd_ardata (arch)->armap_timestamp);
 
   /* Write it into the file.  */
   bfd_ardata (arch)->armap_datepos = (SARMAG
@@ -2154,7 +2142,6 @@ coff_write_armap (arch, elength, map, symbol_count, stridx)
   bfd *current = arch->archive_head;
   unsigned int count;
   struct ar_hdr hdr;
-  unsigned int i;
   int padit = mapsize & 1;
 
   if (padit)
@@ -2166,19 +2153,17 @@ coff_write_armap (arch, elength, map, symbol_count, stridx)
 			     + sizeof (struct ar_hdr)
 			     + SARMAG);
 
-  memset ((char *) (&hdr), 0, sizeof (struct ar_hdr));
+  memset (&hdr, ' ', sizeof (struct ar_hdr));
   hdr.ar_name[0] = '/';
-  sprintf (hdr.ar_size, "%-10d", (int) mapsize);
-  sprintf (hdr.ar_date, "%ld", (long) time (NULL));
+  _bfd_ar_spacepad (hdr.ar_size, sizeof (hdr.ar_size), "%-10ld",
+                    (int) mapsize);
+  _bfd_ar_spacepad (hdr.ar_date, sizeof (hdr.ar_date), "%ld",
+                    (long) time (NULL));
   /* This, at least, is what Intel coff sets the values to.  */
-  sprintf ((hdr.ar_uid), "%d", 0);
-  sprintf ((hdr.ar_gid), "%d", 0);
-  sprintf ((hdr.ar_mode), "%-7o", (unsigned) 0);
-  strncpy (hdr.ar_fmag, ARFMAG, 2);
-
-  for (i = 0; i < sizeof (struct ar_hdr); i++)
-    if (((char *) (&hdr))[i] == '\0')
-      (((char *) (&hdr))[i]) = ' ';
+  _bfd_ar_spacepad (hdr.ar_uid, sizeof (hdr.ar_uid), "%ld", 0);
+  _bfd_ar_spacepad (hdr.ar_gid, sizeof (hdr.ar_gid), "%ld", 0);
+  _bfd_ar_spacepad (hdr.ar_mode, sizeof (hdr.ar_mode), "%-7lo", 0);
+  memcpy (hdr.ar_fmag, ARFMAG, 2);
 
   /* Write the ar header for this item and the number of symbols.  */
 

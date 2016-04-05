@@ -177,6 +177,9 @@ extern PTR _bfd_generic_read_ar_hdr
 extern PTR _bfd_generic_read_ar_hdr_mag
   PARAMS ((bfd *, const char *));
 
+extern void _bfd_ar_spacepad
+  PARAMS ((char *, size_t, const char *, long));
+
 bfd * bfd_generic_openr_next_archived_file
   PARAMS ((bfd *archive, bfd *last_file));
 
