@@ -36,17 +36,17 @@ if test "x$cross_compiling" = "xno"; then
   EXEEXT_FOR_BUILD='$(EXEEXT)'
 else
   AC_CACHE_CHECK([for build system executable suffix], bfd_cv_build_exeext,
-    [rm -f conftest*
+    [rm -rf conftest*
      echo 'int main () { return 0; }' > conftest.c
      bfd_cv_build_exeext=
      ${CC_FOR_BUILD} -o conftest conftest.c 1>&5 2>&5
      for file in conftest.*; do
        case $file in
-       *.c | *.o | *.obj | *.ilk | *.pdb) ;;
+       *.c | *.o | *.obj | *.ilk | *.pdb | *.dSYM) ;;
        *) bfd_cv_build_exeext=`echo $file | sed -e s/conftest//` ;;
        esac
      done
-     rm -f conftest*
+     rm -rf conftest*
      test x"${bfd_cv_build_exeext}" = x && bfd_cv_build_exeext=no])
   EXEEXT_FOR_BUILD=""
   test x"${bfd_cv_build_exeext}" != xno && EXEEXT_FOR_BUILD=${bfd_cv_build_exeext}
