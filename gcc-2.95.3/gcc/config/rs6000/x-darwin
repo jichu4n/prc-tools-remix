@@ -1,0 +1,4 @@
+# configuration for PowerPC running Darwin (Mac OS X)
+
+# Show we need to use the C version of ALLOCA
+ALLOCA=alloca.o

@@ -4,15 +4,21 @@
 @c @setfilename usegcc.info
 @c @setfilename portgcc.info
 @c To produce the full manual, use the "gcc.info" setfilename, and
-@c make sure the following do NOT begin with '@c' (and the @clear lines DO)
+@c make sure that the following DO begin with '@c'.
+@c @set USERMANUALONLY
+@c @set PORTERMANUALONLY
+@c To produce a user-only or a porter-only manual, use the appropriate
+@c setfilename, and uncomment one of the above lines, or use a `-D' or
+@c similar command line option.
+
 @set INTERNALS
 @set USING
-@c To produce a user-only manual, use the "usegcc.info" setfilename, and
-@c make sure the following does NOT begin with '@c':
-@c @clear INTERNALS
-@c To produce a porter-only manual, use the "portgcc.info" setfilename,
-@c and make sure the following does NOT begin with '@c':
-@c @clear USING
+@ifset USERMANUALONLY
+@clear INTERNALS
+@end ifset
+@ifset PORTERMANUALONLY
+@clear USING
+@end ifset
 
 @c (For FSF printing, turn on smallbook, comment out finalout below;
 @c that is all that is needed.)
@@ -4031,6 +4037,7 @@ compilation.
 @item INSTALL
 The install program to use.
 @end table
+@end ifset
 
 @node Funding
 @unnumbered Funding Free Software
@@ -4762,12 +4769,6 @@ port.
 
 @node Index
 @unnumbered Index
-@end ifset
-
-@ifclear INTERNALS
-@node Index
-@unnumbered Index
-@end ifclear
 
 @printindex cp
 

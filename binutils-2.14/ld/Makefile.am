@@ -125,6 +125,7 @@ ALL_EMULATIONS = \
 	earmelf_oabi.o \
 	earmnto.o \
 	earmnbsd.o \
+	earmpalmos.o \
 	earmpe.o \
 	eavr1200.o \
 	eavr23xx.o \
@@ -242,6 +243,7 @@ ALL_EMULATIONS = \
 	em68klinux.o \
 	em68klynx.o \
 	em68knbsd.o \
+	em68kpalmos.o \
 	em68kpsos.o \
 	em88kbcs.o \
 	emcorepe.o \
@@ -502,6 +504,9 @@ earm_epoc_pe.c: $(srcdir)/emulparams/arm_epoc_pe.sh \
 earmpe.c: $(srcdir)/emulparams/armpe.sh \
   $(srcdir)/emultempl/pe.em $(srcdir)/scripttempl/pe.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} armpe "$(tdir_armpe)"
+earmpalmos.c: $(srcdir)/emulparams/armpalmos.sh $(srcdir)/emulparams/armelf.sh \
+  $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/armpalmos.sc ${GEN_DEPENDS}
+	${GENSCRIPTS} armpalmos "$(tdir_armpalmos)"
 eavr85xx.c: $(srcdir)/emulparams/avr85xx.sh \
   $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/elf32avr.sc \
   ${GEN_DEPENDS}
@@ -981,6 +986,9 @@ em68klynx.c: $(srcdir)/emulparams/m68klynx.sh \
 em68knbsd.c:	$(srcdir)/emulparams/m68knbsd.sh \
   $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/aout.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} m68knbsd "$(tdir_m68knbsd)"
+em68kpalmos.c: $(srcdir)/emulparams/m68kpalmos.sh \
+  $(srcdir)/emultempl/m68kcoff.em $(srcdir)/scripttempl/m68kpalmos.sc ${GEN_DEPENDS}
+	${GENSCRIPTS} m68kpalmos "$(tdir_m68kpalmos)"
 em68kpsos.c:	$(srcdir)/emulparams/m68kpsos.sh \
   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/psos.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} m68kpsos "$(tdir_m68kpsos)"

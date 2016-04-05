@@ -471,6 +471,10 @@ exception_section ()
 #endif
 }
 
+#ifdef RECALL_CONSTANT_NAME_SECTION_INFO
+static int first_encoding = 1;
+#endif
+
 /* Create the rtl to represent a function, for a function definition.
    DECL is a FUNCTION_DECL node which describes which function.
    The rtl is stored into DECL.  */
@@ -519,6 +523,7 @@ make_function_rtl (decl)
 	 such as that it is a function name.  If the name is changed, the macro
 	 ASM_OUTPUT_LABELREF will have to know how to strip this information.  */
 #ifdef ENCODE_SECTION_INFO
+      /*printf ("JWM esi#1\n");*/
       ENCODE_SECTION_INFO (decl);
 #endif
     }
@@ -533,7 +538,8 @@ make_function_rtl (decl)
 	 decl attribute overrides another.  */
 #ifdef REDO_SECTION_INFO_P
       if (REDO_SECTION_INFO_P (decl))
-	ENCODE_SECTION_INFO (decl);
+        {/*printf ("JWM esi#2\n");*/
+	ENCODE_SECTION_INFO (decl);}
 #endif
     }
 
@@ -780,6 +786,7 @@ make_decl_rtl (decl, asmspec, top_level)
 	     If the name is changed, the macro ASM_OUTPUT_LABELREF
 	     will have to know how to strip this information.  */
 #ifdef ENCODE_SECTION_INFO
+          /*printf ("JWM esi#3\n");*/
 	  ENCODE_SECTION_INFO (decl);
 #endif
 	}
@@ -802,7 +809,8 @@ make_decl_rtl (decl, asmspec, top_level)
 	 decl attribute overrides another.  */
 #ifdef REDO_SECTION_INFO_P
       if (REDO_SECTION_INFO_P (decl))
-	ENCODE_SECTION_INFO (decl);
+	{/*printf ("JWM esi#4\n");*/
+	ENCODE_SECTION_INFO (decl);}
 #endif
     }
 }
@@ -1494,6 +1502,11 @@ assemble_variable (decl, top_level, at_end, dont_output_data)
   /* dbxout.c needs to know this.  */
   if (in_text_section ())
     DECL_IN_TEXT_SECTION (decl) = 1;
+
+#ifdef ENCODE_SECTION_INFO
+  /*printf ("JWM esi#5\n");*/
+  ENCODE_SECTION_INFO(decl);
+#endif
 
   /* Record current section so we can restore it if dbxout.c clobbers it.  */
   saved_in_section = in_section;
@@ -2929,8 +2942,7 @@ output_constant_def (exp)
 {
   register int hash;
   register struct constant_descriptor *desc;
-  char label[256];
-  char *found = 0;
+  int found = 0;
   int reloc;
   register rtx def;
 
@@ -2951,7 +2963,7 @@ output_constant_def (exp)
   for (desc = const_hash_table[hash]; desc; desc = desc->next)
     if (compare_constant (exp, desc))
       {
-	found = desc->label;
+	found = 1;
 	break;
       }
       
@@ -2961,6 +2973,8 @@ output_constant_def (exp)
 	 Make a constant descriptor to enter EXP in the hash table.
 	 Assign the label number and record it in the descriptor for
 	 future calls to this function to find.  */
+
+      char label[256];
 	  
       /* Create a string containing the label name, in LABEL.  */
       ASM_GENERATE_INTERNAL_LABEL (label, "LC", const_labelno);
@@ -2970,11 +2984,6 @@ output_constant_def (exp)
       desc->label
 	= (char *) obstack_copy0 (&permanent_obstack, label, strlen (label));
       const_hash_table[hash] = desc;
-    }
-  else
-    {
-      /* Create a string containing the label name, in LABEL.  */
-      ASM_GENERATE_INTERNAL_LABEL (label, "LC", const_labelno);
     }
   
   /* We have a symbol name; construct the SYMBOL_REF and the MEM.  */
@@ -2997,7 +3006,15 @@ output_constant_def (exp)
      such as that it is a function name.  If the name is changed, the macro
      ASM_OUTPUT_LABELREF will have to know how to strip this information.  */
 #ifdef ENCODE_SECTION_INFO
+#ifdef RECALL_CONSTANT_NAME_SECTION_INFO
+  first_encoding = !found;
+#endif
+  /*printf ("JWM esi#6\n");*/
   ENCODE_SECTION_INFO (exp);
+#ifdef RECALL_CONSTANT_NAME_SECTION_INFO
+  desc->label = XSTR (def, 0);
+  first_encoding = 1;
+#endif 
 #endif
 
   /* If this is the first time we've seen this particular constant,
@@ -3921,6 +3938,13 @@ output_constant (exp, size)
 	      || AGGREGATE_TYPE_P (TREE_TYPE (exp))))
 	 || TREE_CODE (exp) == NON_LVALUE_EXPR)
     exp = TREE_OPERAND (exp, 0);
+
+#if 0
+  /* JWM */
+  fprintf (stderr, "* output_constant (xx, %d)\n", size);
+  debug_tree (exp);
+  fprintf (stderr, "**\n");
+#endif
 
   /* Allow a constructor with no elements for any data type.
      This means to fill the space with zeros.  */

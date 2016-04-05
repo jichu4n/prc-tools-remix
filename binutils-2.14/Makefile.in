@@ -1089,7 +1089,7 @@ do-TAGS:
 .PHONY: info installcheck dvi install-info
 .PHONY: clean distclean mostlyclean maintainer-clean realclean
 .PHONY: local-clean local-distclean local-maintainer-clean
-info: do-info
+info: configure-host do-info
 installcheck: do-installcheck
 dvi: do-dvi
 

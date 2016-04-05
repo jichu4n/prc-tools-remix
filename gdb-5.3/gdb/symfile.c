@@ -1603,8 +1603,10 @@ add_symbol_file_command (char *args, int from_tty)
       val = sect_opts[i].value;
       if (val[0] == '0' && val[1] == 'x')
 	addr = strtoul (val+2, NULL, 16);
-      else
+      else if (isdigit (val[0]))
 	addr = strtoul (val, NULL, 10);
+      else
+	addr = parse_and_eval_address (val);
 
       /* Here we store the section offsets in the order they were
          entered on the command line. */

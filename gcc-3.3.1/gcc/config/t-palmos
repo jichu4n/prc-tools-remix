@@ -1,0 +1,7 @@
+# Some Palm OS-related headers can be found here, and the remainder are in
+# directories that will be found via custom specs.
+CROSS_SYSTEM_HEADER_DIR = $(datadir)/prc-tools/include
+
+# But these headers are generally not yet installed while building GCC,
+# so there's no point trying to fix them.
+STMP_FIXPROTO =

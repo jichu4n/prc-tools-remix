@@ -55,7 +55,9 @@ Boston, MA 02111-1307, USA.  */
    program understand `configure --with-gnu-libc' and omit the object files,
    it is simpler to just do this in the source for each such file.  */
 
-#if defined (_LIBC) || !defined (__GNU_LIBRARY__)
+/* [PRC-TOOLS-LOCAL] It's not a waste when you're trying to avoid the New!
+   Improved! glibc-2.2.4 fnmatch GLIBC@2.2.3 dependency.  Hack on, dude.  */
+#if defined (_LIBC) || !defined (__GNU_LIBRARY__) || 1
 
 
 #if !defined(__GNU_LIBRARY__) && !defined(STDC_HEADERS)

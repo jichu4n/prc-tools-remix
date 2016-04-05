@@ -626,6 +626,10 @@ struct internal_reloc
 #define R_LVRT16       132
 #define R_VRT32        133
 
+/* This (m68k) reloc evaluates to a 16bit offset, just like R_RELWORD, but
+   also implicitly subtracts the value of `edata', so that effectively the
+   origin is at the end of the memory region intead of the start.  */
+#define R_RELENDWORD	21
 
 /* This reloc identifies mov.b instructions with a 16bit absolute
    address.  The linker tries to turn insns with this reloc into

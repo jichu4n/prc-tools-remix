@@ -314,7 +314,12 @@ prepare_call_address (funexp, fndecl, call_fusage, reg_parm_seen)
   else
     {
 #ifndef NO_FUNCTION_CSE
+#ifdef FORBID_FUNCTION_CSE_P
+      if (optimize && ! flag_no_function_cse
+	  && ! FORBID_FUNCTION_CSE_P (funexp))
+#else
       if (optimize && ! flag_no_function_cse)
+#endif
 #ifdef NO_RECURSIVE_FUNCTION_CSE
 	if (fndecl != current_function_decl)
 #endif
@@ -2611,6 +2616,10 @@ emit_library_call VPROTO((rtx orgfun, int no_queue, enum machine_mode outmode,
   nargs = va_arg (p, int);
 #endif
 
+#ifdef PALMOS
+  SYMBOL_REF_FLAG (orgfun) = 1;
+#endif
+
   fun = orgfun;
 
   /* Copy all the libcall-arguments out of the varargs data
@@ -3108,6 +3117,10 @@ emit_library_call_value VPROTO((rtx orgfun, rtx value, int no_queue,
   no_queue = va_arg (p, int);
   outmode = va_arg (p, enum machine_mode);
   nargs = va_arg (p, int);
+#endif
+
+#ifdef PALMOS
+  SYMBOL_REF_FLAG (orgfun) = 1;
 #endif
 
   is_const = no_queue;

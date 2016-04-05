@@ -800,7 +800,10 @@ lang_decode_option (argc, argv)
 	  warn_parentheses = setting;
 	  warn_missing_braces = setting;
 	  warn_sign_compare = setting;
+#ifndef PALMOS
+	  /* @@@ JWM -Wall doesn't set this under C! */
 	  warn_multichar = setting;
+#endif
 	  /* We save the value of warn_uninitialized, since if they put
 	     -Wuninitialized on the command line, we need to generate a
 	     warning about not using it without also specifying -O.  */
@@ -2493,6 +2496,9 @@ mark_vtable_entries (decl)
       fnaddr = (flag_vtable_thunks ? TREE_VALUE (entries) 
 		: FNADDR_FROM_VTABLE_ENTRY (TREE_VALUE (entries)));
 
+      /* JWM  fprintf (stderr, "* write vtbl entry: "); */
+      /* JWM  debug_tree (fnaddr); */
+
       if (TREE_CODE (fnaddr) == NOP_EXPR)
 	/* RTTI offset.  */
 	continue;
@@ -2753,9 +2759,13 @@ finish_vtable_vardecl (t, data)
       && ! TREE_ASM_WRITTEN (vars))
     {
       /* Write it out.  */
+      /* JWM  printf ("; banana 1\n"); */
+      /* JWM  output_asm_insn ("; banana 1", NULL); */
       mark_vtable_entries (vars);
+      /* JWM  output_asm_insn ("; banana 2", NULL); */
       if (TREE_TYPE (DECL_INITIAL (vars)) == 0)
 	store_init_value (vars, DECL_INITIAL (vars));
+      /* JWM  output_asm_insn ("; banana 3", NULL); */
 
       if (write_symbols == DWARF_DEBUG || write_symbols == DWARF2_DEBUG)
 	{
@@ -2787,10 +2797,14 @@ finish_vtable_vardecl (t, data)
       if (flag_weak)
 	comdat_linkage (vars);
 
+      /* JWM  output_asm_insn ("; banana 4", NULL); */
       rest_of_decl_compilation (vars, NULL_PTR, 1, 1);
+      /* JWM  output_asm_insn ("; banana 5", NULL); */
 
       if (flag_vtable_gc)
 	output_vtable_inherit (vars);
+      /* JWM  printf ("; banana 6\n"); */
+      /* JWM  output_asm_insn ("; banana 6", NULL); */
 
       return 1;
     }

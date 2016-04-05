@@ -216,7 +216,7 @@ struct m68k_it
 	 significance of some values (in the branch instruction, for
 	 example).  */
       int pcrel_fix;
-#ifdef OBJ_ELF
+#if defined OBJ_ELF || defined COFF_RELEND_RELOC
       /* Whether this expression needs special pic relocation, and if
 	 so, which.  */
       enum pic_relocation pic_reloc;
@@ -284,7 +284,7 @@ add_fix (width, exp, pc_rel, pc_fix)
   the_ins.reloc[the_ins.nrel].exp = exp->exp;
   the_ins.reloc[the_ins.nrel].wid = width;
   the_ins.reloc[the_ins.nrel].pcrel_fix = pc_fix;
-#ifdef OBJ_ELF
+#if defined OBJ_ELF || defined COFF_RELEND_RELOC
   the_ins.reloc[the_ins.nrel].pic_reloc = exp->pic_reloc;
 #endif
   the_ins.reloc[the_ins.nrel++].pcrel = pc_rel;
@@ -692,6 +692,11 @@ short
 tc_coff_fix2rtype (fixP)
      fixS *fixP;
 {
+#ifdef COFF_RELEND_RELOC
+  if (fixP->fx_r_type != NO_RELOC)
+    return fixP->fx_r_type;
+#endif
+
   if (fixP->fx_tcbit && fixP->fx_size == 4)
     return R_RELLONG_NEG;
 #ifdef NO_PCREL_RELOCS
@@ -871,8 +876,12 @@ tc_m68k_fix_adjustable (fixP)
 }
 
 #else /* !OBJ_ELF */
-
+#ifdef COFF_RELEND_RELOC
+#define get_reloc_code(SIZE,PCREL,PIC) \
+  (((PIC) == pic_endrel && (SIZE) == 2)? R_RELENDWORD : NO_RELOC)
+#else
 #define get_reloc_code(SIZE,PCREL,OTHER) NO_RELOC
+#endif /* COFF_RELEND_RELOC */
 
 #define relaxable_symbol(symbol) 1
 

@@ -648,6 +648,9 @@ case "${targ}" in
     targ_selvecs=ieee_vec
     targ_underscore=yes
     ;;
+  m68*-*-palmos*)
+    targ_defvec=m68kcoff_vec
+    ;;
 
   m88*-harris-cxux* | m88*-*-dgux* | m88*-*-sysv4*)
     targ_defvec=bfd_elf32_m88k_vec

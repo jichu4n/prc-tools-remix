@@ -937,7 +937,7 @@ case $os in
 	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
 	      | -cygwin* | -pe* | -psos* | -moss* | -proelf* | -rtems* \
 	      | -mingw32* | -linux-gnu* | -uxpv* | -beos* | -mpeix* | -udk* \
-	      | -interix* | -uwin* )
+	      | -interix* | -uwin* | -darwin* | -palmos* )
 	# Remember, each alternative MUST END IN *, to match a version number.
 		;;
 	# EGCS LOCAL
@@ -1214,6 +1214,14 @@ case $basic_machine in
 				;;
 			-mvs*)
 				vendor=ibm
+				;;
+			-palmos*)
+				case $basic_machine in
+					m68k-*)
+						basic_machine=m68k-palmos
+						os=-coff
+						;;
+				esac
 				;;
 			-ptx*)
 				vendor=sequent

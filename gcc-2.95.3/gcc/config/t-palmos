@@ -1,0 +1,6 @@
+# Don't include "assert.h" -- we don't have enough stdio to use its functions.
+INSTALL_ASSERT_H =
+
+# Palm OS headers are generally not yet installed while building GCC,
+# so there's no point trying to fix them.
+STMP_FIXPROTO =

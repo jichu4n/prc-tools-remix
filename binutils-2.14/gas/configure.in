@@ -205,6 +205,7 @@ changequote([,])dnl
       arm-*-pe | thumb-*-pe)		fmt=coff em=pe ;;
       arm-*-riscix*)			fmt=aout em=riscix ;;
       arm-*-vxworks)			fmt=coff ;;
+      arm-*-palmos*)			fmt=elf ;;
 
       avr-*-*)				fmt=elf ;;
 
@@ -347,6 +348,7 @@ changequote([,])dnl
       m68k-*-openbsd*)			fmt=aout em=nbsd bfd_gas=yes ;;
       m68k-apple-aux*)			fmt=coff em=aux ;;
       m68k-*-psos*)			fmt=elf em=psos;;
+      m68k-*-palmos*)			fmt=coff ;;
 
       m88k-motorola-sysv3*)		fmt=coff em=delt88 ;;
       m88k-*-coff*)			fmt=coff ;;

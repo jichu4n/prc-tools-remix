@@ -25,6 +25,9 @@
 
 #define OBJ_COFF 1
 
+#define COFF_RELEND_RELOC
+#define NEED_FX_R_TYPE
+
 #ifndef BFD_ASSEMBLER
 
 #define WORKING_DOT_WORD
