@@ -1,0 +1,1719 @@
+diff -urN orig-binutils-2.14/ChangeLogs.palmos binutils-2.14/ChangeLogs.palmos
+--- orig-binutils-2.14/ChangeLogs.palmos	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/ChangeLogs.palmos	Wed May 15 17:51:52 2002
+@@ -0,0 +1,81 @@
++Collect all the changelog entries here for use on the eventual submission
++to the FSF:
++
++(Many of these log entries no longer relate to the current form of the
++patches.  But at the moment they are still of historical interest to us.)
++
++bfd/ChangeLog
++=============
++
++2002-01-09  John Marshall  <johnm@falch.net>
++
++	* cofflink.c (_bfd_coff_generic_relocate_section): Removed handling
++	of R_RELENDWORD from here...
++	* coff-m68k.c (m68kcoff_rtype_to_howto): ...handling it here instead.
++	(m68kcoff_global_data_size): New helper function.
++
++Tue Feb  1 21:54:44 2000  John Marshall  <john_w_marshall@palm.com>
++
++	* coff-m68k.c (_bfd_m68kcoff_create_embedded_relocs,
++	coff_m68k_bfd_print_private_bfd_data), emultempl/m68kcoff.em:
++	Pad the .reloc records to 12 bytes.
++	* coffcode.h (coff_new_section_hook): Don't try to change .reloc's
++	alignment.
++
++Thu Sep 24 14:24:36 1998  John Marshall  <jmarshall@acm.org>
++
++      * coff-m68k.c (m68k_rtype2howto, m68k_howto2rtype,
++      m68k_reloc_type_lookup): New reloc type R_RELENDWORD.
++      * cofflink.c (_bfd_coff_generic_relocate_section): Likewise.
++
++Sat Sep  5 14:10:23 1998  John Marshall  <jmarshall@acm.org>
++
++      * cofflink.c (_bfd_coff_generic_relocate_section): Fill in .dreloc
++      section, somewhat similarly to base file.
++
++
++gas/ChangeLog
++=============
++
++2002-01-09  John Marshall  <johnm@falch.net>
++
++	* config/obj-elf.h, config/tc-m68k.h: Reorganised the setting of
++	NEED_FX_R_TYPE and SPECIAL_PIC_RELOC (now renamed COFF_RELEND_RELOC)
++	so as to avoid touching these two files.
++
++Tue Oct 13 01:30:47 1998  John Marshall  <jmarshall@acm.org>
++
++      * config/m68k-parse.h, config/m68k-parse.y, config/tc-m68k.c: Use
++      SPECIAL_PIC_RELOC instead of OBJ_ELF to activate special PIC
++      relocation code.
++      * config/obj-elf.h, config/obj-coff.h: Define SPECIAL_PIC_RELOC.
++      * config/tc-m68k.h [SPECIAL_PIC_RELOC]: Define NEED_FX_R_TYPE.
++
++      * config/m68k-parse.h: New pic_relocation type pic_endrel.
++      * config/m68k-parse.y: Encode `symbol@END' as pic_endrel.
++
++      * config/tc-m68k.c (get_reloc_code) [SPECIAL_PIC_RELOC]: Set
++      fx_r_type if the reloc has a special pic type.
++      (tc_coff_fix2rtype) [SPECIAL_PIC_RELOC]: Use fx_r_type if set.
++
++
++include/coff/ChangeLog
++======================
++
++Sat Sep  5 21:38:15 1998  John Marshall  <jmarshall@acm.org>
++
++      * internal.h (R_RELENDWORD): Define.
++
++
++ld/ChangeLog
++============
++
++Sat Sep  5 14:10:23 1998  John Marshall  <jmarshall@acm.org>
++
++      * emultempl/m68kcoff.em: New file, based on generic.em, with a
++      custom gld${EMULATION_NAME}_after_open that creates a .dreloc
++      section for input bfds which need it, if --embedded-relocs is used.
++      * emulparams/m68kcoff.sh (TEMPLATE_NAME): Set to m68kcoff.
++      * Makefile.am (em68kcoff.c): Depend upon m68kcoff.em rather than
++      generic.em.
++      * Makefile.in (em68kcoff.c): Likewise.
+diff -urN orig-binutils-2.14/Makefile.in binutils-2.14/Makefile.in
+--- orig-binutils-2.14/Makefile.in	Thu Jun 12 16:31:31 2003
++++ binutils-2.14/Makefile.in	Wed Sep 10 23:15:12 2003
+@@ -1089,7 +1089,7 @@
+ .PHONY: info installcheck dvi install-info
+ .PHONY: clean distclean mostlyclean maintainer-clean realclean
+ .PHONY: local-clean local-distclean local-maintainer-clean
+-info: do-info
++info: configure-host do-info
+ installcheck: do-installcheck
+ dvi: do-dvi
+ 
+diff -urN orig-binutils-2.14/bfd/Makefile.am binutils-2.14/bfd/Makefile.am
+--- orig-binutils-2.14/bfd/Makefile.am	Mon Apr 21 15:24:18 2003
++++ binutils-2.14/bfd/Makefile.am	Fri May 16 01:15:43 2003
+@@ -305,6 +305,9 @@
+ 	pei-mips.lo \
+ 	peigen.lo \
+ 	ppcboot.lo \
++	prc-arm.lo \
++	prc-m68k.lo \
++	prc.lo \
+ 	reloc16.lo \
+ 	riscix.lo \
+ 	sparclinux.lo \
+@@ -467,6 +470,9 @@
+ 	pe-mips.c \
+ 	pei-mips.c \
+ 	ppcboot.c \
++	prc-arm.c \
++	prc-m68k.c \
++	prc.c \
+ 	reloc16.c \
+ 	riscix.c \
+ 	sparclinux.c \
+@@ -1465,6 +1471,9 @@
+   $(INCDIR)/coff/pe.h libcoff.h $(INCDIR)/bfdlink.h coffcode.h \
+   peicode.h libpei.h
+ ppcboot.lo: ppcboot.c $(INCDIR)/safe-ctype.h $(INCDIR)/filenames.h
++prc-arm.lo: prc-arm.c prc.h
++prc-m68k.lo: prc-m68k.c prc.h
++prc.lo: prc.c prc.h $(INCDIR)/safe-ctype.h
+ reloc16.lo: reloc16.c $(INCDIR)/filenames.h $(INCDIR)/bfdlink.h \
+   genlink.h $(INCDIR)/coff/internal.h libcoff.h
+ riscix.lo: riscix.c $(INCDIR)/filenames.h libaout.h \
+diff -urN orig-binutils-2.14/bfd/Makefile.in binutils-2.14/bfd/Makefile.in
+--- orig-binutils-2.14/bfd/Makefile.in	Fri May  2 19:06:14 2003
++++ binutils-2.14/bfd/Makefile.in	Fri May 16 01:15:43 2003
+@@ -432,6 +432,9 @@
+ 	pei-mips.lo \
+ 	peigen.lo \
+ 	ppcboot.lo \
++	prc-arm.lo \
++	prc-m68k.lo \
++	prc.lo \
+ 	reloc16.lo \
+ 	riscix.lo \
+ 	sparclinux.lo \
+@@ -595,6 +598,9 @@
+ 	pe-mips.c \
+ 	pei-mips.c \
+ 	ppcboot.c \
++	prc-arm.c \
++	prc-m68k.c \
++	prc.c \
+ 	reloc16.c \
+ 	riscix.c \
+ 	sparclinux.c \
+@@ -1998,6 +2004,9 @@
+   $(INCDIR)/coff/pe.h libcoff.h $(INCDIR)/bfdlink.h coffcode.h \
+   peicode.h libpei.h
+ ppcboot.lo: ppcboot.c $(INCDIR)/safe-ctype.h $(INCDIR)/filenames.h
++prc-arm.lo: prc-arm.c prc.h
++prc-m68k.lo: prc-m68k.c prc.h
++prc.lo: prc.c prc.h $(INCDIR)/safe-ctype.h
+ reloc16.lo: reloc16.c $(INCDIR)/filenames.h $(INCDIR)/bfdlink.h \
+   genlink.h $(INCDIR)/coff/internal.h libcoff.h
+ riscix.lo: riscix.c $(INCDIR)/filenames.h libaout.h \
+diff -urN orig-binutils-2.14/bfd/coff-m68k.c binutils-2.14/bfd/coff-m68k.c
+--- orig-binutils-2.14/bfd/coff-m68k.c	Sat Nov 30 09:39:35 2002
++++ binutils-2.14/bfd/coff-m68k.c	Tue Jun 24 00:37:47 2003
+@@ -67,6 +67,8 @@
+ #define RELOC_SPECIAL_FN m68kcoff_common_addend_special_fn
+ #endif
+ 
++static bfd_boolean coff_m68k_bfd_print_private_bfd_data
++  PARAMS ((bfd *, PTR));
+ static bfd_boolean m68k_coff_is_local_label_name
+   PARAMS ((bfd *, const char *));
+ 
+@@ -108,6 +110,7 @@
+     HOWTO (R_PCRWORD,	       0,  1, 	16, TRUE,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP16",   TRUE, 0x0000ffff,0x0000ffff, FALSE),
+     HOWTO (R_PCRLONG,	       0,  2, 	32, TRUE,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP32",   TRUE, 0xffffffff,0xffffffff, FALSE),
+     HOWTO (R_RELLONG_NEG,      0, -2, 	32, FALSE, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "-32",	TRUE, 0xffffffff,0xffffffff, FALSE),
++    HOWTO (R_RELENDWORD,       0,  1, 	16, FALSE, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "END16",	TRUE, 0x0000ffff,0x0000ffff, FALSE),
+   };
+ #endif /* not ONLY_DECLARE_RELOCS */
+ 
+@@ -150,6 +153,7 @@
+     case R_PCRWORD:	internal->howto = m68kcoff_howto_table + 4; break;
+     case R_PCRLONG:	internal->howto = m68kcoff_howto_table + 5; break;
+     case R_RELLONG_NEG:	internal->howto = m68kcoff_howto_table + 6; break;
++    case R_RELENDWORD:	internal->howto = m68kcoff_howto_table + 7; break;
+     }
+ }
+ 
+@@ -157,6 +161,9 @@
+ m68k_howto2rtype (internal)
+      reloc_howto_type *internal;
+ {
++  if (internal->type == R_RELENDWORD)
++    return R_RELENDWORD;
++
+   if (internal->pc_relative)
+     {
+       switch (internal->bitsize)
+@@ -194,6 +201,7 @@
+     case BFD_RELOC_16_PCREL:	return m68kcoff_howto_table + 4;
+     case BFD_RELOC_32_PCREL:	return m68kcoff_howto_table + 5;
+       /* FIXME: There doesn't seem to be a code for R_RELLONG_NEG.  */
++      /* FIXME: Nor for R_RELENDWORD.  */
+     }
+   /*NOTREACHED*/
+ }
+@@ -208,6 +216,46 @@
+ 
+ #define coff_bfd_reloc_type_lookup m68k_reloc_type_lookup
+ 
++#ifndef coff_rtype_to_howto
++/* If this is not yet defined, one of the following definitions will be
++   used.  Both need this helper function.  */
++
++static bfd_vma m68kcoff_global_data_size
++  PARAMS ((bfd *, asection *, struct internal_reloc *,
++	   struct coff_link_hash_entry *));
++
++static bfd_vma
++m68kcoff_global_data_size (abfd, sec, rel, h)
++     bfd *abfd;
++     asection *sec;
++     struct internal_reloc *rel;
++     struct coff_link_hash_entry *h;
++{
++  struct bfd_link_info *info;
++  struct coff_link_hash_entry *edata;
++
++  info = coff_data (sec->output_section->owner)->link_info;
++
++  edata = coff_link_hash_lookup (coff_hash_table (info), "edata",
++				 FALSE, FALSE, TRUE);
++
++  if (edata && (edata->root.type == bfd_link_hash_defined
++		|| edata->root.type == bfd_link_hash_defweak))
++    {
++      return edata->root.u.def.value;
++    }
++  else
++    {
++      (*info->callbacks->warning) (info,
++				   "END16 relocation failed without `edata'",
++				   h? h->root.root.string : NULL, abfd, sec,
++				   rel->r_vaddr - sec->vma);
++      return 0;
++    }
++}
++
++#endif
++
+ #ifndef COFF_COMMON_ADDEND
+ #ifndef coff_rtype_to_howto
+ 
+@@ -220,10 +268,10 @@
+ 
+ static reloc_howto_type *
+ m68kcoff_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
+-     bfd *abfd ATTRIBUTE_UNUSED;
++     bfd *abfd;
+      asection *sec;
+      struct internal_reloc *rel;
+-     struct coff_link_hash_entry *h ATTRIBUTE_UNUSED;
++     struct coff_link_hash_entry *h;
+      struct internal_syment *sym ATTRIBUTE_UNUSED;
+      bfd_vma *addendp;
+ {
+@@ -237,6 +285,9 @@
+   if (howto->pc_relative)
+     *addendp += sec->vma;
+ 
++  if (rel->r_type == R_RELENDWORD)
++    *addendp -= m68kcoff_global_data_size (abfd, sec, rel, h);
++
+   return howto;
+ }
+ 
+@@ -380,7 +431,7 @@
+ 
+ static reloc_howto_type *
+ m68kcoff_common_addend_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
+-     bfd *abfd ATTRIBUTE_UNUSED;
++     bfd *abfd;
+      asection *sec;
+      struct internal_reloc *rel;
+      struct coff_link_hash_entry *h;
+@@ -397,6 +448,9 @@
+   if (howto->pc_relative)
+     *addendp += sec->vma;
+ 
++  if (rel->r_type == R_RELENDWORD)
++    *addendp -= m68kcoff_global_data_size (abfd, sec, rel, h);
++
+   if (sym != NULL && sym->n_scnum == 0 && sym->n_value != 0)
+     {
+       /* This is a common symbol.  The section contents include the
+@@ -506,21 +560,194 @@
+ 	    targetsec = NULL;
+ 	}
+ 
++      bfd_put_16 (abfd, 1, p);
++      bfd_put_16 (abfd, datasec->output_section->index, p + 2);
+       bfd_put_32 (abfd,
+-		  (irel->r_vaddr - datasec->vma + datasec->output_offset), p);
+-      memset (p + 4, 0, 8);
++		  (irel->r_vaddr - datasec->vma + datasec->output_offset),
++		  p + 4);
+       if (targetsec != NULL)
+-	strncpy (p + 4, targetsec->output_section->name, 8);
++	bfd_put_16 (abfd, targetsec->output_section->index, p + 8);
++      else
++	{
++	  /* Probably can't happen, but let's try to be compatible with the
++	     previous version.  */
++	  p -= 12;
++	}
++      bfd_put_16 (abfd, 0, p + 10);
+     }
+ 
+   return TRUE;
+ }
+ #endif /* neither ONLY_DECLARE_RELOCS not STATIC_RELOCS  */
+ 
++/* Print the contents of ABFD's `.reloc' section to the file PTR.  */
++static bfd_boolean
++coff_m68k_bfd_print_private_bfd_data (abfd, ptr)
++     bfd *abfd;
++     PTR ptr;
++{
++  FILE *f = (FILE *) ptr;
++  asection *relocs_sec, *held_relsec;
++  bfd_byte *relocs, *rel, *relsec_contents;
++  bfd_size_type relocs_size, relsec_size = 0;
++
++  relocs_sec = bfd_get_section_by_name (abfd, ".reloc");
++  if (relocs_sec == NULL)
++    return TRUE;
++
++  fprintf (f, "\nEMBEDDED RELOCATION RECORDS:");
++
++  relocs_size = bfd_section_size (abfd, relocs_sec);
++  if (relocs_size == 0)
++    {
++      fprintf (f, " (none)\n\n");
++      return TRUE;
++    }
++  else
++    fprintf (f, "\n");
++  
++  relocs = (bfd_byte *) bfd_malloc ((size_t) relocs_size);
++  bfd_get_section_contents (abfd, relocs_sec, (PTR) relocs, 0, relocs_size);
++
++  /* Get column headers lined up reasonably.  */
++  {
++    static int width;
++    if (width == 0)
++      {
++	char buf[30];
++	sprintf_vma (buf, (bfd_vma) -1);
++	width = strlen (buf) - 7;
++      }
++    fprintf (f, "SECTION+OFFSET    %*s TYPE %*s VALUE \n", width, "", 12, "");
++  }
++
++  held_relsec = NULL;
++  relsec_contents = NULL;
++
++  for (rel = relocs; rel < relocs + relocs_size; rel += 12)
++    {
++      bfd_vma type, reloffset, value;
++      int relsecndx, symsecndx;
++      reloc_howto_type *howto;
++      asection *sec, *relsec, *symsec;
++      CONST char *relsecname, *symsecname;
++      char relbuffer[32], symbuffer[32];
++
++      type      = bfd_get_16 (abfd, rel);
++      relsecndx = bfd_get_16 (abfd, rel+2);
++      reloffset = bfd_get_32 (abfd, rel+4);
++      symsecndx = bfd_get_16 (abfd, rel+8);
++
++      /* Decode the embedded relocation type.  See also the corresponding
++         encoding table in _bfd_m68kcoff_create_embedded_relocs().  */
++      switch (type)
++	{
++	case 1:
++	  type = BFD_RELOC_32;
++	  break;
++
++	default:
++	  type = BFD_RELOC_UNUSED;  /* Something definitely unknown.  */
++	  break;
++	}
++
++      relsec = symsec = NULL;
++      for (sec = abfd->sections; sec; sec = sec->next)
++	{
++	  if (sec->index == relsecndx)
++	    relsec = sec;
++	  if (sec->index == symsecndx)
++	    symsec = sec;
++	}
++
++      sprintf (relbuffer, "[%d?]", (int) relsecndx);
++      relsecname = (relsec)? bfd_section_name (abfd, relsec) : relbuffer;
++
++      sprintf (symbuffer, "[%d?]", (int) symsecndx);
++      symsecname = (symsec)? bfd_section_name (abfd, symsec) : symbuffer;
++
++      fprintf (f, "%s+0x", relsecname);
++      fprintf_vma (f, reloffset);
++      fprintf (f, "%*s", (int) (9 - strlen (relsecname)), "");
++
++      howto = (relsec)? bfd_reloc_type_lookup (abfd, type) : NULL;
++      if (howto == NULL)
++	{
++	  char buf[32];
++	  sprintf (buf, "[0x%x]", (unsigned int) type);
++	  fprintf (f, "%-18.18s%s+?? (%s unknown)\n", buf, symsecname,
++		   (relsec)? "type" : "relocation section");
++	  continue;
++	}
++
++      fprintf (f, "%-18.18s", howto->name);
++
++      if (relsec == NULL)
++	{
++	  fprintf (f, "%s+?? (relocation section unknown)\n", symsecname);
++	  continue;
++	}
++
++      if (held_relsec != relsec)
++	{
++	  free (relsec_contents);
++	  held_relsec = relsec;
++	  relsec_size = bfd_section_size (abfd, relsec);
++	  relsec_contents = (bfd_byte *) bfd_malloc ((size_t) relsec_size);
++	  bfd_get_section_contents (abfd, relsec, (PTR) relsec_contents,
++				    0, relsec_size);
++	}
++
++      if (reloffset > relsec_size - bfd_get_reloc_size (howto))
++	{
++	  fprintf (f, "%s+?? (offset out of range)\n", symsecname);
++	  continue;
++	}
++
++      switch (bfd_get_reloc_size (howto))
++	{
++	default:
++	case 0:
++	  abort ();
++	case 1:
++	  value = bfd_get_8 (abfd, &relsec_contents[reloffset]);
++	  break;
++	case 2:
++	  value = bfd_get_16 (abfd, &relsec_contents[reloffset]);
++	  break;
++	case 4:
++	  value = bfd_get_32 (abfd, &relsec_contents[reloffset]);
++	  break;
++	case 8:
++#ifdef BFD64
++	  value = bfd_get_64 (abfd, &relsec_contents[reloffset]);
++#else
++	  abort ();
++#endif
++	  break;
++	}
++
++      value &= howto->dst_mask;
++      value >>= howto->bitpos;
++      value <<= howto->rightshift;
++
++      fprintf (f, "%s+0x", symsecname);
++      fprintf_vma (f, value - bfd_section_vma (abfd, symsec));
++      fprintf (f, "\n");
++    }
++
++  free (relocs);
++  free (relsec_contents);
++
++  return TRUE;
++}
++
+ #define coff_bfd_is_local_label_name m68k_coff_is_local_label_name
+ 
+ #define coff_relocate_section _bfd_coff_generic_relocate_section
+ 
++#define coff_bfd_print_private_bfd_data coff_m68k_bfd_print_private_bfd_data
++
+ #include "coffcode.h"
+ 
+ #ifndef TARGET_SYM
+diff -urN orig-binutils-2.14/bfd/config.bfd binutils-2.14/bfd/config.bfd
+--- orig-binutils-2.14/bfd/config.bfd	Mon Jun  2 22:35:20 2003
++++ binutils-2.14/bfd/config.bfd	Fri Jun 13 11:00:26 2003
+@@ -219,6 +219,10 @@
+     targ_defvec=bfd_elf32_littlearm_oabi_vec
+     targ_selvecs=bfd_elf32_bigarm_oabi_vec
+     ;;
++  arm-*-palmos*)
++    targ_defvec=bfd_elf32_littlearm_vec
++    targ_selvecs="bfd_elf32_bigarm_vec prc_littlearm_vec"
++    ;;
+ 
+   thumb-*-coff)
+     targ_defvec=armcoff_little_vec
+@@ -696,6 +700,10 @@
+     targ_selvecs=ieee_vec
+     targ_underscore=yes
+     ;;
++  m68*-*-palmos*)
++    targ_defvec=m68kcoff_vec
++    targ_selvecs=prc_m68k_vec
++    ;;
+ 
+   m88*-harris-cxux* | m88*-*-dgux* | m88*-*-sysv4*)
+     targ_defvec=bfd_elf32_m88k_vec
+diff -urN orig-binutils-2.14/bfd/configure.in binutils-2.14/bfd/configure.in
+--- orig-binutils-2.14/bfd/configure.in	Thu Jun 12 16:25:46 2003
++++ binutils-2.14/bfd/configure.in	Tue Jun 24 00:27:38 2003
+@@ -737,6 +737,8 @@
+     pdp11_aout_vec)		tb="$tb pdp11.lo" ;;
+     pmac_xcoff_vec)		tb="$tb coff-rs6000.lo xcofflink.lo" ;;
+     ppcboot_vec)		tb="$tb ppcboot.lo" ;;
++    prc_littlearm_vec)		tb="$tb prc-arm.lo prc.lo" ;;
++    prc_m68k_vec)		tb="$tb prc-m68k.lo prc.lo" ;;
+     riscix_vec)			tb="$tb aout32.lo riscix.lo" ;;
+     rs6000coff64_vec)		tb="$tb coff64-rs6000.lo xcofflink.lo aix5ppc-core.lo"; target_size=64 ;;
+     rs6000coff_vec)		tb="$tb coff-rs6000.lo xcofflink.lo" ;;
+diff -urN orig-binutils-2.14/bfd/configure binutils-2.14/bfd/configure
+--- orig-binutils-2.14/bfd/configure	Thu Jun 12 16:25:46 2003
++++ binutils-2.14/bfd/configure	Tue Jun 24 00:29:00 2003
+@@ -6275,6 +6275,8 @@
+     pdp11_aout_vec)		tb="$tb pdp11.lo" ;;
+     pmac_xcoff_vec)		tb="$tb coff-rs6000.lo xcofflink.lo" ;;
+     ppcboot_vec)		tb="$tb ppcboot.lo" ;;
++    prc_littlearm_vec)		tb="$tb prc-arm.lo prc.lo" ;;
++    prc_m68k_vec)		tb="$tb prc-m68k.lo prc.lo" ;;
+     riscix_vec)			tb="$tb aout32.lo riscix.lo" ;;
+     rs6000coff64_vec)		tb="$tb coff64-rs6000.lo xcofflink.lo aix5ppc-core.lo"; target_size=64 ;;
+     rs6000coff_vec)		tb="$tb coff-rs6000.lo xcofflink.lo" ;;
+diff -urN orig-binutils-2.14/bfd/prc-arm.c binutils-2.14/bfd/prc-arm.c
+--- orig-binutils-2.14/bfd/prc-arm.c	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/bfd/prc-arm.c	Wed Aug 14 12:53:11 2002
+@@ -0,0 +1,50 @@
++/* BFD back-end for the Palm OS PRC resource database format.
++   Copyright 2002 John Marshall.  (For now.)
++   Contributed by Falch.net as.
++
++This program is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, write to the Free Software
++Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
++
++#include "bfd.h"
++#include "sysdep.h"
++#include "libbfd.h"
++#include "prc.h"
++
++static flagword secflags
++  PARAMS ((const struct palmos_prc_header *header, const char *secname));
++
++static flagword
++secflags (header, secname)
++      const struct palmos_prc_header *header ATTRIBUTE_UNUSED;
++      const char *secname;
++{
++  flagword flags = 0;
++
++  if (strncmp (secname, "armc", 4) == 0)
++    flags |= SEC_CODE;
++
++  return flags;
++}
++
++static const struct palmos_prc_backend_data arm_backend_data =
++{
++  bfd_arch_arm, bfd_mach_arm_4T, secflags
++};
++
++const bfd_target prc_littlearm_vec =
++  PRC_TARGET_VECTOR ("prc-littlearm", BFD_ENDIAN_LITTLE, 
++		     bfd_getl64, bfd_getl_signed_64, bfd_putl64,
++		     bfd_getl32, bfd_getl_signed_32, bfd_putl32,
++		     bfd_getl16, bfd_getl_signed_16, bfd_putl16,
++		     &arm_backend_data);
+diff -urN orig-binutils-2.14/bfd/prc-m68k.c binutils-2.14/bfd/prc-m68k.c
+--- orig-binutils-2.14/bfd/prc-m68k.c	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/bfd/prc-m68k.c	Wed Aug 14 13:35:35 2002
+@@ -0,0 +1,64 @@
++/* BFD back-end for the Palm OS PRC resource database format.
++   Copyright 2002 John Marshall.  (For now.)
++   Contributed by Falch.net as.
++
++This program is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, write to the Free Software
++Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
++
++#include "bfd.h"
++#include "sysdep.h"
++#include "libbfd.h"
++#include "prc.h"
++
++static flagword secflags
++  PARAMS ((const struct palmos_prc_header *header, const char *secname));
++
++static flagword
++secflags (header, secname)
++      const struct palmos_prc_header *header;
++      const char *secname;
++{
++  flagword flags = 0;
++
++  if (strncmp (secname, "libr", 4) == 0
++      || strncmp (secname, "GLib", 4) == 0
++      || strncmp (secname, "HACK", 4) == 0
++      || (strncmp (secname, "code", 4) == 0
++	  && (strcmp (secname, "code.0") != 0
++	      || strcmp (header->type, "appl") != 0)))
++    flags |= SEC_CODE;
++
++  if (strncmp (secname, "data", 4) == 0)
++    flags |= SEC_DATA;
++
++  if (strncmp (secname, "gdbS", 4) == 0)
++    flags |= SEC_DEBUGGING;
++
++  return flags;
++}
++
++/* FIXME Crazy scheme: we could synthesize symbols from MacsBug symbols
++   in the code resources.  */
++
++static const struct palmos_prc_backend_data m68k_backend_data =
++{
++  bfd_arch_m68k, bfd_mach_m68000, secflags
++};
++
++const bfd_target prc_m68k_vec =
++  PRC_TARGET_VECTOR ("prc-m68k", BFD_ENDIAN_BIG, 
++		     bfd_getb64, bfd_getb_signed_64, bfd_putb64,
++		     bfd_getb32, bfd_getb_signed_32, bfd_putb32,
++		     bfd_getb16, bfd_getb_signed_16, bfd_putb16,
++		     &m68k_backend_data);
+diff -urN orig-binutils-2.14/bfd/prc.c binutils-2.14/bfd/prc.c
+--- orig-binutils-2.14/bfd/prc.c	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/bfd/prc.c	Fri May 16 01:15:43 2003
+@@ -0,0 +1,407 @@
++/* BFD back-end for the Palm OS PRC resource database format.
++   Copyright 2002 John Marshall.  (For now.)
++   Contributed by Falch.net as.
++
++This program is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, write to the Free Software
++Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
++
++#include "bfd.h"
++#include "sysdep.h"
++#include "safe-ctype.h"
++#include "libbfd.h"
++#include "prc.h"
++
++static bfd_boolean swap_in_header
++  PARAMS ((bfd *abfd, asection *sec, struct palmos_prc_header *header));
++static bfd_boolean swap_in_resource_headers
++  PARAMS ((bfd *abfd, unsigned int n,
++	   struct palmos_prc_resource_header *headers));
++
++static void add_section
++  PARAMS ((bfd *abfd, struct palmos_prc_header *header, const char *secname,
++           flagword basic_flags, unsigned long offset,
++	   unsigned long lim_offset));
++static file_ptr tie_down_section
++  PARAMS ((bfd *abfd, asection *sec, file_ptr offset));
++static void compute_section_file_positions
++  PARAMS ((bfd *abfd, file_ptr offset));
++
++/* The PRC file format is documented in the "Palm File Format Specification",
++   available from <URL:http://www.palmos.com/dev/support/docs/>.  */
++
++#define HEADER_SIZE	0x4e
++#define RSRCENTRY_SIZE	10
++
++/* Read from SEC if non-NULL, otherwise directly from the start of ABFD.  */
++static bfd_boolean
++swap_in_header (abfd, sec, header)
++     bfd *abfd;
++     asection *sec;
++     struct palmos_prc_header *header;
++{
++  char raw[HEADER_SIZE];
++
++  if (sec)
++    {
++      if (! bfd_get_section_contents (abfd, sec, raw, 0, sizeof raw))
++	return FALSE;
++    }
++  else
++    {
++      if (bfd_seek (abfd, (file_ptr) 0, SEEK_SET) != 0
++	  || bfd_bread (raw, sizeof raw, abfd) != sizeof raw)
++	return FALSE;
++    }
++
++  memcpy (header->name, &raw[0], 32);
++  header->name[32] = '\0';
++
++  header->flags		  = bfd_h_get_16 (abfd, &raw[0x20]);
++  header->version	  = bfd_h_get_16 (abfd, &raw[0x22]);
++  header->create_time	  = bfd_h_get_32 (abfd, &raw[0x24]);
++  header->mod_time	  = bfd_h_get_32 (abfd, &raw[0x28]);
++  header->backup_time	  = bfd_h_get_32 (abfd, &raw[0x2c]);
++
++  header->appinfo_offset  = bfd_h_get_32 (abfd, &raw[0x34]);
++  header->sortinfo_offset = bfd_h_get_32 (abfd, &raw[0x38]);
++
++  memcpy (header->type, &raw[0x3c], 4);
++  header->type[4] = '\0';
++
++  memcpy (header->creator, &raw[0x40], 4);
++  header->creator[4] = '\0';
++
++  header->nextlist_offset = bfd_h_get_32 (abfd, &raw[0x48]);
++  header->nresources	  = bfd_h_get_16 (abfd, &raw[0x4c]);
++
++  return TRUE;
++}
++
++static bfd_boolean
++swap_in_resource_headers (abfd, n, headers)
++     bfd *abfd;
++     unsigned int n;
++     struct palmos_prc_resource_header *headers;
++{
++  unsigned int i;
++
++  if (bfd_seek (abfd, (file_ptr) HEADER_SIZE, SEEK_SET) != 0)
++    return FALSE;
++
++  for (i = 0; i < n; i++)
++    {
++      char raw[RSRCENTRY_SIZE];
++      if (bfd_bread (raw, sizeof raw, abfd) != sizeof raw)
++	return FALSE;
++
++      memcpy (headers[i].type, &raw[0], 4);
++      headers[i].type[4] = '\0';
++      headers[i].id	 = bfd_h_get_16 (abfd, &raw[4]);
++      headers[i].offset  = bfd_h_get_32 (abfd, &raw[6]);
++    }
++
++  return TRUE;
++}
++
++static bfd_boolean
++printable_string_p (const char *s)
++{
++  while (*s)
++    if (! ISPRINT (*s++))
++      return FALSE;
++  return TRUE;
++}
++
++/* We use SEC_LINKER_CREATED to signify arcane processing; namely a section,
++   such as header information or appinfo, which does not correspond to a
++   real resource.  */
++
++static void
++add_section (abfd, header, secname, basic_flags, offset, lim_offset)
++     bfd *abfd;
++     struct palmos_prc_header *header;
++     const char *secname;
++     flagword basic_flags;
++     unsigned long offset, lim_offset;
++{
++  asection *sec = bfd_make_section (abfd, secname);
++  if (sec == NULL)
++    return;
++
++  sec->vma = sec->lma = 0;
++  sec->filepos = offset;
++  bfd_set_section_size (abfd, sec, lim_offset - offset);
++  /* FIXME?? sec->_raw_size = lim_offset - offset; */
++
++  sec->flags = (SEC_HAS_CONTENTS | basic_flags
++		| (*(backend_data (abfd)->secflags)) (header, secname));
++
++  if (header->flags & 0x0002)
++    sec->flags |= SEC_READONLY;
++}
++
++bfd_boolean
++_bfd_prc_mkobject (abfd)
++     bfd *abfd ATTRIBUTE_UNUSED;
++{
++  return TRUE;
++}
++
++const bfd_target *
++_bfd_prc_object_p (abfd)
++     bfd *abfd;
++{
++  struct palmos_prc_header h;
++  struct palmos_prc_resource_header *resource = NULL;
++  unsigned int i;
++  struct stat statbuf;
++
++  if (! swap_in_header (abfd, NULL, &h))
++    goto invalid_prc;
++
++  resource = bfd_malloc ((h.nresources + 1)
++			 * sizeof (struct palmos_prc_resource_header));
++  if (resource == NULL)
++    goto failed;
++
++  if (! swap_in_resource_headers (abfd, h.nresources, resource))
++    goto invalid_prc;
++
++  if (bfd_stat (abfd, &statbuf) < 0)
++    goto failed;
++
++  resource[h.nresources].offset = statbuf.st_size;
++
++  /* The PRC format has no useful magic numbers, so checking that a file
++     is a valid .prc is a black art.  We check that:
++      - name, type, creator, and resource types are all printable ASCII;
++      - flags includes 0x1;
++      - next_record_list is 0;
++      - app_info, sort_info (when they are non-zero), section pointers are
++        strictly ascending.  */
++
++  if (! (printable_string_p (h.name)
++	 && (h.flags & 0x0001)
++	 && printable_string_p (h.type)
++	 && printable_string_p (h.creator)
++	 && h.nextlist_offset == 0
++	 && (h.appinfo_offset == 0 || h.sortinfo_offset == 0
++	     || h.appinfo_offset < h.sortinfo_offset)
++	 && (h.sortinfo_offset == 0 || h.sortinfo_offset < resource[0].offset)))
++    goto invalid_prc;
++
++  for (i = 0; i < h.nresources; i++)
++    if (! (printable_string_p (resource[i].type)
++	   && resource[i].offset < resource[i + 1].offset))
++      goto invalid_prc;
++
++  add_section (abfd, &h, ".header", SEC_LINKER_CREATED, 0, HEADER_SIZE);
++
++  if (h.appinfo_offset)
++    add_section (abfd, &h, ".appinfo",
++		 SEC_LINKER_CREATED | SEC_ALLOC | SEC_LOAD, h.appinfo_offset,
++		 h.sortinfo_offset? h.sortinfo_offset : resource[0].offset);
++
++  if (h.sortinfo_offset)
++    add_section (abfd, &h, ".sortinfo",
++		 SEC_LINKER_CREATED | SEC_ALLOC | SEC_LOAD, h.sortinfo_offset,
++		 resource[0].offset);
++
++  for (i = 0; i < h.nresources; i++)
++    {
++      char secnamebuf[32];
++      char *secname;
++
++      sprintf (secnamebuf, "%s.%u", resource[i].type, resource[i].id);
++
++      /* FIXME: If this ever fails, it'll leak the previous names.  */
++      secname = bfd_alloc (abfd, strlen (secnamebuf) + 1);
++      if (secname == NULL)
++	goto failed;
++
++      strcpy (secname, secnamebuf);
++      add_section (abfd, &h, secname, SEC_ALLOC | SEC_LOAD,
++		   resource[i].offset, resource[i + 1].offset);
++    }
++
++  if (strcmp (h.type, "appl") == 0)
++    abfd->flags |= EXEC_P;
++  else if (strcmp (h.type, "libr") == 0 || strcmp (h.type, "GLib") == 0)
++    abfd->flags |= DYNAMIC;
++
++  bfd_default_set_arch_mach (abfd,
++			     backend_data (abfd)->arch,
++			     backend_data (abfd)->mach);
++
++  /* FIXME */
++  abfd->symcount = 0;
++
++  return abfd->xvec;
++
++  /* Otherwise ABFD was not recognized as being in PRC format.  Jumps to
++     <invalid_prc> are asking for a wrong_format error; jumps to <failed>
++     imply that something major has just failed and has already set a
++     suitable error code.  */
++
++invalid_prc:
++  bfd_set_error (bfd_error_wrong_format);
++
++failed:
++  if (resource)
++    free (resource);
++
++  return NULL;
++}
++
++static file_ptr
++tie_down_section (abfd, sec, offset)
++     bfd *abfd ATTRIBUTE_UNUSED;
++     asection *sec;
++     file_ptr offset;
++{
++  sec->filepos = offset;
++  return offset + bfd_section_size (abfd, sec);
++}
++
++static void
++compute_section_file_positions (abfd, offset)
++     bfd *abfd;
++     file_ptr offset;
++{
++  asection *sec;
++
++  sec = bfd_get_section_by_name (abfd, ".appinfo");
++  if (sec)
++    offset = tie_down_section (abfd, sec, offset);
++
++  sec = bfd_get_section_by_name (abfd, ".sortinfo");
++  if (sec)
++    offset = tie_down_section (abfd, sec, offset);
++
++  for (sec = abfd->sections; sec != NULL; sec = sec->next)
++    if (! (sec->flags & SEC_LINKER_CREATED))
++      offset = tie_down_section (abfd, sec, offset);
++}
++
++bfd_boolean
++_bfd_prc_write_object_contents (abfd)
++     bfd *abfd;
++{
++  /* FIXME This is not yet implemented.  */
++  compute_section_file_positions (abfd, HEADER_SIZE);
++  return TRUE;
++}
++
++asymbol *
++_bfd_prc_make_empty_symbol (abfd)
++     bfd *abfd;
++{
++  asymbol *sym = (asymbol *) bfd_zalloc (abfd, sizeof (asymbol));
++  if (sym)
++    sym->the_bfd = abfd;
++  return sym;
++}
++
++long
++_bfd_prc_get_symtab_upper_bound (abfd)
++     bfd *abfd;
++{
++  return (bfd_get_symcount (abfd) + 1) * sizeof (asymbol *);
++}
++
++long
++_bfd_prc_get_symtab (abfd, alocation)
++     bfd *abfd ATTRIBUTE_UNUSED;
++     asymbol **alocation ATTRIBUTE_UNUSED;
++{
++  return 0;
++}
++
++void
++_bfd_prc_get_symbol_info (abfd, symbol, ret)
++     bfd *abfd ATTRIBUTE_UNUSED;
++     asymbol *symbol;
++     symbol_info *ret;
++{
++  bfd_symbol_info (symbol, ret);
++}
++
++struct flag_meaning
++{
++  unsigned int mask;
++  const char *name;
++};
++
++/* xgettext: These names should not be translated, because they correspond
++   to constants defined in Palm OS SDKs.  */
++
++static const struct flag_meaning meanings[] =
++{
++  { 0x0001, "RESOURCE" },
++  { 0x0002, "READONLY" },
++  { 0x0004, "APPINFO-DIRTY" },
++  { 0x0008, "BACKUP" },
++  { 0x0010, "OK-TO-INSTALL-NEWER" },
++  { 0x0020, "RESET-AFTER-INSTALL" },
++  { 0x0040, "COPY-PREVENTION" },
++  { 0x0080, "STREAM" },
++  { 0x0100, "HIDDEN" },
++  { 0x0200, "LAUNCHABLE-DATA" },
++  { 0x0400, "RECYCLABLE" },
++  { 0x0800, "BUNDLE" },
++  { 0x8000, "OPEN" },
++  { 0, NULL }
++};
++
++/* FIXME: internationalise me! */
++
++bfd_boolean
++_bfd_prc_bfd_print_private_bfd_data (abfd, ptr)
++     bfd *abfd;
++     PTR ptr;
++{
++  FILE *f = (FILE *) ptr;
++  struct palmos_prc_header header;
++  unsigned int flags;
++  const struct flag_meaning *meaning;
++
++  swap_in_header (abfd, bfd_get_section_by_name (abfd, ".header"), &header);
++  flags = header.flags;
++
++  fprintf (f, "\nDatabase Header:\n");
++
++  fprintf (f, "  Name:    %s\n", header.name);
++  fprintf (f, "  Flags:  ");
++
++  for (meaning = meanings; meaning->name; meaning++)
++    if (flags & meaning->mask)
++      {
++	fprintf (f, " %s", meaning->name);
++	flags &= ~meaning->mask;
++      }
++
++  if (flags != 0)
++    fprintf (f, " 0x%x", flags);
++
++  fprintf (f, "\n");
++
++  fprintf (f, "  Type:    %s\n", header.type);
++  fprintf (f, "  Creator: %s\n", header.creator);
++  fprintf (f, "  Version: %u\n", header.version);
++
++  /* FIXME: Output the dates too, if we can be bothered converting from
++     Palm OS's seconds-since-1904-01-01T00:00:00 format.  */
++
++  return TRUE;
++}
+diff -urN orig-binutils-2.14/bfd/prc.h binutils-2.14/bfd/prc.h
+--- orig-binutils-2.14/bfd/prc.h	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/bfd/prc.h	Fri May 16 01:15:43 2003
+@@ -0,0 +1,134 @@
++/* BFD back-end for the Palm OS PRC resource database format.
++   Copyright 2002 John Marshall.  (For now.)
++   Contributed by Falch.net as.
++
++This program is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, write to the Free Software
++Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
++
++#include "bfd.h"
++#include "sysdep.h"
++
++struct palmos_prc_header
++{
++  char name[33];
++  unsigned int flags, version;
++  unsigned long create_time, mod_time, backup_time;
++  char type[5], creator[5];
++  unsigned long appinfo_offset, sortinfo_offset, nextlist_offset;
++  unsigned int nresources;
++};
++
++struct palmos_prc_resource_header
++{
++  char type[5];
++  unsigned int id;
++  unsigned long offset;
++};
++
++#define backend_data(abfd) \
++  ((const struct palmos_prc_backend_data *) (abfd)->xvec->backend_data)
++
++struct palmos_prc_backend_data
++{
++  enum bfd_architecture arch;
++  unsigned long mach;
++  flagword (*secflags)
++    PARAMS ((const struct palmos_prc_header *, const char *));
++};
++
++extern bfd_boolean _bfd_prc_mkobject PARAMS ((bfd *));
++extern const bfd_target *_bfd_prc_object_p PARAMS ((bfd *));
++extern bfd_boolean _bfd_prc_write_object_contents PARAMS ((bfd *));
++
++#define _bfd_prc_bfd_copy_private_bfd_data \
++  _bfd_generic_bfd_copy_private_bfd_data
++#define _bfd_prc_bfd_merge_private_bfd_data \
++  _bfd_generic_bfd_merge_private_bfd_data
++#define _bfd_prc_bfd_copy_private_section_data \
++  _bfd_generic_bfd_copy_private_section_data
++#define _bfd_prc_bfd_copy_private_symbol_data \
++  _bfd_generic_bfd_copy_private_symbol_data
++#define _bfd_prc_bfd_set_private_flags	  _bfd_generic_bfd_set_private_flags
++extern bfd_boolean _bfd_prc_bfd_print_private_bfd_data PARAMS ((bfd *, PTR));
++
++extern long _bfd_prc_get_symtab_upper_bound PARAMS ((bfd *));
++extern long _bfd_prc_get_symtab PARAMS ((bfd *, asymbol **));
++extern asymbol *_bfd_prc_make_empty_symbol PARAMS ((bfd *));
++#define _bfd_prc_print_symbol		  _bfd_nosymbols_print_symbol
++extern void _bfd_prc_get_symbol_info PARAMS ((bfd *, asymbol *, symbol_info *));
++#define _bfd_prc_bfd_is_local_label_name  bfd_generic_is_local_label_name
++#define _bfd_prc_get_lineno		  _bfd_nosymbols_get_lineno
++#define _bfd_prc_find_nearest_line	  _bfd_nosymbols_find_nearest_line
++#define _bfd_prc_bfd_make_debug_symbol	  _bfd_nosymbols_bfd_make_debug_symbol
++#define _bfd_prc_read_minisymbols	  _bfd_generic_read_minisymbols
++#define _bfd_prc_minisymbol_to_symbol	  _bfd_generic_minisymbol_to_symbol
++
++#define PRC_TARGET_VECTOR(name, body_endianness,		\
++			  getu64, gets64, put64,		\
++			  getu32, gets32, put32,		\
++			  getu16, gets16, put16,		\
++			  backend_data)				\
++  {								\
++    (name),							\
++    bfd_target_unknown_flavour,					\
++    (body_endianness),						\
++    BFD_ENDIAN_BIG,    /* All PRC headers are big endian.  */	\
++    EXEC_P | DYNAMIC,  /* plausible BFD flags  */		\
++    (SEC_HAS_CONTENTS | SEC_LINKER_CREATED | SEC_ALLOC		\
++     | SEC_LOAD | SEC_READONLY | SEC_CODE | SEC_DATA		\
++     | SEC_DEBUGGING),  /* plausible section flags  */		\
++    0,    /* symbol prefix  */					\
++    ' ',  /* archive pad character  */				\
++    16,   /* archive member name length  */			\
++    /* Body swapping.  */					\
++    (getu64), (gets64), (put64),				\
++    (getu32), (gets32), (put32),				\
++    (getu16), (gets16), (put16),				\
++    /* Header swapping.  */					\
++    bfd_getb64, bfd_getb_signed_64, bfd_putb64,			\
++    bfd_getb32, bfd_getb_signed_32, bfd_putb32,			\
++    bfd_getb16, bfd_getb_signed_16, bfd_putb16,			\
++    /* bfd_check_format */					\
++    {								\
++      _bfd_dummy_target,					\
++      _bfd_prc_object_p,					\
++      _bfd_dummy_target,					\
++      _bfd_dummy_target						\
++    },								\
++    /* bfd_set_format */					\
++    {								\
++      bfd_false,						\
++      _bfd_prc_mkobject,					\
++      bfd_false,						\
++      bfd_false							\
++    },								\
++    /* bfd_write_contents */					\
++    {								\
++      bfd_false,						\
++      _bfd_prc_write_object_contents,				\
++      bfd_false,						\
++      bfd_false							\
++    },								\
++    BFD_JUMP_TABLE_GENERIC (_bfd_generic),			\
++    BFD_JUMP_TABLE_COPY (_bfd_prc),				\
++    BFD_JUMP_TABLE_CORE (_bfd_nocore),				\
++    BFD_JUMP_TABLE_ARCHIVE (_bfd_noarchive),			\
++    BFD_JUMP_TABLE_SYMBOLS (_bfd_prc),				\
++    BFD_JUMP_TABLE_RELOCS (_bfd_norelocs),			\
++    BFD_JUMP_TABLE_WRITE (_bfd_generic),			\
++    BFD_JUMP_TABLE_LINK (_bfd_nolink),				\
++    BFD_JUMP_TABLE_DYNAMIC (_bfd_nodynamic),			\
++    NULL,  /* No alternative endianness backend. */		\
++    (PTR) (backend_data)					\
++  }
+diff -urN orig-binutils-2.14/bfd/targets.c binutils-2.14/bfd/targets.c
+--- orig-binutils-2.14/bfd/targets.c	Tue Apr  1 17:50:27 2003
++++ binutils-2.14/bfd/targets.c	Fri May 16 01:15:43 2003
+@@ -678,6 +678,8 @@
+ extern const bfd_target pef_xlib_vec;
+ extern const bfd_target pmac_xcoff_vec;
+ extern const bfd_target ppcboot_vec;
++extern const bfd_target prc_littlearm_vec;
++extern const bfd_target prc_m68k_vec;
+ extern const bfd_target riscix_vec;
+ extern const bfd_target rs6000coff64_vec;
+ extern const bfd_target rs6000coff_vec;
+@@ -1015,6 +1017,11 @@
+ #endif
+ 	&ppcboot_vec,
+ #if 0
++	/* Palm OS PRC format has no useful magic numbers.  */
++	&prc_littlearm_vec,
++	&prc_m68k_vec,
++#endif
++#if 0
+ 	/* We have no way of distinguishing these from other a.out variants.  */
+ 	&riscix_vec,
+ #endif
+diff -urN orig-binutils-2.14/config.sub binutils-2.14/config.sub
+--- orig-binutils-2.14/config.sub	Mon Jun  2 22:35:43 2003
++++ binutils-2.14/config.sub	Tue Jun 24 00:30:08 2003
+@@ -287,6 +287,10 @@
+ 		echo Invalid configuration \`$1\': machine \`$basic_machine\' not recognized 1>&2
+ 		exit 1
+ 		;;
++	m68k-palmos)
++		basic_machine=m68k-unknown
++		os=-palmos
++		;;
+ 	# Recognize the basic CPU types with company name.
+ 	580-* \
+ 	| a29k-* \
+diff -urN orig-binutils-2.14/gas/config/m68k-parse.h binutils-2.14/gas/config/m68k-parse.h
+--- orig-binutils-2.14/gas/config/m68k-parse.h	Fri Mar  9 00:24:22 2001
++++ binutils-2.14/gas/config/m68k-parse.h	Wed May 15 17:51:52 2002
+@@ -240,12 +240,13 @@
+   int scale;
+ };
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+ /* The type of a PIC expression.  */
+ 
+ enum pic_relocation
+ {
+   pic_none,			/* not pic */
++  pic_endrel,			/* @END (for COFF_RELEND_RELOC) */
+   pic_plt_pcrel,		/* @PLTPC */
+   pic_got_pcrel,		/* @GOTPC */
+   pic_plt_off,			/* @PLT */
+@@ -260,7 +261,7 @@
+   /* The size to use.  */
+   enum m68k_size size;
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   /* The type of pic relocation if any.  */
+   enum pic_relocation pic_reloc;
+ #endif
+diff -urN orig-binutils-2.14/gas/config/m68k-parse.y binutils-2.14/gas/config/m68k-parse.y
+--- orig-binutils-2.14/gas/config/m68k-parse.y	Wed Sep 19 07:33:21 2001
++++ binutils-2.14/gas/config/m68k-parse.y	Wed May 15 17:51:52 2002
+@@ -974,7 +974,7 @@
+ 	tail = 2;
+     }
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   {
+     /* Look for @PLTPC, etc.  */
+     char *cp;
+@@ -1006,6 +1006,11 @@
+ 	    yylval.exp.pic_reloc = pic_got_off;
+ 	    tail += 4;
+ 	  }
++	else if (strncmp (cp - 4, "@END", 4) == 0)
++	  {
++	    yylval.exp.pic_reloc = pic_endrel;
++	    tail += 4;
++	  }
+       }
+   }
+ #endif
+diff -urN orig-binutils-2.14/gas/config/obj-coff.h binutils-2.14/gas/config/obj-coff.h
+--- orig-binutils-2.14/gas/config/obj-coff.h	Fri Apr  4 10:15:14 2003
++++ binutils-2.14/gas/config/obj-coff.h	Fri May 16 01:15:43 2003
+@@ -25,6 +25,9 @@
+ 
+ #define OBJ_COFF 1
+ 
++#define COFF_RELEND_RELOC
++#define NEED_FX_R_TYPE
++
+ #ifndef BFD_ASSEMBLER
+ 
+ #define WORKING_DOT_WORD
+diff -urN orig-binutils-2.14/gas/config/tc-m68k.c binutils-2.14/gas/config/tc-m68k.c
+--- orig-binutils-2.14/gas/config/tc-m68k.c	Thu Dec 12 23:16:16 2002
++++ binutils-2.14/gas/config/tc-m68k.c	Mon Feb 10 19:28:30 2003
+@@ -216,7 +216,7 @@
+ 	 significance of some values (in the branch instruction, for
+ 	 example).  */
+       int pcrel_fix;
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+       /* Whether this expression needs special pic relocation, and if
+ 	 so, which.  */
+       enum pic_relocation pic_reloc;
+@@ -284,7 +284,7 @@
+   the_ins.reloc[the_ins.nrel].exp = exp->exp;
+   the_ins.reloc[the_ins.nrel].wid = width;
+   the_ins.reloc[the_ins.nrel].pcrel_fix = pc_fix;
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   the_ins.reloc[the_ins.nrel].pic_reloc = exp->pic_reloc;
+ #endif
+   the_ins.reloc[the_ins.nrel++].pcrel = pc_rel;
+@@ -692,6 +692,11 @@
+ tc_coff_fix2rtype (fixP)
+      fixS *fixP;
+ {
++#ifdef COFF_RELEND_RELOC
++  if (fixP->fx_r_type != NO_RELOC)
++    return fixP->fx_r_type;
++#endif
++
+   if (fixP->fx_tcbit && fixP->fx_size == 4)
+     return R_RELLONG_NEG;
+ #ifdef NO_PCREL_RELOCS
+@@ -871,8 +876,12 @@
+ }
+ 
+ #else /* !OBJ_ELF */
+-
++#ifdef COFF_RELEND_RELOC
++#define get_reloc_code(SIZE,PCREL,PIC) \
++  (((PIC) == pic_endrel && (SIZE) == 2)? R_RELENDWORD : NO_RELOC)
++#else
+ #define get_reloc_code(SIZE,PCREL,OTHER) NO_RELOC
++#endif /* COFF_RELEND_RELOC */
+ 
+ #define relaxable_symbol(symbol) 1
+ 
+diff -urN orig-binutils-2.14/gas/configure.in binutils-2.14/gas/configure.in
+--- orig-binutils-2.14/gas/configure.in	Mon Jun  2 22:35:23 2003
++++ binutils-2.14/gas/configure.in	Tue Jun 24 00:32:05 2003
+@@ -205,6 +205,7 @@
+       arm-*-pe | thumb-*-pe)		fmt=coff em=pe ;;
+       arm-*-riscix*)			fmt=aout em=riscix ;;
+       arm-*-vxworks)			fmt=coff ;;
++      arm-*-palmos*)			fmt=elf ;;
+ 
+       avr-*-*)				fmt=elf ;;
+ 
+@@ -347,6 +348,7 @@
+       m68k-*-openbsd*)			fmt=aout em=nbsd bfd_gas=yes ;;
+       m68k-apple-aux*)			fmt=coff em=aux ;;
+       m68k-*-psos*)			fmt=elf em=psos;;
++      m68k-*-palmos*)			fmt=coff ;;
+ 
+       m88k-motorola-sysv3*)		fmt=coff em=delt88 ;;
+       m88k-*-coff*)			fmt=coff ;;
+diff -urN orig-binutils-2.14/gas/configure binutils-2.14/gas/configure
+--- orig-binutils-2.14/gas/configure	Mon Jun  2 22:35:23 2003
++++ binutils-2.14/gas/configure	Tue Jun 24 00:33:01 2003
+@@ -2411,6 +2411,7 @@
+       arm-*-pe | thumb-*-pe)		fmt=coff em=pe ;;
+       arm-*-riscix*)			fmt=aout em=riscix ;;
+       arm-*-vxworks)			fmt=coff ;;
++      arm-*-palmos*)			fmt=elf ;;
+ 
+       avr-*-*)				fmt=elf ;;
+ 
+@@ -2557,6 +2558,7 @@
+       m68k-*-openbsd*)			fmt=aout em=nbsd bfd_gas=yes ;;
+       m68k-apple-aux*)			fmt=coff em=aux ;;
+       m68k-*-psos*)			fmt=elf em=psos;;
++      m68k-*-palmos*)			fmt=coff ;;
+ 
+       m88k-motorola-sysv3*)		fmt=coff em=delt88 ;;
+       m88k-*-coff*)			fmt=coff ;;
+diff -urN orig-binutils-2.14/gas/m68k-parse.c binutils-2.14/gas/m68k-parse.c
+--- orig-binutils-2.14/gas/m68k-parse.c	Sun Apr 27 22:15:14 2003
++++ binutils-2.14/gas/m68k-parse.c	Tue Jun 24 00:17:39 2003
+@@ -2175,7 +2175,7 @@
+ 	tail = 2;
+     }
+ 
+-#ifdef OBJ_ELF
++#if defined OBJ_ELF || defined COFF_RELEND_RELOC
+   {
+     /* Look for @PLTPC, etc.  */
+     char *cp;
+@@ -2207,6 +2207,11 @@
+ 	    yylval.exp.pic_reloc = pic_got_off;
+ 	    tail += 4;
+ 	  }
++	else if (strncmp (cp - 4, "@END", 4) == 0)
++	  {
++	    yylval.exp.pic_reloc = pic_endrel;
++	    tail += 4;
++	  }
+       }
+   }
+ #endif
+diff -urN orig-binutils-2.14/include/coff/internal.h binutils-2.14/include/coff/internal.h
+--- orig-binutils-2.14/include/coff/internal.h	Wed Aug 28 12:38:48 2002
++++ binutils-2.14/include/coff/internal.h	Fri May 16 01:15:43 2003
+@@ -626,6 +626,10 @@
+ #define R_LVRT16       132
+ #define R_VRT32        133
+ 
++/* This (m68k) reloc evaluates to a 16bit offset, just like R_RELWORD, but
++   also implicitly subtracts the value of `edata', so that effectively the
++   origin is at the end of the memory region intead of the start.  */
++#define R_RELENDWORD	21
+ 
+ /* This reloc identifies mov.b instructions with a 16bit absolute
+    address.  The linker tries to turn insns with this reloc into
+diff -urN orig-binutils-2.14/ld/Makefile.am binutils-2.14/ld/Makefile.am
+--- orig-binutils-2.14/ld/Makefile.am	Thu Apr 24 14:36:07 2003
++++ binutils-2.14/ld/Makefile.am	Fri May 16 01:15:43 2003
+@@ -125,6 +125,7 @@
+ 	earmelf_oabi.o \
+ 	earmnto.o \
+ 	earmnbsd.o \
++	earmpalmos.o \
+ 	earmpe.o \
+ 	eavr1200.o \
+ 	eavr23xx.o \
+@@ -242,6 +243,7 @@
+ 	em68klinux.o \
+ 	em68klynx.o \
+ 	em68knbsd.o \
++	em68kpalmos.o \
+ 	em68kpsos.o \
+ 	em88kbcs.o \
+ 	emcorepe.o \
+@@ -502,6 +504,9 @@
+ earmpe.c: $(srcdir)/emulparams/armpe.sh \
+   $(srcdir)/emultempl/pe.em $(srcdir)/scripttempl/pe.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} armpe "$(tdir_armpe)"
++earmpalmos.c: $(srcdir)/emulparams/armpalmos.sh $(srcdir)/emulparams/armelf.sh \
++  $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/armpalmos.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} armpalmos "$(tdir_armpalmos)"
+ eavr85xx.c: $(srcdir)/emulparams/avr85xx.sh \
+   $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/elf32avr.sc \
+   ${GEN_DEPENDS}
+@@ -981,6 +986,9 @@
+ em68knbsd.c:	$(srcdir)/emulparams/m68knbsd.sh \
+   $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/aout.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} m68knbsd "$(tdir_m68knbsd)"
++em68kpalmos.c: $(srcdir)/emulparams/m68kpalmos.sh \
++  $(srcdir)/emultempl/m68kcoff.em $(srcdir)/scripttempl/m68kpalmos.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} m68kpalmos "$(tdir_m68kpalmos)"
+ em68kpsos.c:	$(srcdir)/emulparams/m68kpsos.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/psos.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} m68kpsos "$(tdir_m68kpsos)"
+diff -urN orig-binutils-2.14/ld/Makefile.in binutils-2.14/ld/Makefile.in
+--- orig-binutils-2.14/ld/Makefile.in	Thu Apr 24 14:36:07 2003
++++ binutils-2.14/ld/Makefile.in	Fri May 16 01:16:00 2003
+@@ -239,6 +239,7 @@
+ 	earmelf_oabi.o \
+ 	earmnto.o \
+ 	earmnbsd.o \
++	earmpalmos.o \
+ 	earmpe.o \
+ 	eavr1200.o \
+ 	eavr23xx.o \
+@@ -356,6 +357,7 @@
+ 	em68klinux.o \
+ 	em68klynx.o \
+ 	em68knbsd.o \
++	em68kpalmos.o \
+ 	em68kpsos.o \
+ 	em88kbcs.o \
+ 	emcorepe.o \
+@@ -1228,6 +1230,9 @@
+ earmpe.c: $(srcdir)/emulparams/armpe.sh \
+   $(srcdir)/emultempl/pe.em $(srcdir)/scripttempl/pe.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} armpe "$(tdir_armpe)"
++earmpalmos.c: $(srcdir)/emulparams/armpalmos.sh $(srcdir)/emulparams/armelf.sh \
++  $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/armpalmos.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} armpalmos "$(tdir_armpalmos)"
+ eavr85xx.c: $(srcdir)/emulparams/avr85xx.sh \
+   $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/elf32avr.sc \
+   ${GEN_DEPENDS}
+@@ -1707,6 +1712,9 @@
+ em68knbsd.c:	$(srcdir)/emulparams/m68knbsd.sh \
+   $(srcdir)/emultempl/generic.em $(srcdir)/scripttempl/aout.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} m68knbsd "$(tdir_m68knbsd)"
++em68kpalmos.c: $(srcdir)/emulparams/m68kpalmos.sh \
++  $(srcdir)/emultempl/m68kcoff.em $(srcdir)/scripttempl/m68kpalmos.sc ${GEN_DEPENDS}
++	${GENSCRIPTS} m68kpalmos "$(tdir_m68kpalmos)"
+ em68kpsos.c:	$(srcdir)/emulparams/m68kpsos.sh \
+   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/psos.sc ${GEN_DEPENDS}
+ 	${GENSCRIPTS} m68kpsos "$(tdir_m68kpsos)"
+diff -urN orig-binutils-2.14/ld/configure.tgt binutils-2.14/ld/configure.tgt
+--- orig-binutils-2.14/ld/configure.tgt	Thu Jun 12 16:25:52 2003
++++ binutils-2.14/ld/configure.tgt	Tue Jun 24 00:33:59 2003
+@@ -247,6 +247,7 @@
+ arm*-*-linux-gnu*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
+ arm*-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
+ arm*-*-conix*)		targ_emul=armelf ;;
++arm*-*-palmos*)		targ_emul=armpalmos; targ_extra_emuls=armelf ;;
+ thumb-*-linux-gnu* | thumb-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
+ strongarm-*-coff)	targ_emul=armcoff ;;
+ strongarm-*-elf)	targ_emul=armelf ;;
+@@ -364,6 +365,7 @@
+ m68*-*-psos*)		targ_emul=m68kpsos ;;
+ m68*-*-rtemscoff*)	targ_emul=m68kcoff ;;
+ m68*-*-rtems*)		targ_emul=m68kelf ;;
++m68*-*-palmos*)		targ_emul=m68kpalmos ;;
+ hppa*64*-*-linux-gnu*)	targ_emul=hppa64linux ;;
+ hppa*64*-*)		targ_emul=elf64hppa ;;
+ hppa*-*-linux-gnu*)	targ_emul=hppalinux ;;
+diff -urN orig-binutils-2.14/ld/emulparams/armpalmos.sh binutils-2.14/ld/emulparams/armpalmos.sh
+--- orig-binutils-2.14/ld/emulparams/armpalmos.sh	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/ld/emulparams/armpalmos.sh	Thu Oct 31 02:04:44 2002
+@@ -0,0 +1,6 @@
++. ${srcdir}/emulparams/armelf.sh
++SCRIPT_NAME=armpalmos
++
++GENERATE_COMBRELOC_SCRIPT=yes
++unset GENERATE_SHLIB_SCRIPT
++unset ENTRY
+diff -urN orig-binutils-2.14/ld/emulparams/m68kpalmos.sh binutils-2.14/ld/emulparams/m68kpalmos.sh
+--- orig-binutils-2.14/ld/emulparams/m68kpalmos.sh	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/ld/emulparams/m68kpalmos.sh	Mon Jun  3 12:15:20 2002
+@@ -0,0 +1,4 @@
++SCRIPT_NAME=m68kpalmos
++OUTPUT_FORMAT="coff-m68k"
++ARCH=m68k
++TEMPLATE_NAME=m68kcoff
+diff -urN orig-binutils-2.14/ld/emultempl/m68kcoff.em binutils-2.14/ld/emultempl/m68kcoff.em
+--- orig-binutils-2.14/ld/emultempl/m68kcoff.em	Fri Feb 28 02:32:31 2003
++++ binutils-2.14/ld/emultempl/m68kcoff.em	Fri May 16 01:15:43 2003
+@@ -88,22 +88,25 @@
+ 	{
+ 	  asection *relsec;
+ 
+-	  relsec = bfd_make_section (abfd, ".emreloc");
++	  relsec = bfd_make_section (abfd, ".reloc");
+ 	  if (relsec == NULL
+ 	      || ! bfd_set_section_flags (abfd, relsec,
+-					  (SEC_ALLOC
+-					   | SEC_LOAD
+-					   | SEC_HAS_CONTENTS
++					  (SEC_HAS_CONTENTS
+ 					   | SEC_IN_MEMORY))
+ 	      || ! bfd_set_section_alignment (abfd, relsec, 2)
+ 	      || ! bfd_set_section_size (abfd, relsec,
+ 					 datasec->reloc_count * 12))
+-	    einfo ("%F%B: can not create .emreloc section: %E\n");
++	    einfo ("%F%B: can not create .reloc section: %E\n");
+ 	}
+ 
+       /* Double check that all other data sections are empty, as is
+          required for embedded PIC code.  */
++#if 0
++      /* This is NOT required for embedded PIC.  In fact, since we have
++	 sections like [be]hook which can be data sections on input but
++	 are output in the .text section, this is wrong wrong wrong.  */
+       bfd_map_over_sections (abfd, check_sections, (PTR) datasec);
++#endif
+     }
+ }
+ 
+@@ -146,7 +149,7 @@
+       if (datasec == NULL || datasec->reloc_count == 0)
+ 	continue;
+ 
+-      relsec = bfd_get_section_by_name (abfd, ".emreloc");
++      relsec = bfd_get_section_by_name (abfd, ".reloc");
+       ASSERT (relsec != NULL);
+ 
+       if (! bfd_m68k_coff_create_embedded_relocs (abfd, &link_info,
+diff -urN orig-binutils-2.14/ld/scripttempl/armpalmos.sc binutils-2.14/ld/scripttempl/armpalmos.sc
+--- orig-binutils-2.14/ld/scripttempl/armpalmos.sc	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/ld/scripttempl/armpalmos.sc	Thu Aug 15 06:07:33 2002
+@@ -0,0 +1,22 @@
++cat <<EOF
++OUTPUT_FORMAT ("${OUTPUT_FORMAT}", "${BIG_OUTPUT_FORMAT}",
++	       "${LITTLE_OUTPUT_FORMAT}")
++OUTPUT_ARCH ("${ARCH}")
++	
++${RELOCATING+${LIB_SEARCH_DIRS}}
++	
++/* This is a pathetically simple linker script that is only of use for
++   building Palm OS 5 armlets, namely stand-alone code that has no global
++   data or other complications.  */
++	
++SECTIONS
++{
++    .text :
++    {
++	*(.text .rodata)
++	${RELOCATING+${OTHER_TEXT_SECTIONS}}
++    }
++	
++    .disposn : { *(.disposn) }
++}
++EOF
+diff -urN orig-binutils-2.14/ld/scripttempl/m68kpalmos.sc binutils-2.14/ld/scripttempl/m68kpalmos.sc
+--- orig-binutils-2.14/ld/scripttempl/m68kpalmos.sc	Thu Jan  1 00:00:00 1970
++++ binutils-2.14/ld/scripttempl/m68kpalmos.sc	Thu Jun  6 17:14:30 2002
+@@ -0,0 +1,76 @@
++# Note that genscripts.sh strips blank lines, but converts lines
++# matching ^\t$ into blank lines on output.  So we use the latter here.
++
++cat <<EOF
++OUTPUT_FORMAT ("${OUTPUT_FORMAT}")
++	
++${LIB_SEARCH_DIRS}
++	
++/* The LENGTH of coderes determines how large the .text section (which winds
++   up as the final database's main 'code' resource) may be before producing
++   linker errors.  Typical values on Palm OS are "about 32K" and "about 64K":
++	
++   32770 is the largest .text section whose start and end can be reached from
++   each other via a 16 bit signed m68k jump (although only the first 32K can
++   be called from other sections, that's enough because no function can start
++   beyond there because it must end in rts);
++	
++   64720 is the largest resource allowable all the way back to Palm OS 1.0;
++	
++   65505 is the largest resource allowable on Palm OS 3.0 and higher.  */
++	
++MEMORY
++{
++    coderes : ORIGIN = 0x0, LENGTH = 32770
++    datares : ORIGIN = 0x0, LENGTH = 32767
++	
++    trap_region :	 ORIGIN = 0x1000000, LENGTH = 2
++    disposition_region : ORIGIN = 0x1000010, LENGTH = 6
++}
++	
++SECTIONS
++{
++    .text :
++    {
++	*(.text)
++	. = ALIGN(4);
++	bhook_start = .;
++	*(bhook)
++	bhook_end = .;
++	. = ALIGN(4);
++	ehook_start = .;
++	*(ehook)
++	ehook_end = .;
++EOF
++if [ -n "${CONSTRUCTING}" ]; then cat <<EOF
++	. = ALIGN(4);
++	ctors_start = .;
++	*(.ctors)
++	ctors_end = .;
++	. = ALIGN(4);
++	dtors_start = .;
++	*(.dtors)
++	dtors_end = .;
++EOF
++fi
++cat <<EOF
++    } > coderes
++    .data :
++    {
++	data_start = .;
++	*(.data)
++	*(.gcc_exc)
++    } > datares
++    .bss :
++    {
++	bss_start = .;
++       	*(.bss)
++       	*(COMMON)
++    } > datares
++    end = ALIGN( 4 );
++    edata = ALIGN( 4 );
++	
++    .trap : { *(.trap) } > trap_region
++    .disposn : { *(.disposn) } > disposition_region
++}
++EOF
+diff -urN orig-binutils-2.14/libiberty/fnmatch.c binutils-2.14/libiberty/fnmatch.c
+--- orig-binutils-2.14/libiberty/fnmatch.c	Fri Dec 29 21:16:02 2000
++++ binutils-2.14/libiberty/fnmatch.c	Mon Aug 19 13:31:55 2002
+@@ -55,7 +55,9 @@
+    program understand `configure --with-gnu-libc' and omit the object files,
+    it is simpler to just do this in the source for each such file.  */
+ 
+-#if defined (_LIBC) || !defined (__GNU_LIBRARY__)
++/* [PRC-TOOLS-LOCAL] It's not a waste when you're trying to avoid the New!
++   Improved! glibc-2.2.4 fnmatch GLIBC@2.2.3 dependency.  Hack on, dude.  */
++#if defined (_LIBC) || !defined (__GNU_LIBRARY__) || 1
+ 
+ 
+ #if !defined(__GNU_LIBRARY__) && !defined(STDC_HEADERS)

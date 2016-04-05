@@ -1,0 +1,308 @@
+dnl Autoconf configure script for prc-tools.
+dnl
+dnl Copyright 2000, 2001, 2002, 2003 John Marshall.
+dnl
+dnl This is free software; you can redistribute it and/or modify
+dnl it under the terms of the GNU General Public License as published by
+dnl the Free Software Foundation; either version 2, or (at your option)
+dnl any later version.
+dnl
+dnl Process this file with autoconf to produce a configure script.
+
+AC_PREREQ(2.13)
+AC_INIT(prc-tools.spec)
+
+
+palmdev_prefix=/opt/palmdev
+
+AC_ARG_WITH(palmdev-prefix,
+[  --with-palmdev-prefix=DIR
+                          where to look for SDKs [/opt/palmdev]],
+[case "${withval}" in
+yes|no)	AC_MSG_ERROR(bad value ${withval} given for palmdev prefix) ;;
+*)	palmdev_prefix="${withval}" ;;
+esac])
+
+AC_SUBST(palmdev_prefix)
+
+
+htmldocs_prefix='$(palmdev_prefix)/doc'
+htmldocs_enabled=''
+install_htmldocs_enabled=''
+
+AC_ARG_ENABLE(html-docs,
+[  --enable-html-docs[=DIR]where to install HTML versions of the documentation
+                          [disabled; PALMDEV_PREFIX/doc]],
+[case "${enableval}" in
+yes)	htmldocs_enabled=html install_htmldocs_enabled=install-html ;;
+no)	;;
+*)	htmldocs_prefix=${enableval}
+	htmldocs_enabled=html install_htmldocs_enabled=install-html ;;
+esac])
+
+AC_SUBST(htmldocs_prefix)
+AC_SUBST(htmldocs_enabled)
+AC_SUBST(install_htmldocs_enabled)
+
+
+AC_ARG_ENABLE(languages,
+[  --enable-languages=...  build compilers for the specified languages only],
+[case ",${enableval}," in
+   *,c++,* | *,all,*)	install_cxx_libs='$(INSTALL_CXX_LIBS)' ;;
+   *)			install_cxx_libs= ;;
+ esac], [AC_MSG_ERROR(--enable-languages must be used)])
+AC_SUBST(install_cxx_libs)
+
+
+AC_CANONICAL_SYSTEM
+
+AC_ARG_ENABLE(targets,
+[  --enable-targets=...    build several targets (instead of one --target)],
+[case "${enableval}" in
+yes|no)	AC_MSG_ERROR(--enable-targets must explicitly list the targets) ;;
+esac])
+
+AC_ARG_ENABLE(generic,
+[  --disable-generic       omit tools etc that are not target-specific],
+[], [enable_generic=yes])
+
+
+# Use "cd subdir; $(up_srcdir)$(srcdir)/..." to find $srcdir correctly
+# regardless of whether we were configured relatively or absolutely.
+case $srcdir in
+  /*) up_srcdir= ;;
+  *)  up_srcdir=../ ;;
+esac
+AC_SUBST(up_srcdir)
+
+config_subdirs=
+output_files="Makefile"
+all_subdirs=
+extra_subdirs=
+configure_args=
+bfd_configure_args=
+extra_dependencies=/dev/null
+extra_target_configs=
+first_enabled_target=.
+m68k_target=
+gccdir=gcc
+
+AC_SUBST(extra_subdirs)
+AC_SUBST(configure_args)
+AC_SUBST(bfd_configure_args)
+AC_SUBST_FILE(extra_dependencies)
+AC_SUBST(extra_target_configs)
+AC_SUBST(first_enabled_target)
+AC_SUBST(m68k_target)
+AC_SUBST(gccdir)
+
+target_gcc_prereqs=
+target_gcc_flags=
+targetlib_prereqs=
+targetlib_flags=
+tools_prereqs=
+target_bfd=
+doc_prereqs=
+
+AC_SUBST(target_gcc_prereqs)
+AC_SUBST(target_gcc_flags)
+AC_SUBST(targetlib_prereqs)
+AC_SUBST(targetlib_flags)
+AC_SUBST(tools_prereqs)
+AC_SUBST(target_bfd)
+AC_SUBST(doc_prereqs)
+
+if test -n "$enable_targets"; then
+  # Collect up the arguments that were given to configure, except for
+  # --enable-targets, which we're going to break apart, and arguments
+  # that are only of interest on the generic side.
+  for arg
+  do
+    case "$arg" in
+      --cache-file* | --enable-targets* | \
+      --with-palmdev-prefix* | --enable-html-docs*) ;;
+      *" "*|*"	"*|*[\[\]\~\#\$\^\&\*\(\)\{\}\\\|\;\<\>\?]*)
+	 configure_args="$configure_args '$arg'" ;;
+      *) configure_args="$configure_args $arg" ;;
+    esac
+  done
+
+  # Ensure that the different targets use different caches
+  configure_args="$configure_args --cache-file=config.cache"
+
+  extra_dependencies=Makefile.extradeps
+  > $extra_dependencies
+
+  for targ in `echo $enable_targets | sed 's/,/ /g'`; do
+    test -d $targ || mkdir $targ
+    extra_target_configs="$extra_target_configs $targ/config.status"
+    extra_subdirs="$extra_subdirs $targ"
+    all_subdirs="$all_subdirs $targ"
+    (echo; echo "$targ: $targ/config.status") >> $extra_dependencies
+    case "$targ" in
+      m68k-*) m68k_target="$targ" ;;
+      *) ;;
+    esac
+  done
+
+  if test $enable_generic = yes; then
+    changequote(,)dnl
+    first=`echo $enable_targets | sed 's/,.*//'`
+    others=`echo $enable_targets | sed 's/^[^,]*,//'`
+    changequote([,])dnl
+    bfd_configure_args="--target=$first --enable-targets=$others"
+    first_enabled_target="$first"
+
+    test -d multi-bfd  || mkdir multi-bfd
+    extra_subdirs="$extra_subdirs multi-bfd"
+    all_subdirs="$all_subdirs multi-bfd"
+    # FIXME It doesn't really need all of $first_enabled_target; really all
+    # it needs from there is $first_enabled_target/binutils/{libiberty,intl}
+    tools_prereqs="multi-bfd $first_enabled_target"
+    target_bfd="multi-bfd"
+  fi
+else
+  case "$target_cpu" in
+  m68k)	config_subdirs="$config_subdirs binutils gcc295 gdb"
+  	output_files="$output_files crt/Makefile libc/Makefile libm/Makefile"
+	all_subdirs="$all_subdirs binutils gcc295 gdb crt libc libm"
+	m68k_target="$target_alias"
+	gccdir="gcc295"
+	;;
+  arm)	config_subdirs="$config_subdirs binutils gcc"
+  	output_files="$output_files libc/Makefile"
+	all_subdirs="$all_subdirs binutils gcc libc"
+	;;
+  *)	AC_MSG_ERROR($target is not supported as a Palm OS target)
+  	;;
+  esac
+
+  # The "tools" subdirectory should look for BFD over here.
+  tools_prereqs="binutils"
+  target_bfd="binutils/bfd"
+
+  # The extra variables to be passed down to GCC and the target libraries
+  # depend on which of binutils and GCC is being built in the tree.  This is
+  # easiest to determine here at configure time.
+
+  targetgcc=
+  targetgcc_extra=
+
+  if test -d $srcdir/binutils; then
+    target_gcc_prereqs="binutils"
+    target_gcc_flags='AR_FOR_TARGET="$$cwd/$(BUILT_AR)" RANLIB_FOR_TARGET="$$cwd/$(BUILT_RANLIB)" build_tooldir="$$cwd/minitooldir"'
+    targetlib_prereqs="binutils"
+    targetlib_flags='AR="$$cwd/$(BUILT_AR)" RANLIB="$$cwd/$(BUILT_RANLIB)"'
+    targetgcc='$(INSTALLED_TARGET_GCC)'
+    targetgcc_extra=' -B$$cwd/minitooldir/bin/'
+  fi
+
+  if test -d $srcdir/gcc; then
+    targetlib_prereqs="$targetlib_prereqs gcc"
+    targetgcc='$$cwd/$(BUILT_GCC) -B$$cwd/$(BUILT_GCC_DIR)/'
+  fi
+
+  if test -n "$targetgcc$targetgcc_extra"; then
+    targetlib_flags="$targetlib_flags CC=\"$targetgcc$targetgcc_extra\""
+  fi
+fi
+
+if test $enable_generic = yes; then
+  config_subdirs="$config_subdirs make"
+  output_files="$output_files doc/Makefile doc/version.texi include/Makefile
+		tools/Makefile"
+  all_subdirs="$all_subdirs make doc include tools"
+
+  if test -d $srcdir/binutils; then
+    :
+  else
+    AC_MSG_ERROR(tools cannot be built without also building binutils/bfd)
+  fi
+fi
+
+all_extant_subdirs=
+AC_SUBST(all_extant_subdirs)
+
+for dir in $all_subdirs; do
+  if test -d $srcdir/$dir || test -d $dir; then
+    all_extant_subdirs="$all_extant_subdirs $dir"
+  fi
+done
+
+
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_RANLIB
+AC_PROG_LEX
+AC_PROG_YACC
+AC_EXEEXT
+
+AC_ARG_ENABLE(nls,
+[  --disable-nls           do not use Native Language Support],
+[], [enable_nls=yes])
+
+AC_ARG_WITH(included-gettext,
+[  --with-included-gettext use the GNU gettext library included in binutils],
+[], [with_included_gettext=no])
+
+if test $enable_nls = yes; then
+  if test $with_included_gettext = no; then
+    save_LIBS="$LIBS"
+    AC_SEARCH_LIBS(gettext, intl)
+    LIBS="$save_LIBS"
+    case $ac_cv_search_gettext in
+      no)		with_included_gettext=yes ;;
+      "none required")	INTLLIBS= ;;
+      *)		INTLLIBS="$ac_cv_search_gettext" ;;
+    esac
+  fi
+
+  test $with_included_gettext = yes && INTLLIBS='$(INCLUDED_INTLLIBS)'
+else
+  INTLLIBS=
+fi
+AC_SUBST(INTLLIBS)
+
+if test $enable_generic = yes; then
+  # Building manpages requires binutils to be in the tree (which was
+  # checked above) and a recent Pod::Man
+  AC_MSG_CHECKING([for recent Pod::Man])
+  if (perl -e 'use 1.10 Pod::Man') >/dev/null 2>&1; then
+    pod_man_version=`perl -e 'use Pod::Man; print $Pod::Man::VERSION'`
+    AC_MSG_RESULT([yes ($pod_man_version)])
+    manpages_enabled=man
+    install_manpages_enabled=install-man
+  else
+    AC_MSG_RESULT(no)
+    manpages_enabled=''
+    install_manpages_enabled=''
+  fi
+  AC_SUBST(manpages_enabled)
+  AC_SUBST(install_manpages_enabled)
+
+  AC_CHECK_PROG(TEXI2HTML, texi2html, texi2html, false)
+  if test -n "$htmldocs_enabled"; then
+    # Check that texi2html understands its new-style (e.g. -out_file) arguments
+    if test $TEXI2HTML != false &&
+       $TEXI2HTML -out_file /dev/null /dev/null >/dev/null 2>/dev/null
+    then :
+    else
+      AC_MSG_ERROR(modern texi2html needed to build HTML documentation)
+    fi
+    # In a multi-target build, hmtldocs needs to ensure that this is configured
+    # before it tries to "make info" over there.
+    if test $first_enabled_target != .; then
+      doc_prereqs="$first_enabled_target/config.status"
+    fi
+  fi
+
+  AC_MSG_CHECKING([prc-tools package version])
+  prc_tools_version=`grep '^Version:' $srcdir/prc-tools.spec | sed 's/.*: //'`
+  AC_MSG_RESULT($prc_tools_version)
+  AC_SUBST(prc_tools_version)
+fi
+
+AC_CONFIG_SUBDIRS($config_subdirs)
+AC_OUTPUT($output_files)

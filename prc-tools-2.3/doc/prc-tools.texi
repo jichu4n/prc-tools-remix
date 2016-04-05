@@ -1,0 +1,1630 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename prc-tools.info
+@settitle Using PRC-Tools
+@c %**end of header
+
+@include version.texi
+
+@ifset development-version
+@clear version
+@c This doesn't read very well, but should never appear anyway
+@set version  as in current development
+@end ifset
+
+@ifinfo
+@dircategory Programming
+@direntry
+* prc-tools: (prc-tools).      Using GCC et al with Palm OS.
+@end direntry
+@dircategory Individual utilities
+@direntry
+* build-prc: (prc-tools)build-prc.              The Palm OS post-linker.
+* palmdev-prep: (prc-tools)palmdev-prep.        Preparing PalmDev trees.
+@end direntry
+
+This file documents the use of PRC-Tools, version @value{version}.
+@end ifinfo
+
+@titlepage
+@title Using PRC-Tools
+@subtitle Compiling for Palm OS with GCC
+@subtitle For version @value{version}
+@subtitle @value{updatedmonth}
+@author
+
+@page
+
+@vskip 0pt plus 1filll
+
+Copyright @copyright{} 1998, 2001, 2002, 2003 John Marshall@*
+Portions copyright @copyright{} 2000 Palm, Inc. or its subsidiaries
+
+@sp 2
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the Free Software Foundation.
+@c Yes, we really did mean to leave that as FSF!
+
+@end titlepage
+
+
+@node Top
+@top Using PRC-Tools
+
+This manual documents the extra tools and particular caveats associated
+with using the GNU Compiler Collection, GCC, to compile programs for Palm OS.
+@ifclear development-version
+It corresponds to prc-tools @w{version @value{version}},
+@end ifclear
+@ifset development-version
+It corresponds to the current pre-release development version of prc-tools
+(so some functionality described may not be present in earlier releases),
+@end ifset
+and was last modified on @value{updatedfull}.
+
+
+@menu
+* GCC on Palm OS::    Features (and mis-features) specific to Palm OS.
+* Global data::       Accessing global data.
+* Special projects::  Large applications, libraries, stand-alone code, etc.
+* Definition files::  Using a project definition file.
+* Debugging::         Enabling and using a debugger.
+
+* Post-linker and other tools::
+
+@detailmenu
+* build-prc::         Combine resources into a single .prc database.
+* multigen::          Generate support files for multiple code resources.
+* stubgen::             ...or for shared libraries.
+* obj-res::           Make resources from a bfd executable.
+* palmdev-prep::      Inform GCC of the locations of Palm OS SDKs.
+* trapfilt::          Decode Palm OS trap vectors.
+@end detailmenu
+
+@c * Index::
+@end menu
+
+
+@node GCC on Palm OS
+@chapter Palm OS-specific GCC features
+
+The modifications to GCC to support Palm OS programming add several new
+command line options and function attributes to GCC.  Additionally, a
+few standard GCC features are not supported.
+
+@menu
+* New options::
+* Function attributes::
+* Unsupported GCC features::
+* Include files::
+@end menu
+
+
+@node New options
+@section Palm OS-specific GCC options
+
+GCC for Palm OS supports the following options, in addition to all the
+usual target-independent and M68K-specific options.
+
+@table @code
+@item -mpcrel
+Activate Palm OS-specific code generation patterns.  This is turned on
+by default in the specs file; don't ever turn it off!
+
+@item -mdebug-labels
+Put each function's name into the text section immediately after the function's
+code, in MacsBug format.
+
+@item -mextralogues
+Activate @code{extralogue} attributes.  @xref{Entry points}.
+
+@item -mown-gp
+Access global data via the @sc{a4} register, and activate @code{owngp}
+attributes.  By default, global data are accessed via @sc{a5}, and
+@code{owngp} attributes have no effect.  @xref{Global data}.
+
+This option implies @samp{-mextralogues}.
+
+@item -palmos@var{N}
+Select system header files and libraries for Palm OS SDK version @var{N}.
+By default, the SDK selected as the default SDK the last time
+@code{palmdev-prep} was run will be used (@pxref{palmdev-prep}).
+
+@item -palmos-none
+Don't add any Palm OS SDK directories or other directories from any PalmDev
+trees to the include and library search paths.
+@end table
+
+There is also a @samp{-mno-@var{X}} option corresponding to each of the
+@samp{-m@var{X}} options, but you shouldn't ever need to use them.
+
+
+@node Function attributes
+@section Function attributes
+
+You specify a function attribute in the declaration of the function.
+In addition to the standard ones (@pxref{Function Attributes, attributes,
+Declaring Attributes of Functions, gcc, Using and Porting GCC}), Palm OS
+defines the following function attributes:
+
+@table @code
+@item callseq (@var{insns})
+A function with a @code{callseq} attribute is called using the assembly
+language instructions in @var{insns}, which may implement a Palm OS systrap
+or something more esoteric.  The argument @var{insns} must be a string
+literal.
+
+Generally you won't use the @code{callseq} attribute directly; instead, there
+are macros defined in @file{PalmTypes.h}.
+
+@item systrap (@var{vector})
+The @code{systrap} attribute specifies that the function should be called
+using the Palm OS systrap mechanism.  The integer @var{vector} may be either
+a literal such as @samp{0xa000} or a constant value such as an enumeration
+constant.  More complicated expressions are not permitted.
+
+This attribute is deprecated and will be removed from a future version of
+prc-tools.  New code should use callseq instead.
+
+You shouldn't use the @code{systrap} attribute directly; instead, you should
+use the @code{SYS_TRAP} macro defined in @file{CoreTraps.h}.
+
+@item owngp
+When @samp{-mown-gp} is used, the @code{owngp} attribute causes the function
+to save the @sc{a4} register on entry, and restore it on exit.
+
+You shouldn't use @code{owngp} directly; instead, you should use the macros
+defined in @file{EntryPoints.h}.
+
+@item extralogue (@var{prologue}, @var{epilogue},@dots{})
+When @samp{-mextralogues} is used, the @code{extralogue} attribute causes
+the function to add code to its prologue and epilogue according to the
+arguments given.  @xref{Entry points}, for details.
+
+You shouldn't use @code{extralogue} directly; instead, you should use the
+macros defined in @file{EntryPoints.h}.
+
+@item section (@var{section-name})
+This attribute is a standard one, and is used on Palm OS to indicate
+functions which should be placed in a code resource other than the default
+@samp{code #1}.
+
+@c You probably shouldn't use @code{section} directly; instead, you might define
+@c your own macros for different sections.
+@end table
+
+In theory, the commonly used attributes differ in their ``required
+visibilities'':
+
+@itemize @bullet
+@item
+A @code{systrap} or @code{callseq} attribute is only important to anyone
+calling the function.  (You don't usually define such functions yourself
+anyway.)
+
+@item
+Callers don't care that a function has an @code{extralogue} or saves its
+@code{owngp}; these really only have effects when the code for that function
+is generated.
+
+@item
+On Palm OS, a function's @code{section} is important both to itself (it
+determines what section the code is put in) and to other functions calling
+it (it can cause a special cross-section calling sequence to be emitted).
+@end itemize
+
+In practice, probably the best policy is to have exactly one declaration
+for each function that needs one, in a header file somewhere, and to use
+@samp{-Wimplicit} (which is implied by @samp{-Wall}), and possibly also
+@samp{-Wmissing-declarations}, to ensure that the declaration is visible
+when it needs to be (@pxref{Warning Options, warnings, Options to Request
+or Suppress Warnings, gcc, Using and Porting GCC}).
+
+
+@node Unsupported GCC features
+@section Unsupported GCC features
+
+The following GCC options are not currently supported on Palm OS:
+
+@table @code
+@item -p
+@itemx -pg
+@itemx -a
+@itemx -ax
+@itemx -fprofile-arcs
+@itemx -fbranch-probabilities
+Probably profiling is unsupported.  Certainly the support functions in
+@file{libgcc} aren't being included, because they depend on non-existent
+stdio support.
+
+@item -ftest-coverage
+A similar comment applies to the @code{gcov} data file.
+
+@item -ffunction-sections
+This option sets each function's section @emph{after} function calls are
+generated.  This is too late to be effective because we need to emit special
+code for cross-section function calls.
+
+@item -mbitfield
+@itemx -m68020
+@itemx -m68881
+These and other M68K hardware selection options will cause your programs
+to fail horribly.
+
+@item -mrtd
+This selects code generation patterns which disagree with the conventions
+used by the Palm OS API functions, so will fail horribly.
+@end table
+
+@noindent
+There are also the following caveats:
+
+@itemize @bullet
+@item
+While describing the @code{section} attribute, the GCC manual suggests using
+the linker to split an executable into sections.  Just like
+@samp{-ffunction-sections}, this doesn't work.
+
+@item
+The @code{__complex__} extension doesn't work.
+
+@item
+The @samp{-Wmultichar} warning is off by default, even if you use @samp{-Wall}.
+
+@item
+If @samp{-mpcrel} is on, as it always is, any @samp{-fpic} or @samp{-fPIC}
+options are ineffective: @samp{-mpcrel} always implies @samp{-fpic}.
+
+@item
+Because we care about code size (and don't have an instruction cache), too
+much of the following is probably counter-productive: @samp{-ffunction-cse},
+@samp{-funroll-loops}, @samp{-funroll-all-loops}.  Hence these options are not
+implied by the @samp{-O} flags, but must be selected explicitly.
+
+@c The option @samp{-ffunction-cse} works, but (because we care about code size)
+@c generally produces worse code.  Unlike other platforms, @samp{-O2} doesn't
+@c turn function @sc{cse} on.
+
+@item
+If you use 64K code resources, the linker @samp{-r} option will not always work.
+Fortunately, these are both unnecessary.
+
+@item
+Changing the specs file with @samp{-specs=@var{file}} or invoking
+@code{m68k-palmos-as} or @code{m68k-palmos-ld} directly should be done
+with caution: proper operation is quite dependent on options set in the
+default specs file.
+@end itemize
+
+
+@node Include files
+@section Include files
+
+@subsection NewTypes.h
+
+@findex @file{NewTypes.h}
+
+With Palm OS SDKs prior to the 3.5 SDK, programmers were encouraged to use
+typedefs such as @code{DWord} and @code{VoidHand} rather than the built-in
+types.  In the 3.5 SDK, the names of these typedefs have been changed to
+the somewhat more mnemonic @code{UInt32} (etc) and the rather more
+functional @code{MemHandle}.  (Previously there were two ``handle''
+datatypes, @code{VoidHand} and @code{Handle}, with no real reason for a
+distinction between them, and programmers were continually casting between
+them.  @code{MemHandle} corrects this historical accident.)
+
+People wanting to write library header files capable of interacting with
+any SDK have a dilemma:  which to use, old- or new-style type names?
+
+You can use old-style names by instructing developers to include
+@file{PalmCompatibility.h} before including your header file if they are
+using the 3.5 SDK.  But this is not very satisfactory:  the onus shouldn't
+be on developers to get this right, and you might prefer to use new-style
+names.
+
+You can ensure new-style names are available simply by including
+@file{NewTypes.h} at the top of your header file, and instructing developers
+to include at least @file{Common.h}/@file{PalmTypes.h} before your header.
+(They are probably including @file{Pilot.h}/@file{PalmOS.h} anyway.)
+
+Including @file{NewTypes.h} provides the following:
+
+@itemize @bullet
+@item
+The identifiers @code{UInt8}, @code{Int8}, @code{UInt16}, @code{Int16},
+@code{UInt32}, @code{Int32}, @code{MemPtr}, and @code{MemHandle} are
+all typedeffed appropriately.
+
+@item
+The macro @code{SDK_VERSION} is defined to one of 10, 20, 30, 31, 35, 40,
+and so on, indicating the SDK version which is in use.
+@end itemize
+
+@subsection Standalone.h
+
+@findex @file{Standalone.h}
+
+Including @file{Standalone.h} provides the macros listed below, which
+facilitate building stand-alone code resources. @xref{Stand-alone code}.
+
+@itemize @w{}
+@item @code{STANDALONE_CODE_RESOURCE_ID (@var{res_id})}
+@item @code{STANDALONE_CODE_RESOURCE_TYPE_ID (@var{res_type}, @var{res_id})}
+@item @code{STANDALONE_CODE_RESOURCE_TYPESTR_ID (@var{res_type}, @var{res_id})}
+@item @code{HACKMASTER_TRAP (@var{vector})}
+@end itemize
+
+
+@node Global data
+@chapter Global data
+
+An application's variables can be divided into three classes according
+to where they are stored.  Automatic variables local to functions are
+stored on the stack, and have lifetimes corresponding to the duration
+of the function invocation with which they are associated.  Some data
+are explicitly allocated on the heap via @code{malloc()}, @code{MemPtrNew()},
+or @code{MemHandleNew()}, and live until they are explicitly freed.  The
+remainder---global and static variables---constitute an application's
+@emph{global data}, and have lifetimes corresponding to the complete
+runtime of the application.
+
+Shared libraries can also have global data:  GLibs automatically have
+globals just as applications do, while system libraries don't by default,
+but could set up their own globals manually, if desired.
+
+Currently, both C++ virtual tables and the support data for multiple
+code resources are stored as global data.  This means that these features
+can only be used when global data is available.
+
+@menu
+* Accessing::         How to access global data
+* Initialising A4::   Initialising a non-standard global pointer
+* Entry points::      Using extralogue attributes
+@end menu
+
+
+@node Accessing
+@section Accessing global data
+
+How global data should be accessed depends on what you are building:
+@c (@pxref{Project types}):
+
+@itemize @bullet
+@item
+Depending on its launch code, a Palm OS application may or may not have
+access to its global data (see the @cite{Palm OS Reference} manual).
+If global data is available, it is accessed via the @sc{a5} register
+(which points to the @strong{end} of the global data).
+
+@item
+A GLib accesses its global data via the @sc{a4} register.
+
+@item
+A SysLib must set up global data in its @code{Open} vector if it wants any,
+and then can access it via @sc{a4}.
+
+@item
+A Hack has no global data.
+(But it could use similar tricks to a SysLib if it really wanted to.)
+@end itemize
+
+By default, or with @samp{-mno-own-gp}, compiled code will access global data
+via (a negative offset from) @sc{a5}.  Shared libraries and other special
+purpose programs should be compiled with @samp{-mown-gp}, and will use
+(a positive offset from) @sc{a4} (see @pxref{New options}).
+
+
+
+@node Initialising A4
+@section Initialising @sc{a4}
+
+In the following discussion, we use the term ``executable'' to refer to
+either an application or a shared library of either type.
+
+There are two ways a function can be called: either directly, or when its
+address is taken and a call is subsequently made through that pointer.
+An executable can construct a pointer to a function within itself, or to a
+function in a GLib it uses (this will really be a pointer to the relevant
+stub), but not to a SysLib or operating system API function (since you can't
+construct a pointer to a systrap).
+
+In simple cases, access to globals isn't a major problem:
+
+@itemize @bullet
+@item
+When an executable @var{E} calls another function within @var{E}, it's just a
+direct subroutine call, and of course @var{E}'s globals are still available.
+
+@item
+When an executable @var{E} calls a function in a GLib @var{L}, it calls via a
+stub linked into @var{E} whose job is to set up access to @var{L}'s globals,
+call the function proper, and then restore @var{E}'s globals afterwards.
+Again, the appropriate globals are available.
+
+@item
+When an executable calls a function in a SysLib, it calls via a system trap,
+which merely finds the library routine and calls it.  Thus, in this case, it
+is the library routine's responsibility to arrange access to its globals.
+@c (Note XXX: SysLib global entrypoints.)
+
+@item
+When an executable constructs a pointer to a function, and then @emph{itself}
+calls through that pointer, it's again just a direct subroutine call, so its
+globals are available.
+@end itemize
+
+@noindent
+However, the situation gets more complex when an executable constructs a
+pointer to a function and then gives it to someone else, perhaps by passing
+it as an argument or by returning it to its caller.  ``Someone else'' may
+be either another executable or the operating system (so the pointer is a
+``callback function'').
+
+The rules here are:
+
+@itemize @bullet
+@item
+Any pointer constructed by an application will work anywhere.
+
+@item
+A pointer constructed by a shared library to a function within that library
+will work if that function takes steps to initialise its global pointer
+(Note entrypoints.).  Feature and trampoline entrypoints are most suitable.
+
+@item
+A pointer constructed by a shared library to a function in a separate GLib
+will never work at all,
+@ignore
+@footnote{In fact, it would be possible to use Ken
+Krugler's non-intrusive trampoline technique (@cite{xx}).  However this would
+require dummy parameters to be added to the other GLib's function, so doesn't
+seen practical.}
+@end ignore
+because it is impossible to specify a special entrypoint
+sequence for a GLib stub.  Fortunately, this can be worked around by adding
+a function to the other GLib which returns the required function pointer.
+@end itemize
+
+@findex CALLBACK_PROLOGUE
+@findex CALLBACK_EPILOGUE
+In previous versions of prc-tools, applications also accessed their globals via
+the @sc{a4} register, and their function pointers were therefore subject to the
+same restrictions as shared library function pointers.  The appropriate steps
+to initialise the global pointer are much simpler for an application than a
+shared library, and were available via the macros @code{CALLBACK_PROLOGUE}
+and @code{CALLBACK_EPILOGUE}.  This is no longer necessary.  However,
+if you really want to use @samp{-mown-gp} when building an application,
+you can use @code{APP_ENTRYPOINT} as a more convenient equivalent of the
+@code{CALLBACK_*} macros.
+
+
+@node Entry points
+@section The @code{extralogue} attribute and entry points
+
+An @code{extralogue}
+@ignore
+@footnote{Why `extralogue'?  It's a shameless mangling:  
+
+Unfortunately, all those words---`pro', `epi', `logos'---came
+to Latin from Greek, while the Romans invented `extra' themselves.  So
+we've mixed up Latin and Greek roots, but that's not uncommon in this
+television age@dots{}}
+@end ignore
+attribute allows you to add arbitrary code to a
+function's prologue and epilogue.  Typically, it is used in conjunction with
+an @code{owngp} attribute to initialise a separate globals pointer for the
+duration of the function.  The @code{ENTRYPOINT} macro is defined in
+@file{EntryPoints.h} for precisely this purpose:
+
+@example
+#define ENTRYPOINT(EXTRAS)  \
+  __attribute__ ((__owngp__, __extralogue__ EXTRAS))
+@end example
+
+It takes between zero and eight parameters, each of which is a string with
+the same syntax as an @code{asm} template string (@pxref{Extended Asm,
+asm, Assembler Instructions with C Expression Operands, gcc, Using and
+Porting GCC}):
+
+@example
+extralogue (@var{prologue}, @var{epilogue}, @var{single-epilogue}, @var{void-epilogue},
+            @var{far-prologue}, @var{far-epilogue}, @var{far-single-epilogue}, @var{far-void-epilogue})
+@end example
+
+@noindent
+This looks daunting, but often most of the parameters are unneeded.
+A replacement will be chosen, as described below, for each argument you
+leave empty (i.e., @t{""}).  If all arguments beyond a certain point would
+be empty, you can omit them entirely.  Generally you only need to specify
+one or two parameters because:
+
+@itemize @bullet
+@item
+The @samp{far-} variants are only used if functions in non-default
+sections need special treatment.  Such `special treatment' is likely to
+involve the global variables used to implement multiple sections.  Hence an
+@code{extralogue} used to arrange access to global variables had better not
+require such special treatment!
+
+@item
+The main @code{epilogue} is capable of handling all epilogues.  The
+@samp{single-} and @samp{void-} variants allow you to supply more efficient
+code in most cases, but are not truly necessary.
+
+@item
+In fact, you often won't need any special epilogue at all.
+@end itemize
+
+Thus, in practice, @code{extralogue} is often only used with one argument.
+For example, an @code{ENTRYPOINT} equivalent to the @code{CALLBACK_*} macros
+looks like this:
+
+@example
+ENTRYPOINT (("move.l %%a5,%%a4; sub.l #edata,%%a4"))
+@end example
+
+@noindent
+Note that @code{ENTRYPOINT}, being a macro, requires two sets of parentheses
+to emulate varargs.
+
+See @file{EntryPoints.h} for more examples of the use of this attribute.
+
+@subsubheading Prologues
+
+The function prologue first emits code to save the current @sc{a4} value on
+the stack.  It then emits the first one of the following which is non-empty
+and whose condition, if any, is satisfied:
+
+@multitable @columnfractions .25 .75
+@item @var{far-prologue}
+@tab if @var{function} has a @code{section} attribute
+@item @var{prologue}
+@tab
+@end multitable
+
+The string selected can use @code{%0} to refer to the address of the
+function's first parameter.  @code{%0} will be a Mode 5 EA of the form
+@code{@var{offset}(fp)} or @code{@var{offset}(sp)}.
+
+Your prologue @strong{must not} leave any extra data on the stack!  If your
+prologue and epilogue need to communicate with each other and their needs
+aren't satisfied by @sc{a4}, your function should declare some local variables
+for storage space, and your templates may access them at appropriate offsets
+from @sc{fp}.
+
+However, if you use @samp{-fomit-frame-pointer}, this won't work.  In this
+case, you would need to fake your extra epilogue with @code{asm}, thus letting
+the compiler figure out the correct offsets from @sc{sp}.  As with the old
+@code{CALLBACK_EPILOGUE}, you would need to ensure that execution couldn't
+escape from your function without going through your `epilogue'.
+
+@subsubheading Epilogues
+
+The function epilogue emits the first one of the following which is non-empty
+and whose condition, if any, is satisfied:
+
+@multitable @columnfractions .25 .75
+@item @var{far-void-epilogue}
+@tab if @var{function} has a @code{section} attribute and needs no return
+register
+@item @var{far-single-epilogue}
+@tab if @var{function} has a @code{section} attribute and needs at most a single
+return register
+@item @var{far-epilogue}
+@tab if @var{function} has a @code{section} attribute
+@item @var{void-epilogue}
+@tab if @var{function} needs no return register
+@item @var{single-epilogue}
+@tab if @var{function} needs at most a single return register
+@item @var{epilogue}
+@tab
+@end multitable
+
+The string selected can use @code{%0} to refer to the function's return
+value, if any.  If the function requires several registers to return its
+value (e.g., long longs are returned in @sc{d0} and @sc{d1}), then @code{%0}
+will be a register list suitable for a @code{movem} instruction.  If the
+function returns its value in a single register, then @code{%0} denotes
+that register, and is either @code{%%d0} or @code{%%a0} depending on whether
+the return type is a pointer.  Otherwise the function is either void or it
+returns a large struct; in this case, @code{%0} will always be @code{%%a0}.
+
+The epilogue then emits code to restore the old value of @sc{a4} from
+the stack.
+
+@subsubheading The @samp{far-} variants
+
+You need to supply a @samp{far-} variant when the normal template won't work
+properly when included in a function in a non-default section.  (This is not
+a question of optimization, as is the case for the @code{epilogue} variants,
+because the @samp{far-} variants generally won't work for a single code
+resource executable.  Usually such variants are needed because they need to
+use the @code{__text__} symbols, which would lead to link errors in a single
+code resource executable.)
+
+Two extra operands are available to @samp{far-} templates: @code{%a1} is the
+function's section's @w{@samp{__text__@var{section}}} symbol, and @code{%2}
+is the address of the main text section's base pointer global, i.e., it is
+@w{@code{__text__(%%pic)}}, where @code{%%pic} is either @sc{a4} or @sc{a5}.
+(This shows dramatically why @samp{far-} variants are unlikely to be used
+with @code{ENTRYPOINT}: it's not much use accessing the text section's
+base pointer via @sc{a4} when that register hasn't been set up yet!)
+
+There are other possible uses of @code{extralogue} for which the @samp{far-}
+variants are necessary.  For example, you could arrange for a profiling
+function to be called at the start of a function like this:
+
+@example
+#define CALL_PROFILER \
+  __attribute__ ((extralogue ("bsr.w __count", "", "", "",
+                              "move.l %2,%%a0; jsr __count(%%a0)")))
+int f() CALL_PROFILER;
+@end example
+
+@noindent
+If you couldn't tell the compiler to use a cross-section jump when needed,
+you would need to supply a separate version of the @code{CALL_PROFILER}
+macro for use with functions with @code{section} attributes.  This would
+lead to mysterious errors: the program would crash if the programmer used
+the wrong version.
+
+Alternatively, you could just call the profiling function like this:
+
+@example
+int f() @{
+  __count();
+  @r{@dots{}}
+  @}
+@end example
+
+@noindent
+So this isn't a good example, but hopefully it serves to demonstrate the
+issues.  Perhaps someone will find a good use for all this flexibility!
+
+
+@node Special projects
+@chapter Special projects
+
+When you compile and link using the default options, the size of your
+application's code is limited to 32K.  The 68000 DragonBall processor can
+only make a relative jump if it is of a distance of 32K or less, and you
+will get errors from the assembler and/or linker if your code attempts to
+jump further than that.  The default size limit, enforced at link time, is
+such that it is possible to jump arbitrarily within a maximally sized code
+resource without risking attempting an impossibly long jump.
+
+While the default is limited, it is certainly possible to create larger
+applications; the choices and issues involved are discussed in this chapter.
+
+Also discussed are other types of projects: shared libraries and various
+flavours of stand-alone code resources, particularly HackMaster Hacks and
+Palm OS 5 armlets.
+
+@menu
+* Single code resource::       Size limitations for a single code resource.
+* Multiple code resources::      ...and how to escape them.
+* Shared libraries::           Creating and using shared libraries.
+* Stand-alone code::           Hacks, armlets, etc.
+@end menu
+
+
+@node Single code resource
+@section Size limitations for a single code resource
+
+Even though the processor is unable to make a relative jump directly between
+the extremities of a code section larger than 32K, it is still possible to
+use such a code section if you are willing to indulge in manual heroics to
+help the compiler avoid needing to make such an extreme function call.
+
+Note that a code section corresponds to a @code{code} resource in your
+project's final Palm OS database, and the maximum size for any kind of
+resource is still limited to approximately 64K by the Palm OS memory manager
+and the HotSync protocol.
+
+Some of the heroic techniques are:
+
+@itemize @bullet
+@item
+Rearrange functions within source codes and object files on the link command
+line so that function calls are only between ``nearby'' functions.
+
+@item
+When rearrangements are insufficient, insert ``jump islands'':  proxy
+functions @code{foo_aux()} that just call the real function @code{foo()}
+with the same arguments and which can be placed anywhere, thus effectively
+giving each such @code{foo()} two entry points and loosening the constraints
+on the arrangement problem.  Or use the assembly language equivalent of a
+proxy function, which can avoid remarshalling the arguments and really be
+a jump.
+
+@item
+Others are up to your imagination.
+@end itemize
+
+The maximum size of the main code section is specified in the linker
+script and enforced during linking (@pxref{Linker Scripts, Scripts,
+Linker Scripts, ld, Using ld}).  You can override the default script's
+32K size by using the @code{-T @var{script}} linker option.
+Two suitable linker scripts, which can be used as is or copied and modified,
+are already provided, both allowing a @code{.text} section of up to
+approximately 64K:
+
+@table @code
+@item -T text_64k
+Up to 64720 bytes, the maximum resource size supported by all versions of
+Palm OS to date.
+
+@item -T text_64k_palmos3
+Up to 65505 bytes, the maximum supported by Palm OS version 3.0 and higher.
+@end table
+
+There is, of course, some risk in going right up to the maximum resource
+size limits.  In practice, the limit has typically been increasing with
+each new version of Palm OS, and has never decreased.  Nonetheless, it may
+be wise to use @code{text_64k} even if you plan to target only Palm OS 3.0
+and higher devices.
+
+
+@node Multiple code resources
+@section Multiple code resources
+
+Theoretically, the heroics required to make functions calls over a distance
+of more than 32K are applicable for an arbitrarily large code resource.
+Unfortunately each resource is still limited to only 64K by the HotSync
+protocol, at least on Palm OS versions up to and including Palm OS 4.1.
+Thus the gain compared to a hassle-free 32K code resource is not great,
+and the best way to allow an application to increase beyond 32K of code is
+to allow it to have @emph{multiple} separate code resources.
+
+One simple technique for producing multiple code resources is to map
+distinct GCC code sections into distinct Palm OS code resources.  This
+version of prc-tools implements a limited form of that: functions may
+be marked as being in particular sections via the standard GCC
+@code{section} attribute (@pxref{Function Attributes, attributes,
+Declaring Attributes of Functions, gcc, Using and Porting GCC}).
+(These markings are used quite early in the compiler, so other ways of putting
+functions into different sections, such as @code{-ffunction-sections}
+and rearrangements at link time, don't work.)
+
+A project definition file (@pxref{Definition files}) must be used, with
+a multiple code clause to inform @code{build-prc} of the new sections.
+You also need to define the pointer variables mentioned above in an
+assembly language stub file linked into your executable, and should use
+a linker script to place the new sections at appropriate addresses.
+The easiest way to do these things is to use @code{multigen} to generate
+them from the same definition file clause (@pxref{multigen}).
+
+@menu
+* Multiple code resources and globals::  But especially @strong{without} globals
+* Multiple code tutorial::               Breaking up an existing application
+@end menu
+
+
+@node Multiple code resources and globals
+@subsection Multiple code resources and global data
+
+The current implementation puts pointers to the code resources into the
+application's global data, and uses those pointers in the code emitted
+for each call in which the calling function and the called function are in
+different sections.  This means that you must not attempt to call between
+different sections when globals are not available.
+
+In particular, all functions in your application called while processing a
+launch code that doesn't give you globals must be in the main code section.
+This always includes @code{PilotMain}, which is always called by the startup
+code for all launch codes.
+
+@subsubheading Read-only data
+
+Read-only data, such as string literals and other constant data, are put
+into code sections rather than the global data section.  This saves global
+data space, which is in short supply, and is valid since the data, just
+like the code resources that contain them, are read-only.
+
+When an item of read-only data has file or global scope, it will be placed
+in the main code section.  When it is local to a function, it will mostly,
+but not always, be placed in the same code section as that function.
+
+GCC's optimizer will usually notice when a string literal (or other constant)
+is identical to one which has been previously emitted, and will reuse the
+storage previously emitted rather than reserving more space for a duplicate.
+
+Thus, in the following example, when optimisation is on, the string literal
+referenced from @code{bar} may well be in the @code{foosec} section, while
+@code{bar} itself is in the main code section:
+
+@example
+const char *foo () __attribute__ ((section ("foosec")));
+const char *foo () @{ return "hello world"; @}
+const char *bar () @{ return "hello world"; @}
+@end example
+
+The code emitted for such a reference is similar to that emitted for an
+inter-section function call: when there is a data reference in which the
+referring function and the referenced item of read-only data are in different
+sections, the code emitted uses the item's code resource's pointer, which is
+located in the application's global data.
+
+This means that you must ensure that this sort of reference doesn't occur
+when globals are not available.  Because this compiler optimisation (of
+course) occurs only within a single translation unit, a sufficient (but not
+necessary) way to ensure this is by placing functions which are in different
+sections in different translation units (e.g., in separate @file{.c} files).
+
+In particular, all read-only data referenced while processing a launch code
+that doesn't give you globals must be in the main code section.  (Thus, in
+the example above, @code{bar} is likely to crash if it is called during a
+no-globals launch.)
+
+This can be arranged in the following ways, amongst others:
+
+@itemize @bullet
+@item
+Write functions used during no-globals launches so that they use read-only
+data with file or global scope:
+
+@example
+const char greeting[] = "hello world";
+const char *bar () @{ return greeting; @}
+@end example
+
+@item
+Order the functions within a translation unit so that all functions in the
+main code section are defined before any functions in other code sections.
+Then any shared read-only data will be in the main code section.
+
+(When an item of read-only data is reused, it will have been placed in the
+same section as the function from which it was @strong{first} referenced.
+Thus, if the functions are ordered as described, all read-only data
+referenced from the functions in the main code section will themselves be
+in the main code section.  Any inter-section references to read-only data
+must then be from functions in other named code sections.  But in order for
+such a function to have been called, globals must be available; hence the
+inter-section reference will be safe too.)
+@end itemize
+
+
+@node Multiple code tutorial
+@subsection Breaking up an existing application
+
+To use multiple code resources in an existing application, you need to
+do the following:
+
+@enumerate
+@item
+If your Makefile uses @code{obj-res}, change it to use
+@code{build-prc} directly on your bfd executable.  For example,
+from an original
+
+@example
+myapp.prc: code0000.myapp.grc @dots{}
+        build-prc @dots{} *.myapp.grc @dots{}
+
+code0000.myapp.grc: myapp
+        m68k-palmos-obj-res myapp
+@end example
+
+remove references to .grc files, and delete the obj-res rule altogether:
+
+@example
+myapp.prc: myapp @dots{}
+        build-prc @dots{} myapp @dots{}
+@end example
+
+@item
+Choose functions to be placed in other code sections, and annotate their
+declarations:
+@example
+#define EDIT_SECTION  __attribute__ ((section ("editfns")))
+
+void EditFormHandler (@dots{}) EDIT_SECTION;
+void DrawEditForm () EDIT_SECTION;
+@end example
+(This also demonstrates using a macro to ease moving several functions at once.)
+
+Make very sure that the relevant annotated declaration is visible when you
+define such a function, and especially @strong{everywhere} you call it.
+If there is a call to a non-default sectioned function from which the
+annotated declaration is not visible, the call will be generated as a call
+to the default code section.  When such a call is executed, it jumps to
+effectively a random location in the wrong code section and almost
+certainly crashes.  (Warning options which can detect these mistakes at
+compile time are noted in the discussion of required visibilities in
+@ref{Function attributes}.)
+
+Note that COFF only stores eight character of a section name:  if your
+section names are any longer than this, they will be truncated, leading
+to trouble.
+
+@item
+Add a multiple code clause to your definition file:
+
+@example
+multiple code @{ "editfns" @}
+@end example
+
+Or, if you're not already using a definition file, write one including such
+a clause and use it in your build-prc command:
+
+@example
+myapp.prc: myapp.def myapp @dots{}
+        build-prc @dots{} myapp.def myapp @dots{}
+@end example
+
+@item
+Add rules to your Makefile to generate and build the assembler stub and linker
+script.
+
+@example
+myapp-sections.o: myapp-sections.s
+        m68k-palmos-gcc -c myapp-sections.s
+
+myapp-sections.s myapp-sections.ld: myapp.def
+        m68k-palmos-multigen myapp.def
+@end example
+
+@item
+Link the assembler stub into your bfd executable, and use the linker script
+to place the extra code sections at appropriate addresses.
+@example
+OBJS = @emph{@dots{}list of object files@dots{}} myapp-sections.o
+
+myapp: $(OBJS) myapp-sections.ld
+        m68k-palmos-gcc -o myapp $(OBJS) myapp-sections.ld
+@end example
+@end enumerate
+
+
+@node Shared libraries
+@section Shared libraries
+
+@c FIXME
+(This section has not yet been written; see @ref{stubgen}, and also the
+library projects in the sample code collection.)
+
+
+@node Stand-alone code
+@section Stand-alone code resources
+
+@cindex Stand-alone code resource
+@cindex HackMaster hacks
+@cindex Section, @code{.disposn}
+@cindex Section, @code{.trap}
+@cindex ARMlet
+
+Normally build-prc processes a bfd executable as a full-blown executable,
+converting its @code{.data}, @code{.bss}, and @code{.text} and any other
+code sections into the corresponding Palm OS resources, as appropriate.
+
+However if the bfd executable contains certain sections that are special
+to build-prc, its @code{.text} section will be converted into a stand-alone
+code resource instead, and the other sections listed above will be
+discarded (producing warnings) if present.
+
+These ``special sections'' are @code{.disposn} (which is an abbreviation of
+@emph{disposition}) and @code{.trap}.  They are interpreted as follows:
+
+@itemize @bullet
+@item
+The first two bytes of a @code{.disposn} section, if present, specify the
+generated resource's @sc{id}, while (if the section is at least six bytes in
+length) the next four bytes specify its type.  If the @code{.disposn} section
+is only two bytes in length, the generated resource's type will be a suitable
+default dependent on the architecture of the bfd executable: @code{code} for
+68000 or @code{armc} for @sc{arm}.
+
+@item
+The first two bytes of a @code{.trap} section, if present, are converted
+into a @code{TRAP} resource.  If a @code{.disposn} section is also present,
+the @code{TRAP} resource will have the @sc{id} specified by that section;
+otherwise (when the project definition file specifies the Hack project kind),
+@code{TRAP} and @code{code} resources converted from successive bfd executables
+are numbered consecutively from 1000.
+@end itemize
+
+@noindent
+Note that these two-byte integer fields are interpreted according to the
+native endianness of the bfd executable in which they occur.
+
+@subheading Producing a stand-alone code resource
+
+There is nothing special about compiling code that is to become stand-alone,
+other than that you must not use global data or any extra code resources,
+because stand-alone code, by definition, cannot have such things.
+
+There are considerations at link time, related to the lack of startup code:
+
+@itemize @bullet
+@item
+Stand-alone code needs to be called directly; in particular, the startup code
+for a Palm OS application or GLib shared library is certainly not appropriate.
+Hence you should link using GCC's @code{-nostartfiles} option (@pxref{Link
+Options, options, Options for Linking, gcc, Using and Porting GCC}).
+
+@item
+If the bfd executable's @emph{entry point} is not at offset 0 within its
+@code{.text} section, build-prc will insert an appropriate jump instruction
+at the start of the generated code resource.  Thus a stand-alone code resource
+can always be jumped to by jumping to its beginning.
+
+You specify the entry point at link time:  in short, it is a function named
+@code{start()} by default, or you can set it with the @code{-e} option
+(@pxref{Entry Point, entry point, Setting the entry point, ld, Using ld}).
+@end itemize
+
+You can easily set up the special sections marking your code as stand-alone
+by using the following macros, provided in @file{Standalone.h}:
+
+@table @code
+@item STANDALONE_CODE_RESOURCE_ID (@var{id})
+Mark the executable as a stand-alone code resource with the specified @var{id}
+and a suitable resource type depending on the resulting compiled executable's
+architecture: @samp{code} for 68000 or @samp{armc} for ARM.
+
+@item STANDALONE_CODE_RESOURCE_TYPE_ID (@var{type}, @var{id})
+@itemx STANDALONE_CODE_RESOURCE_TYPESTR_ID (@var{type}, @var{id})
+Mark the executable as a stand-alone code resource with the specified
+resource @var{type} and @var{id}.
+If you specify @var{type} with a multicharacter char constant (@samp{'TYPE'}),
+use the @code{@dots{}TYPE@dots{}} macro; if you use a string (@samp{"TYPE"}),
+use the @code{@dots{}TYPESTR@dots{}} version.
+
+@item HACKMASTER_TRAP (@var{vector})
+Mark the executable as a stand-alone code resource, and add a @code{TRAP}
+resource containing @var{vector}, which may be any C constant expression,
+for example, a numeric constant or even a @code{sysTrap@var{foo}} constant
+as defined in a Palm OS SDK's @file{CoreTraps.h}.
+@end table
+
+
+@node Definition files
+@chapter Definition files
+
+A project may optionally contain a definition file, which is read by
+@code{build-prc} and also by several other utilities.  This file is
+used to specify various miscellaneous properties of the project, such
+as database header flags, names of multiple sections, and exported library
+functions.
+
+@section General syntax
+
+A definition file should have the extension @file{.def}, and is a freely
+formatted file consisting of numbers, strings, comments, keywords,
+and various punctuation.
+
+@itemize @bullet
+@item
+Numbers may be in decimal (@samp{37}), octal (@samp{045}), or hexadecimal
+(@samp{0x25}).
+
+@item
+Strings are enclosed in either single (@samp{'Hello'}) or double
+(@samp{"world"}) quotes, and may contain the usual C escape sequences
+(@samp{\t}, @samp{\n}, @samp{\'}, @samp{\"}, @samp{\\}, @samp{\177},
+@samp{\x7F}, @dots{}).  If a string contains only alphanumeric characters
+and does not conflict with a keyword, the quotes may be omitted.
+
+@item
+Both C style (@samp{/* comment */}) and C++ style (@samp{// until end
+of line}) comments may appear anywhere white space could occur, and
+are ignored.
+@end itemize
+
+A definition file consists of several clauses, which generally have
+syntax like the following:
+
+@example
+@var{clause-kind} @{ @var{specific-data}@dots{} @}
+@end example
+
+For example, here is a complete definition file for a (hypothetical) fairly
+large non-beamable application:
+
+@example
+application @{ "Dr McCoy" DAFp copy-prevention @}
+
+/* This app has three code resources: code #1 with all unannotated
+   functions, #2 with functions placed in the "editfns" section,
+   and #3 with "viewfns" functions.  */
+
+multiple code @{ editfns viewfns @}
+@end example
+
+@section Specifying the kind of project
+
+You can specify the database header attributes which appeared in an
+old-style build-prc command line along with the kind of project being
+built in this clause:
+
+@example
+@var{project-kind} [ @var{type} ] @{ @var{dbname} @var{crid} @var{miscellaneous}@dots{} @}
+@end example
+
+@noindent
+This clause must appear exactly once, and must be first in the file,
+before any other clauses.  @var{dbname}, @var{crid}, and @var{type}
+specify the database's name, creator id, and type.  Except when
+@var{project-kind} is @code{database}, type can be omitted and a type
+suitable for the project kind will be used.  @var{project-kind} controls
+the processing of the bfd executable, and should be one of the following:
+
+@table @code
+@item app
+@itemx application
+Build a Palm OS application, with a default type of @code{appl}.
+Code and data sections in the bfd executable are converted into Palm OS
+@code{code}, @code{data}, and @code{rloc} resources, and @code{code #0}
+and @code{pref #0} resources are synthesised.
+
+@item glib
+Build a GLib shared library, with a default type of @code{GLib}.  Code and
+data sections in the bfd executable are converted into GLib @code{code},
+@code{data}, and @code{rloc} resources.
+
+@item syslib
+Build a system shared library, with a default type of @code{libr}.
+Code sections in the bfd executable are converted into @code{libr}
+code resources.  Since system libraries typically don't have their
+own global data, data sections in the bfd executable will produce a
+warning rather than being converted, unless you also use the @code{data}
+miscellaneous flag.
+
+@item hack
+Build a HackMaster hack, with a default type of @code{HACK}.  All bfd
+executables given should be marked as stand-alone code sections, and any
+data sections or extra code sections present will elicit warnings from
+build-prc (@pxref{Stand-alone code}).
+
+@item database
+This implies no special handling of the bfd executable, and so builds a
+generic database.  In this case, @var{type} must not be omitted.
+@end table
+
+The database name and creator id must come first within the braces,
+and may be followed by any number of the following, in any order:
+
+@table @code
+@item  read-only
+@itemx appinfo-dirty
+@itemx backup
+@itemx ok-to-install-newer
+@itemx reset-after-install
+@itemx copy-prevention
+@itemx stream
+@itemx hidden
+@itemx launchable-data
+@itemx recyclable
+@itemx bundle
+Set the corresponding database header attribute, adding to any attributes
+specified as options to build-prc.  These may also be spelt with the
+hyphens replaced by underscores or omitted altogether (@samp{readonly},
+@samp{appinfo_dirty}, etc).
+
+@item modification=@var{num}
+@itemx modnum=@var{num}
+@itemx modno=@var{num}
+Set the modification number in the database header to @var{num}.
+
+@item version=@var{num}
+Set the database header version number to @var{num}.
+
+@item stack=@var{size}
+For an application, make the @code{pref #0} resource request @var{size}
+bytes of stack space.  By default, 4K is requested.
+
+@item data
+For a system shared library, convert any data sections in input bfd
+executables into Palm OS data resources.  Without this flag, when
+build-prc is building a system shared library, any data sections will
+cause warnings instead of being converted.
+@end table
+
+
+@section Declaring multiple code sections
+
+Each section name that you use in a function section attribute in your project
+needs to be listed in your definition file in a multiple code clause:
+
+@example
+multiple code @{ @var{sectionname}@dots{} @}
+@end example
+
+@noindent
+This is used by multigen to produce an assembly language list of the
+section names which needs to be linked into your executable, and also
+by build-prc to map named code sections to numbered code resources in
+the .prc file.
+
+Build-prc will emit warnings if there are sections in your executable
+which are omitted from this clause, or vice versa.
+
+
+@section Listing exported library entry point functions
+
+Both system shared libraries and GLibs require a dispatch table and a small
+amount of other assembler support code.  You can write this by hand, or you
+can use stubgen to generate the needed code from an export clause:
+
+@example
+export @{ @var{function-name}@dots{} @}
+@end example
+
+Dispatch table entries are generated in the order in which function names are
+listed in the export clause.  Thus, for the sake of binary compatibility
+between releases of your library, it is important to avoid changing the
+ordinal positions of function names.  For example, new functions being added
+to an existing library should be added at the end of the export clause, after
+the existing functions names.
+
+
+@node Debugging
+@chapter Using a debugger
+
+@c FIXME write something here
+
+@menu
+* Enabling debugging::
+* Palm OS-specific GDB features::
+@end menu
+
+
+@node Enabling debugging
+@section Building an application with debugging enabled
+
+As on any other platform, you instruct GCC to produce debugging information
+by compiling with the @samp{-g} option.
+
+Some debuggers targeting Palm OS, notably GDB, also need your application
+to have a special stub (called @code{StartDebug}) in its startup code so
+that they can attach to the running application successfully.
+
+To include this stub, you also need to @emph{link} with @samp{-g}.
+
+By default, the stub is disabled and your application runs normally.
+When the stub sees that a @code{gdbS} #0 feature exists and has the value
+0x12BEEF34, it is enabled and will converse with the debugger, telling it
+where in memory to find the application.
+
+There are two convenient ways to set this feature and enable the stub:
+
+@itemize @bullet
+@item
+The Palm OS Emulator (version 2.1d22 or greater) sets the feature
+automatically whenever there is a debugger connected to its debugger port.
+Thus there is no need to do anything yourself to enable debugging on Poser.
+
+@item
+@set samplesurl  http://sourceforge.net/project/showfiles.php?group_id=4429
+GDB Panel, in the
+@ifnottex
+@uref{@value{samplesurl}, prc-tools samples},
+@end ifnottex
+@iftex
+prc-tools samples@footnote{@url{@value{samplesurl}}},
+@end iftex
+is a small Palm OS application which sets this feature.  You need to use it or
+something similar when debugging on a real device or on the Palm OS Simulator.
+@end itemize
+
+
+@node Palm OS-specific GDB features
+@section Palm OS-specific GDB features
+
+@findex target
+
+To debug Palm OS applications, GDB needs to load symbolic information from
+the bfd executable corresponding to your application, and to be connected
+to the Palm OS device where the application is running.  You generally
+specify the bfd executable on the command line (for example, to debug an
+application @file{myapp.prc})
+
+@example
+$ m68k-palmos-gdb myapp
+@end example
+
+@noindent
+and connect using the @samp{target} command.
+
+@table @code
+@item target palmos @var{port}
+@itemx target pilot @var{port}
+Connects the GDB host environment to a Palm OS device via @var{port}, using
+the Palm debugger protocol.  The argument @var{port} may be a device such
+as @file{/dev/ttyS0} (Unix) or @file{COM1} (Windows) to connect to a real
+device over a serial line, or a socket such as @samp{localhost:2000} to
+connect to the Palm OS Emulator.
+
+Using @code{pilot} is equivalent to @code{palmos}, and is provided for
+compatibility with earlier releases.  If @var{port} is omitted, GDB will
+attempt to connect to @samp{localhost:2000} by default.
+
+@c @@@ remove this note when 2.1 is available
+(The prc-tools 2.0 release only supported the @code{pilot} keyword, and
+@var{port} was not optional.)
+@end table
+
+After you have connected to the device, you should enable the debugger
+stub (@pxref{Enabling debugging}), which is done automatically if you
+are connecting to Poser, and start your application, which you've compiled
+and linked with @samp{-g}.
+
+When your application starts up, GDB receives data from the
+debugger stub telling it how to correlate the bfd executable's debugging
+information with where in memory the application has been loaded.  Because
+of this, you need to ensure that the debugging information has been loaded
+@emph{before} the breakpoint is received---hence typically the bfd file of
+debugging information is specified on the GDB command line.
+
+The debugger stub also causes execution to stop as if at a breakpoint at
+the start of @code{PilotMain}, giving you a chance to interact with the
+debugger before your program runs but after you're connected to it.
+However, @code{PilotMain} can be entered multiple times---for example,
+if your application is sublaunched with another launch code or if you
+(or a gremlin) switch to another application and back again---and you
+may not want to break into the debugger every time.  You can control
+whether the debugger stops at this implicit breakpoint by changing the
+way GDB handles the @code{SIGSTOP} signal (@pxref{Signals, , Signals,
+gdb, Debugging with GDB}).
+
+There are some other features and limitations:
+
+@itemize @bullet
+@item
+As a last resort before printing @samp{??} for a function name, GDB will
+try to get the (mangled) name by querying the target for a MacsBug symbol.
+For example, this makes backtraces containing the stack frames of functions
+in the Palm OS ROM more informative.
+
+@item
+At present, GDB won't work well with applications with multiple code resources.
+@end itemize
+
+
+@node Post-linker and other tools
+@chapter Post-linker and other tools
+
+On most platforms, you compile and link your programs, and the resulting
+executable is the program you run.  (The GNU linker produces an executable
+using a library named ``bfd''---hence the term ``bfd executable'').
+On Palm OS, however, this bfd executable is not, in fact, executable:
+its format must be changed from bfd COFF to a .prc database file, and,
+for all but the most trivial programs, UI resources must be bound in.
+
+The post-linker tools are @code{build-prc}, which reads a definition
+file and various resource sources to generate a Palm OS .prc file,
+and @code{obj-res}, which converts a bfd executable into resources.
+(Build-prc can now read bfd executables directly, so there is no
+need to use obj-res anymore, but it is still supported for backwards
+compatibility.)  There are also @code{multigen} and @code{stubgen},
+which generate various support files;
+and @code{trapfilt}, which decodes Palm OS trap vectors.
+
+Other miscellaneous tools include @code{palmdev-prep}, which informs GCC of
+the locations of Palm OS SDKs and the like.  You should run it whenever you
+upgrade prc-tools or install new SDKs or modify existing ones.
+
+@menu
+* build-prc::
+* multigen::
+* stubgen::
+* obj-res::
+* palmdev-prep::
+* trapfilt::
+@end menu
+
+
+@node build-prc
+@section build-prc
+
+@findex build-prc
+@include build-prc.texi
+
+
+@node multigen
+@section multigen
+
+@findex multigen
+
+@example
+multigen [ -b @var{base} | --base @var{base} ] @var{deffile}.def
+@end example
+
+The @code{multigen} utility generates an assembly language source file
+and a linker script for use in projects with multiple code resources
+(@pxref{Multiple code resources}).  The assembly stub file must be
+compiled in with your application, and the linker script should be
+added to your link command.
+
+You can write the required assembly language definitions and linker
+script yourself if you wish, but it is easier to have @code{multigen}
+generate them for you from the relevant clause in your project's definition
+file (@pxref{Definition files}).
+
+@code{multigen} reads from @file{@var{deffile}.def} and by
+default writes the assembler stub file to @file{@var{deffile}-sections.s} and
+the linker script to @file{@var{deffile}-sections.ld}.
+
+@table @code
+@item -b @var{base}
+@itemx --base @var{base}
+Write the assembly language output to @file{@var{base}.s} and the linker
+script to @file{@var{base}.ld}.
+@end table
+
+
+@node stubgen
+@section stubgen
+
+@findex stubgen
+
+@example
+stubgen [ -b @var{base} | --base @var{base} ] @var{deffile}.def
+@end example
+
+The @code{stubgen} utility generates assembly language stub files for a
+GLib or an assembly language dispatch table for a SysLib (@pxref{Shared
+libraries}).  You can write these stub files yourself, but, particularly
+for a GLib, it is easier to have @code{stubgen} generate them for you from the
+relevant clause in your library's definition file (@pxref{Definition files}).
+
+@code{stubgen} reads from @var{deffile} and by default writes its output to
+@file{@var{deffile}-stubs.c} and @file{@var{deffile}-jumps.s}, or to
+@file{@var{deffile}-dispatch.s}, depending on the @var{project-kind}
+specified in @var{deffile}.
+
+@table @code
+@item -b @var{base}
+@itemx --base @var{base}
+Write the GLib output to @file{@var{base}-stubs.c} and
+@file{@var{base}-jumps.s}, or the SysLib output to
+@file{@var{base}-dispatch.s}.
+
+(This is inconsistent with the way @code{multigen} handles the @samp{-b}
+option.  One or the other is likely to change.)
+@end table
+
+
+@node obj-res
+@section obj-res
+
+@findex obj-res
+
+@example
+obj-res [ -l ] [ -L @var{exportfile} ] [ -z @var{n} ] @var{bfdfile}
+@end example
+
+The @code{obj-res} utility reads a file in a BFD supported object file format
+(most usually COFF) and generates the raw binary resource files necessary to
+make up a Palm OS executable in the current directory.  These files can be
+bound together into a Palm OS resource data file using @code{build-prc}.
+
+This utility is @strong{deprecated}.  It is provided only for use in existing
+legacy build scripts and makefiles.  In new projects it is more convenient to
+present the same object file directly to @code{build-prc}, thus enabling
+better error checking, avoiding a separate @code{obj-res} step, and avoiding
+the clutter of separate @file{.grc} files.
+
+In particular, if you are using multiple code resources or the stand-alone
+code facilities then you @strong{must not} use @code{obj-res}.  Such projects
+require information that is thrown away by @code{obj-res}, and your build
+will fail or, worse, silently produce invalid results.
+
+But if you nonetheless choose to use it: @code{obj-res} reads from
+@var{bfdfile} and writes to a number of files with names of the form
+@file{@var{type}@var{nnnn}.@var{bfdfile}.grc}.  By default it generates
+resources for a Palm OS application.
+
+@table @code
+@item -l
+Generate resources for a GLib shared library.
+
+@item -L @var{exportfile}
+Generate resources for a Palm OS version 2 system shared library.
+
+Unlike previous versions of obj-res, this version cannot generate an
+offset table in @var{exportfile}.  You should use @code{build-prc}
+directly with a definition file instead.
+
+@item -z @var{n}
+Compress the data resource, @file{data0000.@var{bfdfile}.grc}, similarly to
+the corresponding @code{build-prc} option.
+@end table
+
+
+@node palmdev-prep
+@section palmdev-prep
+
+@findex palmdev-prep
+@include palmdev-prep.texi
+
+@c FIXME: need a section about the structure of a PalmDev tree
+
+
+@node trapfilt
+@section trapfilt
+
+@findex trapfilt
+
+@example
+trapfilt [ -q | --quiet | --silent ] [ @var{vector}@dots{} ]
+@end example
+
+On the 68000, calls to Palm OS system API functions are compiled into a
+@code{trap} instruction followed by a @emph{trap vector}, which is a 16-bit
+number in a range starting at 0xA000.  The mapping between particular system
+functions and numeric trap vectors is given in the @file{CoreTraps.h} header
+in a Palm OS SDK (or @file{SysTraps.h} in older SDKs).
+
+A disassembly listing of a Palm OS program displays only the @code{trap}
+instructions and the raw trap vectors.  The @code{trapfilt} utility decodes
+trap vectors using the mapping given by the header from the default SDK
+selected with @code{palmdev-prep}.  Typically you use it in conjunction
+with a disassembly listing from @code{objdump}:
+
+@example
+m68k-palmos-objdump -d myapp | m68k-palmos-trapfilt
+@end example
+
+If any @var{vector} arguments are given, @code{trapfilt} decodes them and
+outputs the results on standard output.  Otherwise, when no such arguments
+are given, it acts as a filter: copying from standard input to standard
+output, annotating each line that matches the syntax of a trap vector
+(i.e., the syntax as printed by @code{objdump}) with the name of the
+corresponding system function, if any.
+
+@table @code
+@item -q
+@itemx --quiet
+@itemx --silent
+In non-filter mode, output only the system function name for each @var{vector}
+given.  The default output format in non-filter mode is similar to that used
+in filter mode.
+@end table
+
+
+@ignore
+@node Debugging
+@chapter Using the debugger
+
+For example, suppse you wish to use the debugger on `Simple App',
+@file{simpleapp.prc}, which is built from @file{simpleexec} and has source
+code @file{mymain.c} and @file{myform.c}.
+We don't suggest that you set up a project like this!  These files are oddly
+named to demonstrate the lack of required relationships between the names.
+
+@example
+$ m68k-palmos-gcc -g -c mymain.c
+$ m68k-palmos-gcc -g -c myform.c
+$ m68k-palmos-gcc -g -o simpleexec mymain.o myform.o
+$ build-prc simpleapp.prc "Simple App" SMPL simpleexec @i{resources@dots{}}
+[Install simpleapp.prc on emulator]
+$ m68k-palmos-gdb simpleexec
+[loading symbols...]
+gdb> target pilot localhost:2000
+[...]
+@end example
+
+@c We'll change it to `target palmos' when they change the name of PilotMain()!
+@end ignore
+
+
+@ignore
+@node Index
+@unnumbered Index
+
+@printindex fn
+@end ignore
+
+@contents
+@bye

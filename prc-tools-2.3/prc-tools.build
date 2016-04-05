@@ -1,0 +1,110 @@
+#! /bin/sh -e
+#  Execute this script to produce a minimally "package"-like binary tarball
+
+# This script is pretty much just a stripped-down version of prc-tools.spec
+# and in places we scrape data from that file instead of duplicating it here.
+
+#prep
+# Before running this script, you should either set $SOURCES to a directory
+# containing the binutils/gcc/gdb/make tarballs or put them in the current
+# directory, and set $PATCH to a suitable version of patch (one that can
+# parse patches in unidiff format and that line-terminates output correctly).
+: ${SOURCES:=.} ${PATCH:=patch}
+
+case `./config.guess` in
+  *-cygwin*)	palmdev_prefix=/PalmDev ;;
+  *-darwin*)	palmdev_prefix=/Developer/PalmDev ;;
+  *)		palmdev_prefix=/opt/palmdev ;;
+esac
+
+for tarball in `sed -n '/^Source[^0]:/s:.*/\(.*tar\).*:\1:p' prc-tools.spec`
+do
+  decompression="" extension=""
+  [ -f $SOURCES/$tarball.bz2 ] && decompression=j extension=.bz2
+  [ -f $SOURCES/$tarball.gz  ] && decompression=z extension=.gz
+  tar xf$decompression $SOURCES/$tarball$extension
+done
+  
+cat *.palmos.diff | $PATCH -p0
+
+mv gcc-2.95.3 gcc295
+# Rename each "package-x.y.z" directory to just "package"
+for dir in *-*[0-9]; do mv $dir `echo $dir | sed 's/-[^-]*$//'`; done
+
+#build
+: ${prefix:=/usr/local} ${docdir:=$prefix/doc/prc-tools}
+
+./configure \
+  --enable-targets=m68k-palmos,arm-palmos \
+  --enable-languages=c,c++ \
+  --disable-nls \
+  --with-palmdev-prefix=$palmdev_prefix \
+  --enable-html-docs=$docdir \
+  --prefix=$prefix \
+  ${mandir:+--mandir=$mandir} ${infodir:+--infodir=$infodir}
+
+make
+
+#install
+: ${DESTDIR:=`pwd`/buildroot}
+
+rm -rf $DESTDIR
+make DESTDIR= install \
+  prefix=$DESTDIR$prefix htmldir=$DESTDIR$docdir \
+  ${mandir:+mandir=$DESTDIR$mandir} ${infodir:+infodir=$DESTDIR$infodir}
+
+mkdir -p $DESTDIR$docdir
+cp -p README COPYING $DESTDIR$docdir
+
+#policy
+: ${exec_prefix=$prefix}
+: ${bindir:=$exec_prefix/bin} ${libdir:=$exec_prefix/lib}
+: ${mandir:=$prefix/man} ${infodir:=$prefix/info} ${datadir:=$prefix/share}
+
+(cd $DESTDIR$bindir  && rm -f *-cpp* *-gcc-* *-gcov* *-gccbug*)
+(cd $DESTDIR$libdir  && rm -f ../*/bin/[cg]++*)
+(cd $DESTDIR$libdir  && rm -rf gcc-lib/*/*/install-tools)
+
+strip $DESTDIR$bindir/* $DESTDIR$exec_prefix/*/bin/*
+# This picks up all the executable backends, but avoids crt*.o files and such
+strip $DESTDIR$libdir/gcc-lib/*/*/*[012]*
+
+gzip -9 $DESTDIR$infodir/* $DESTDIR$mandir/*/*
+
+#package
+: ${PKGBASE:=`pwd`/prc-tools} ${PKGSHORTTAIL:=-binary} ${PKGTAIL:=$PKGSHORTTAIL}
+
+rm -f $PKGBASE$PKGTAIL.tar* $PKGBASE-arm$PKGTAIL.tar* \
+      $PKGBASE-htmldocs$PKGTAIL.tar* $PKGBASE-htmldocs$PKGSHORTTAIL.zip
+
+(cd $DESTDIR; tar cvf $PKGBASE$PKGTAIL.tar \
+  `echo "
+    $bindir/[b-z]*
+    $exec_prefix/m68k*
+    $libdir/gcc-lib/m68k*
+    $datadir/prc-tools
+    $infodir/prc-tools*
+    $mandir/man1/build-prc*
+    $mandir/man1/palmdev-prep*
+    $docdir/COPYING
+    $docdir/README
+  " | sed 's:^ */::' | sort`)
+bzip2 $PKGBASE$PKGTAIL.tar
+
+(cd $DESTDIR; tar cvf $PKGBASE-arm$PKGTAIL.tar \
+  `echo "
+    $bindir/arm*
+    $exec_prefix/arm*
+    $libdir/gcc-lib/arm*
+  " | sed 's:^ */::' | sort`)
+bzip2 $PKGBASE-arm$PKGTAIL.tar
+
+(cd $DESTDIR; tar cvf $PKGBASE-htmldocs$PKGTAIL.tar \
+  `echo "
+    $docdir/[^CR]*
+  " | sed 's:^ */::' | sort`)
+bzip2 $PKGBASE-htmldocs$PKGTAIL.tar
+
+if /bin/sh -c 'zip -h' >/dev/null 2>&1; then
+  (cd $DESTDIR$docdir; zip -l9r $PKGBASE-htmldocs$PKGSHORTTAIL.zip [^CR]*)
+fi

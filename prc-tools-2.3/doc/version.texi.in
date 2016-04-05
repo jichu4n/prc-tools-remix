@@ -1,0 +1,13 @@
+@c This file is @included by prc-tools.texi.
+@c @configure_input@
+
+@set updatedmonth September 2003
+@set updatedfull  16 @value{updatedmonth}
+
+@set version @prc_tools_version@
+
+@c Use "makeinfo -Dshowversion --no-headers" to print out the version data.
+@ifset showversion
+prc-tools @value{version}
+@*@value{updatedmonth}
+@end ifset

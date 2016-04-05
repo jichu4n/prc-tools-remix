@@ -1,0 +1,46 @@
+# Makefile for prc-tools include files.
+#
+# Copyright 2002, 2003 John Marshall.
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+prefix = @prefix@
+datadir = @datadir@
+headerdir = $(datadir)/prc-tools/include
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+
+all: Pilot.fake PalmOS.fake
+
+install: all
+	$(INSTALL) -d $(DESTDIR)$(headerdir)
+	for f in EntryPoints.h NewTypes.h Standalone.h \
+		 ctype.h stdint.h stdlib.h string.h; do \
+	  $(INSTALL_DATA) $(srcdir)/$$f $(DESTDIR)$(headerdir)/$$f; \
+	done
+	$(INSTALL_DATA) Pilot.fake $(DESTDIR)$(headerdir)/Pilot.h
+	$(INSTALL_DATA) PalmOS.fake $(DESTDIR)$(headerdir)/PalmOS.h
+
+.PHONY: all install clean
+
+
+# We build these under false names; if they were here under their real names
+# there'd be scope for confusion when building ../crt etc because those
+# directories do their builds with a -I../include pointing to here.
+
+Pilot.fake: missing-sdk.h
+	sed -e 's/^<//' -e '/^>/d' $(srcdir)/missing-sdk.h > $@
+
+PalmOS.fake: missing-sdk.h
+	sed -e 's/^>//' -e '/^</d' $(srcdir)/missing-sdk.h > $@
+
+
+clean:
+	-rm -f *.fake

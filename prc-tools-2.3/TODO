@@ -1,0 +1,69 @@
+* fix the `-l' gas flag.  (flag_short_refs in md_estimate_size_before_relax()
+  in binutils/gas/config/tc-m68k.c)  This would let a few patches in gcc's
+  m68k.md and lb1sf68palmos.asm go away; in particular, getting rid of the
+  `define_insn "jump"' one would reduce code size, maybe even non-trivially.
+
+* Have some way to ask for a 64K memory region for extra code
+  sections -- probably a new option or .def file thing for multigen.
+
+* Don't package the $libdir/ldscripts directory -- it's redundant because
+  the scripts are burnt into ld.
+
+* Overhaul the way we accomodate the "%a5 is the *end* of the globals"
+  problem in binutils.  Currently we have a weird reloc END16(<foo>,<offset>)
+  that means "+ <foo> + <offset> - edata", weird code in bfd to evaluate edata
+  (which is hardcoded) at the right time, and weird code in gas to generate
+  the reloc.  A possibly feasible alternative is to emit *two* relocs,
+  (<foo>,<offset>) and (negedata,0).  The upgrade path is
+  * Leave the reloc and bfd code for compatibility with old link libraries
+  * Remove the @END stuff in gas since we no longer need to generate it
+  * Have GCC emit "<foo>+negedata(%a5)" instead of "<foo>@END(%a5)"
+  * Have gas split these fixups into two relocs.  It looks like this is
+  flaky in the COFF assembler, but very practical in the ELF assembler.
+  There is more research to do here.
+* An alternative is to do a trial link to find out how big the global data
+  memory region is, and then do the real link with datares ORIGIN = -size.
+  This would Just Work, but is less flexible (you can't mix %a4 and %a5
+  addressing in the same executable), and I *really* want to avoid doing a
+  trial link if possible.
+
+* Update the ChangeLogs, and start submitting patches to the various GNU
+  maintainers (without any of the remaining nasty hacks!).
+
+* Consider how to use --emit-relocs instead of --embedded-relocs in ld and
+  return to reading real relocs in binres.cpp instead of .reloc sections.
+
+* Although prc-tools itself has now been DESTDIRified, this is not a great
+  deal of use until *all* of the other packages -- binutils, GCC, GDB -- we
+  build have been fully DESTDIRified too.
+
+* Future palmdev-prep facilities:
+  - write_specs with target="none" should mean don't write any link_* specs
+  - Perhaps preserve the default SDK when reruning without a -d option,
+    instead of resetting to the highest SDK (remember the current setting by
+    writing an extra little state file, not by trying to parse a spec file)
+
+* Use @command for commands, @option for options throughout prc-tools.texi.
+
+* Add a post-install script to the Cygwin build to do install-info.
+
+* Issues with the tiny libc implementation:
+  - we don't have overloaded const / non-const versions of each function (C++)
+  - u_int in sys/types.h
+  - (a feature, not an issue) be able to say something like -D_PALMOS_LIBC
+    and the libc headers would produce eg an inline memset() that just called
+    the corresponding Palm OS routine MemSet()
+
+* Proper way to get GCC to search $(datadir)/prc-tools/include is to override
+  SYSTEM_HEADER_DIR (or better NATIVE_SYSTEM_HEADER_DIR?) in t-m68kpalmos.
+  (See Zack Weinberg's gcc@ message of 2002-08-03 "Re: gcc 3.2's cpp breaks
+  configure scripts" <20020803230707.GG466@codesourcery.com>.)
+
+* Implement ARM "-fvery-PIC" that avoids using a GOT, as was done for m68k.
+  Currently the compiler will generate GOT-relative relocations in some
+  circumstances -- which will crash an armlet, because they don't have the
+  infrastructure to set up a GOT.
+
+* Have STANDALONE_CODE_RESOURCE_TYPE_ID understand both strings and multichar
+  char literals (perhaps using __builtin_choose_expr and friends -- but need
+  to consider C++), and then eliminate STANDALONE_CODE_RESOURCE_TYPESTR_ID.

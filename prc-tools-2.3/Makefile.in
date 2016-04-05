@@ -1,0 +1,179 @@
+# Top-level makefile for prc-tools.
+#
+# Copyright 2002, 2003 John Marshall.
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+up_srcdir = @up_srcdir@
+
+exeext = @EXEEXT@
+LN_S = @LN_S@
+
+subdirs = @all_extant_subdirs@
+extra_subdirs = @extra_subdirs@
+
+all: $(subdirs)
+
+.PHONY: all install clean
+
+# These configure rules are used only when --enable-targets is in effect.
+# (The "dummy" target prevent errors when @extra_target_configs_@ is empty.)
+
+configure_args = @configure_args@
+bfd_configure_args = @bfd_configure_args@
+
+dummy @extra_target_configs@:
+	target=`echo $@ | sed 's:/.*::'`; \
+	cd $$target && \
+	$(up_srcdir)$(srcdir)/configure --target=$$target --disable-generic \
+	  $(configure_args)
+
+multi-bfd/config.status:
+	cd multi-bfd && $(up_srcdir)$(srcdir)/binutils/bfd/configure \
+	  $(bfd_configure_args) $(configure_args)
+
+# For each target subdirectory as listed in @extra_target_configs_@,
+# configure will supply (via @extra_dependencies_@) a dependency in the form
+#
+#	dir: dir/config.status
+#
+# It is commented out so that the unconfigured Makefile.in can still be
+# parsed as a makefile; it will be substituted by configure nonetheless.
+#
+# @extra_dependencies@
+
+multi-bfd: multi-bfd/config.status
+
+
+BUILT_AS = binutils/gas/as-new$(exeext)
+BUILT_LD = binutils/ld/ld-new$(exeext)
+BUILT_AR = binutils/binutils/ar$(exeext)
+BUILT_RANLIB = binutils/binutils/ranlib$(exeext)
+BUILT_GCC_DIR = @gccdir@/gcc
+BUILT_GCC = $(BUILT_GCC_DIR)/xgcc$(exeext)
+INSTALLED_TARGET_GCC = @target_alias@-gcc$(exeext)
+
+target_gcc_flags = @target_gcc_flags@
+targetlib_flags = @targetlib_flags@
+
+# Target libraries will be built against the bootstrap headers.  You can
+# verify that the resulting libraries are correct by comparing them with
+# those built against a real SDK; you can build thus in an ad hoc way by
+# using "make all" down in the target subdirectories directly.
+
+SDKFLAGS = -DBOOTSTRAP -I$${abssrcdir}/bootstrap \
+	   -specs=$${abssrcdir}/bootstrap/bootstrap-specs -palmos-none
+
+.PHONY: crt doc include libc libm tools
+.PHONY: binutils real-binutils gcc real-gcc gdb make $(extra_subdirs)
+
+binutils: binutils.stamp
+
+gcc: gcc.stamp
+
+real-binutils:
+	cd binutils && $(MAKE) all
+
+real-gcc: @target_gcc_prereqs@
+	cwd=`pwd`; cd @gccdir@ && $(MAKE) $(target_gcc_flags) all
+
+doc: @doc_prereqs@
+
+tools: @tools_prereqs@
+
+gdb doc include tools $(extra_subdirs):
+	cd $@ && $(MAKE) all
+
+make:
+
+crt libc libm: @targetlib_prereqs@
+	cwd=`pwd`; \
+	case "$(srcdir)" in \
+	  /*) abssrcdir="$(srcdir)" ;; \
+	  *)  abssrcdir="$$cwd/$(srcdir)" ;; \
+	esac; \
+	cd $@ && $(MAKE) $(targetlib_flags) SDKFLAGS="$(SDKFLAGS)" all
+
+
+binutils.stamp: real-binutils
+	-rm -rf minitooldir
+	mkdir minitooldir
+	mkdir minitooldir/bin
+	cd minitooldir/bin; $(LN_S) ../../$(BUILT_AS) as$(exeext)
+	cd minitooldir/bin; $(LN_S) ../../$(BUILT_LD) ld$(exeext)
+	touch $@
+
+gcc.stamp: real-gcc
+	touch $@
+
+
+# Binutils and GDB would probably like us to tell them to "make install-info"
+# but we don't really want them to install their cross-info anyway.
+
+install:
+	for dir in `echo $(subdirs) | sed 's/make//'`; do \
+	  (cd $${dir} && $(MAKE) DESTDIR="$(DESTDIR)" install) || exit 1; \
+	done
+
+
+clean:
+	-rm -rf minitooldir
+	-rm -f *.stamp
+	for dir in $(subdirs); do \
+	  (cd $${dir} && $(MAKE) clean) || exit 1; \
+	done
+
+
+distdir = prc-tools
+nondistpat = ^(binutils|gcc|gcc295|gdb|make)$$
+
+# The source directory is likely to be a working development directory.
+# We need to do some tidying up before creating the distribution tarball:
+#
+#  * It may contain links to other huge (GCC etc) source trees.  We filter
+#    these out even before the first tar invocation to save time.
+#  * If the directory is checked out from CVS, it will be littered with
+#    "CVS" subdirectories which shouldn't go into the tarball.
+#  * If the directory is checked out from Perforce, many of the files will
+#    likely be read-only.  We want them to be read-write in the tarball.
+
+dist-tree:
+	-rm -rf $(distdir) $(distdir).tar $(distdir).tar.gz
+	mkdir $(distdir)
+	-chmod 777 $(distdir)
+	(cd $(srcdir) && tar cf - `ls | egrep -v '$(nondistpat)'`) \
+	| (cd $(distdir) && tar xf -)
+	-rm -rf `find $(distdir) -name CVS -print`
+	for dir in `find $(distdir) -type d -print`; do \
+	  (cd $${dir} && chmod a+rw *); \
+	done
+
+dist-tarball:
+	tar cf $(distdir).tar $(distdir)
+	gzip -9 $(distdir).tar
+	-rm -rf $(distdir)
+
+
+dist: dist-tree dist-tarball
+
+snapshot:
+	$(MAKE) -f $(srcdir)/Makefile.in srcdir=$(srcdir) \
+	distdir=prc-tools-`date +%Y%m%d` dist-tree dist-tarball
+
+$(distdir)/configure: $(distdir)/configure.in
+	cd $(distdir) && autoconf
+
+release-check: $(distdir)/configure
+
+release:
+	$(MAKE) -f $(srcdir)/Makefile.in srcdir=$(srcdir) \
+	distdir=prc-tools-`grep '^Version:' $(srcdir)/prc-tools.spec | \
+			   sed 's/.*: //'` \
+	dist-tree release-check dist-tarball
+
+.PHONY: dist-tree dist-tarball dist snapshot release-check release

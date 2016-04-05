@@ -1,0 +1,128 @@
+@c man title  palmdev-prep  Prepare PalmDev trees for use with prc-tools
+
+@example
+@c man begin SYNOPSIS
+palmdev-prep [ -d @var{sdk} | --default @var{sdk} ]
+             [ -r | --remove ]
+             [ -q | --quiet | --silent ] [ -v | --verbose ]
+             [ --dump-specs @var{target} ]
+             [ @var{directory}@dots{} ]
+@c man end
+@end example
+
+@c man begin DESCRIPTION
+Most Palm OS programs use functions from the Palm OS API, so need to
+@code{#include} various Palm OS header files and perhaps also to link
+with static libraries such as Palm OS Glue.
+The preprocessor and the linker need to be told, one directory at a time,
+where to search for these files, via options such as @code{-I},
+@code{-isystem}, and @code{-L} (@pxref{Directory Options, options,
+Options for Directory Search, gcc, Using and Porting GCC}).
+
+Early versions of prc-tools contained a hard-coded list of directories to
+be searched.  Unfortunately, more recently there has been a tendency for
+each new Palm OS SDK to introduce new directories unpredictably and
+sometimes even to rearrange the old ones.  Hence the hard-coded list
+approach is no longer practical; instead, you can use @code{palmdev-prep}
+to generate a list of directories tailored to the SDKs and other Palm OS
+development material you actually have installed.
+
+The @code{palmdev-prep} utility scans the standard PalmDev directory and
+any extra directories listed on its command line, and generates the options
+required to make GCC search as appropriate each of the subdirectories found
+under each of the root directories given.
+The ``standard PalmDev location'' is determined when prc-tools is configured;
+typically on Unix it is @file{/opt/palmdev} and on Cygwin it is typically
+@file{/PalmDev}, which typically corresponds to the Windows directory
+@file{C:\PalmDev}.
+
+In detail:  first @code{palmdev-prep} looks in each root directory given
+for (immediate) subdirectories whose names start with @file{sdk-}, which it
+calls ``SDK directories''.
+
+It then examines each SDK directory in turn.  If an SDK directory contains a
+directory named @file{include} or @file{Incs}, GCC's preprocessor will be
+instructed to search for header files within @emph{all} subdirectories nested
+thereunder.
+Similarly, if an SDK directory contains a directory named @file{lib} or
+@file{GCC Libraries}, the linker will be instructed to search for libraries in
+the directories thereunder corresponding to the particular target architecture
+and multilib options in use.
+
+If an SDK directory contains a file named @file{base}, then that file should
+contain a single line (e.g.@: @samp{sdk-3.5} or simply @samp{4}) specifying
+another SDK upon which this SDK is based.  The preprocessor and linker will
+then be instructed to search also the directories given by the base SDK, and
+to do so @emph{after} searching those from @emph{this} SDK.  This can be used
+to have replacement files from an ``SDK Update'' override files from the SDK
+that is being updated, while also allowing the use of the pristine original
+SDK.
+
+It also detects @file{include}, @file{Incs}, @file{lib}, and
+@file{GCC Libraries} directories immediately within each root directory
+specified, causing them to be searched @emph{after} all those corresponding
+to the particular SDK in use.
+@c man end
+
+@c man begin OPTIONS
+@table @code
+@item -d @var{sdk}
+@itemx --default @var{sdk}
+When GCC is invoked without any @code{-palmos@var{N}} options, the SDK chosen
+to be the default SDK during the last invocation of palmdev-prep will be used
+(@pxref{New options}).
+This option specifies that @var{sdk} should be the default; if you don't
+choose a default this way yourself, palmdev-prep will choose the highest SDK
+detected as the default.
+
+@item -r
+@itemx --remove
+Remove all files installed by palmdev-prep.
+
+@item -q
+@itemx --quiet
+@itemx --silent
+Suppress the normal listing showing the SDKs found and their validity.
+
+@item -v
+@itemx --verbose
+Display details of files modified and actions taken by palmdev-prep.
+
+@item --dump-specs @var{target}
+Write a specs file describing the PalmDev headers and libraries for
+@var{target} to standard output, instead performing of the normal installation
+actions.  This is for use while prc-tools itself is being built.
+@end table
+
+The directory structure and default SDK captured by palmdev-prep will be
+used by GCC until the next invocation of palmdev-prep.  You should rerun
+@code{palmdev-prep} whenever you
+
+@itemize @bullet
+@item
+upgrade prc-tools;
+
+@item
+install or remove a Palm OS SDK or other development material
+(specifically, when the collection of subdirectories changes);
+
+@item
+want to change which SDK is to be used by default.
+@end itemize
+@c man end
+
+@c man begin NOTES
+For the curious: @code{palmdev-prep} creates a GCC specs file that converts
+@code{-palmos@var{N}} options into the corresponding set of @code{-isystem}
+and @code{-L} options (@pxref{Spec Files, specs, Specifying subprocesses
+and the switches to pass to them, gcc, Using and Porting GCC}).  This is how
+it is able to affect later unrelated invocations of GCC.  This file is
+inside one of GCC's internal directories, so on a typical Unix installation
+you need to be a privileged user to write to it.
+@c man end
+
+@ignore
+@c man begin SEEALSO
+gcc(1), build-prc(1), and the Info entries for @file{prc-tools} et al.
+@c man end
+@end ignore

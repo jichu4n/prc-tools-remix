@@ -1,0 +1,191 @@
+This file contains general information and pointers to other sources of
+information about prc-tools, the collection of GCC and related tools for
+programming in C and C++ targeting Palm OS devices.
+
+
+INSTALLATION
+
+On platforms for which binary packages have been produced, you can simply
+install the binary in the usual way for that platform.  For details, see
+<URL:http://prc-tools.sourceforge.net/install/>.
+
+On Microsoft Windows, prc-tools uses Cygwin (<URL:http://cygwin.com/>) as
+a substrate.  You can use prc-tools from the Cygwin shell without doing
+anything special.  To use it from an ordinary Windows command line, you
+will need to add {Cygwin}\bin, where {Cygwin} is the directory in which
+you installed Cygwin, probably C:\cygwin, to your PATH.  For details,
+see <URL:http://prc-tools.sourceforge.net/install/cygwin.html>.
+
+See below for details of building prc-tools yourself.
+
+
+USING THESE TOOLS
+
+In addition to installing this package, you will also need to install
+a Palm OS SDK.  SDK versions 3.5 and greater work with prc-tools without
+modification.  Earlier SDKs require changes to work with prc-tools; in the
+past it was possible to find suitably modified SDKs on Palm's Web site at
+<URL:http://www.palmos.com/dev/tools/gcc/#sdks>, but they were no longer
+available at the time of writing.
+
+You may wish to install several SDKs, and you will probably want to choose
+one as the default SDK, to be used when you compile without any "-palmosN"
+command line option.  Use the palmdev-prep utility, which you should rerun
+whenever you upgrade prc-tools or install new SDKs or other Palm OS development
+material, to select a default and to teach GCC where to find SDKs.  See the
+palmdev-prep section of the prc-tools documentation, which is also available
+on the Web at <URL:http://prc-tools.sourceforge.net/cgi-bin/info/palmdev-prep>.
+
+
+DOCUMENTATION
+
+This package contains documentation in info format:  the prc-tools info
+page gives an overview of the whole tool chain and Palm OS-specific details,
+and the GCC, GDB, etc packages provide info pages that are also relevant.
+
+The same documentation is also available in HTML format; you can install
+the prc-tools-htmldocs package or read the manuals on the Web at
+<URL:http://prc-tools.sourceforge.net/doc/>.
+
+
+QUESTIONS ABOUT PALM OS PROGRAMMING
+
+Especially if you are new to C or new to programming for Palm OS, you may
+find that you have questions about problems you encounter while using
+prc-tools, and you may be unsure where to ask them.
+
+For questions about C programming, we recommend starting with the comp.lang.c
+FAQ, available at <URL:http://www.eskimo.com/~scs/C-faq/top.html>.
+
+In general, Palm OS programming questions should be posted to palm-dev-forum
+or pilot.programmer if they are related to Palm OS APIs etc generally
+regardless of the tools in use, or to tools-forum or pilot.programmer.gcc
+if they are specifically related to the use of GCC and prc-tools.
+
+For the latter, see also <URL:http://prc-tools.sourceforge.net/faq/>.
+
+In order to post to palm-dev-forum or tools-forum you first need to subscribe
+at <URL:http://www.palmos.com/dev/support/forums/>.  You'll also see several
+other fora listed there; like tools-forum, they are more specific than the
+general palm-dev-forum and should be used in preference to palm-dev-forum for
+questions within their particular areas.
+
+To post to pilot.programmer and pilot.programmer.gcc, just point your
+newsreader to <URL:news://news.falch.net/>.  You'll also see several other
+newsgroups listed there.
+
+If you haven't participated in technical fora like these before, we also
+recommend reading <URL:http://www.catb.org/~esr/faqs/smart-questions.html>,
+which will teach you how to present your information and questions so as to
+maximise the likelihood of useful responses.
+
+
+BUILDING FROM SOURCE
+
+To build these tools yourself, you will need to download the source from
+<URL:http://prc-tools.sourceforge.net/>.  The prc-tools source contains
+patches against specific versions of GCC, binutils, and GDB.  You will
+also need the source code for these versions of these packages.
+
+See the file BUILDING.html for details.  This file can be found in
+the prc-tools source tarball and also on the Web at
+<URL:http://prc-tools.sourceforge.net/install/BUILDING.html>.
+
+
+LICENSING
+
+This is a summary of the terms under which you may redistribute the various
+parts of prc-tools.  Of particular interest are the terms pertaining to the
+library functions provided by prc-tools for linking with your Palm OS projects,
+because they may have implications on the licensing terms available for your
+project, if it contains (i.e. uses) a provided function or functions to which
+particular terms apply.  (Many of these functions have been explicitly placed
+in the public domain, so carry no such implications.)
+
+For full details, you should of course consult the copyright and licensing
+text in the relevant source files.
+
+* The patches to the GNU tools in *.palmos.diff and the code in the tools
+  subdirectory are free software, and may be redistributed and/or modified
+  under the terms of the GNU General Public License, either version 2, or
+  (at your option) any later version.  See the file COPYING.
+
+* The run-time support code in the crt subdirectory is in the public domain,
+  and the resulting object code may be freely linked into your programs.
+
+* The C library code in the libc subdirectory has assorted licenses,
+  as follows:
+
+  various *.c files containing the functions declared in the headers
+  ctype.h, stdlib.h, and string.h
+	This code is in the public domain, and the resulting object code
+	may be freely linked into your programs.
+
+  conio.c
+	Released under the LGPL v2 by Jeff Dionne, who described the routines
+	provided as follows:  "putchar() and printf() send output to the LCD
+	(even does scrolling!).  I would not expect this to be terribly useful
+	for anything except debugging, or perhaps a terminal program."
+
+  bcopy.c, vsprintf.c
+	The licensing of this portion of the code in the libc subdirectory was
+	described as follows by Jeff Dionne in the prc-tools 0.5.0 README:
+
+	Much of this library thanks to Linus Torvalds, from the Linux kernel
+	lib directory.  He gave me permission to release this stuff _without_
+	GPL encumbrance.
+
+* The code in the libm subdirectory is based on the Cephes Math Library
+  <URL:http://www.moshier.net/#Cephes> and is freely redistributable
+  as follows:
+
+  libm.a
+	Single precision math library.  The standard kind of stuff
+	(like multiply, add etc) will be included with libgcc.a
+	when the compiler was built, this stuff is what one expects
+	from a complete libm.a.  This library was ported from
+	the Cephes Math Library Release 2.2:  June, 1992 and is
+	Copyright 1984, 1987, 1988 by Stephen L. Moshier.  Really
+	neat stuff!
+
+  [From the prc-tools 0.5.0 README, by Jeff Dionne]
+
+
+CONTRIBUTORS AND CONTRIBUTING
+
+The original post-linker tools and Palm OS support patches for gcc 2.7.2.2,
+binutils 2.7, and gdb 4.16 were written mainly by D. Jeff Dionne, Kresten
+Krab Thorup, Ian Goldberg, Keith Packard, and Kenneth Albanowski, with
+contributions from many others.
+
+John Marshall ported the patches to recent versions of GCC and binutils.
+Peter Trommler ported the gdb patches to 4.17.  Many others have contributed
+suggestions, patches, bug reports, and other support; many thanks to
+
+	Kenneth Albanowski, Marc Balmer, Simon Burge, Jesse Donaldson,
+	Tom Dyas, Mark W. Eichin, Peter Eisenlohr, Christian Falch,
+	Rick Flower, Brian Foley, Lonnie Foster, Ian Goldberg,
+	John Ioannidis, Oliver Kasten, Scott Knight, David Loomes,
+	Jonathan Lupa, Todd Mokros, Bret Musser, Kjell M. Myksvoll,
+	Joakim Ogren, Ton van Overbeek, Bob Petersen, Thomas Pundt,
+	Daniel R. Risacher, Alex Robinson, Keith Rollin, Jørgen Seland,
+	Craig Setera, Katherine Smith, David Starks-Browning,
+	Leon van Stuivenberg, Peter Trommler, Valeriy "Uwe" Ushakov,
+	Andrew Vasquez, Brian Warner, David Williams, Ben Williamson,
+	Hans-Christoph Wirth, Naoki Yamaya, and Stephen Zander.
+
+	(If I've missed anybody out, please send me email.)
+
+The prc-tools project home page is <URL:http://prc-tools.sourceforge.net/>.
+Discussion of further prc-tools development and maintenance takes place on
+the prc-tools-devel mailing list, accessible via the home page.
+
+(Note that discussion of Palm OS programming problems encountered while
+using prc-tools is off-topic on prc-tools-devel; such questions are more
+likely to receive knowledgeable answers on the more appropriate fora
+listed above under "Questions about Palm OS Programming".)
+
+Happy hacking!
+
+John Marshall
+<jmarshall@users.sourceforge.net>

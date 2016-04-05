@@ -1,0 +1,178 @@
+# Makefile for prc-tools documentation.
+#
+# Copyright 2001, 2002, 2003 John Marshall.
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+SHELL = /bin/sh
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+palmdev_prefix = @palmdev_prefix@
+infodir = @infodir@
+mandir = @mandir@
+htmldir = @htmldocs_prefix@
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+
+MAKEINFO = makeinfo
+MAKEINFOFLAGS =
+
+MAKEHTML = @TEXI2HTML@
+MAKEHTMLFLAGS = -split node
+
+all: info @manpages_enabled@ @htmldocs_enabled@
+
+info: prc-tools.info
+
+man: build-prc.1 palmdev-prep.1
+
+html: prc-tools.html index.html index.texi.html
+
+install: install-info @install_manpages_enabled@ @install_htmldocs_enabled@
+
+install-info: info
+	$(INSTALL) -d $(DESTDIR)$(infodir)
+	-rm -f $(DESTDIR)$(infodir)/prc-tools.info*
+	for f in prc-tools.info*; do \
+	  $(INSTALL_DATA) $$f $(DESTDIR)$(infodir)/$$f; \
+	done
+	-if $(SHELL) -c 'install-info --version' >/dev/null 2>&1; then \
+	  if [ -f $(DESTDIR)$(infodir)/dir ]; then \
+	    install-info --dir-file=$(DESTDIR)$(infodir)/dir \
+			 $(DESTDIR)$(infodir)/prc-tools.info; \
+	  else true; fi; \
+	else true; fi
+
+install-man: man
+	$(INSTALL) -d $(DESTDIR)$(mandir)/man1
+	$(INSTALL_DATA) build-prc.1 $(DESTDIR)$(mandir)/man1/build-prc.1
+	$(INSTALL_DATA) palmdev-prep.1 $(DESTDIR)$(mandir)/man1/palmdev-prep.1
+
+install-html: html
+	$(INSTALL) -d $(DESTDIR)$(htmldir)
+	$(INSTALL_DATA) index.texi.html $(DESTDIR)$(htmldir)/index.html
+	-rm -rf $(DESTDIR)$(htmldir)/texi
+	$(INSTALL) -d $(DESTDIR)$(htmldir)/texi
+	for f in `ls *.html | grep -v '^index'`; do \
+	  $(INSTALL_DATA) $$f $(DESTDIR)$(htmldir)/texi/$$f; \
+	done
+
+.PHONY: all info man html install install-info install-man install-html clean
+
+
+prc-tools.info: prc-tools.texi build-prc.texi palmdev-prep.texi version.texi
+	-@rm -f prc-tools.info*
+	$(MAKEINFO) $(MAKEINFOFLAGS) -I $(srcdir) $(srcdir)/prc-tools.texi
+
+prc-tools.dvi: prc-tools.texi build-prc.texi palmdev-prep.texi version.texi
+	texi2dvi -I $(srcdir) $(srcdir)/prc-tools.texi
+
+prc-tools.ps: prc-tools.dvi
+	dvips -o $@ prc-tools.dvi
+
+prc-tools.html: prc-tools.texi build-prc.texi palmdev-prep.texi version.texi
+	-@rm -f prc-tools[_.]*html
+	$(MAKEHTML) $(MAKEHTMLFLAGS) -I $(srcdir) $(srcdir)/prc-tools.texi
+
+.SUFFIXES: .texi .1
+
+MAKEPOD = perl $(srcdir)/../binutils/etc/texi2pod.pl
+
+POD2MAN = perl -e '\
+  use Pod::Man ();							\
+  my ($$release, $$date) =						\
+    split /\n/, `makeinfo -Dshowversion --no-headers version.texi`;	\
+  $$_ = shift; s/\..*//; y/a-z/A-Z/;					\
+  Pod::Man->new (name => $$_, section => 1, center => "User Commands",	\
+    release => $$release, date => $$date)->parse_from_filehandle;'
+
+.texi.1:
+	$(MAKEPOD) -D`basename $< .texi` $< | $(POD2MAN) $@ > $@
+
+build-prc.1: build-prc.texi version.texi
+palmdev-prep.1: palmdev-prep.texi version.texi
+
+# We also generate HTML copies of the various tools' user manuals.  Since
+# they don't all (yet) provide HTML documentation targets in their makefiles,
+# we do this with rather hackish fingers reaching from here over into the
+# tool build directories.
+#
+# The nasty hackish part is that we've had to duplicate some of the *.texi
+# dependency information here, and that information is subject to change as
+# the other packages change.  But they'll probably change only slowly in
+# this regard, and it's less horrible in practice (though not in theory!)
+# than locally patching their makefiles for this, as we did in the past.
+
+index.texi.html: index.html
+	sed 's:href="./:href="texi/:' < index.html > index.texi.html
+
+index.html: index.html.in html-subtargets
+	awk '\
+/@if-('`tr -cs 'a-z-' '|' < html-subtargets`'1)/ { discard = 0; next } \
+/@if-/   { discard = 1 } \
+!discard { print }' $(srcdir)/index.html.in | sed 's:"@:"./:' > index.html
+
+.PHONY: html-binutils html-gdb html-gcc295 html-make
+
+MKHTML = $(MAKEHTML) $(MAKEHTMLFLAGS)
+
+# "Non-generic" build directory: either .././binutils etc for an old-style
+# single target prc-tools build, or ../<target>/binutils etc for a tree
+# configured with --enable-targets=<target>,...
+ngdir = ../@first_enabled_target@
+
+html-binutils:
+	-@rm -f binutils[_.]*html ld[_.]*html as[_.]*html
+	[ -f $(srcdir)/../binutils/binutils/doc/config.texi ] || \
+	[ -f $(ngdir)/binutils/binutils/doc/config.texi ] || \
+	  (cd $(ngdir)/binutils; $(MAKE) info)
+	$(MKHTML) -I $(ngdir)/binutils/binutils/doc \
+	  -I $(srcdir)/../binutils/binutils/doc \
+	  $(srcdir)/../binutils/binutils/doc/binutils.texi
+	$(MKHTML) -I $(ngdir)/binutils/ld -I $(srcdir)/../binutils/ld \
+	  -I $(srcdir)/../binutils/bfd/doc $(srcdir)/../binutils/ld/ld.texinfo
+	$(MKHTML) -I $(ngdir)/binutils/gas/doc \
+	  -I $(srcdir)/../binutils/gas/doc \
+	  $(srcdir)/../binutils/gas/doc/as.texinfo
+
+html-gdb:
+	-@rm -f gdb[_.]*html
+	[ -f $(ngdir)/gdb/gdb/doc/gdb-cfg.texi ] || \
+	  (cd $(ngdir)/gdb; $(MAKE) info)
+	$(MKHTML) -I $(ngdir)/gdb/gdb/doc -I $(srcdir)/../gdb/gdb/doc \
+	  -I $(srcdir)/../gdb/readline/doc -I $(srcdir)/../gdb/gdb/mi \
+	  $(srcdir)/../gdb/gdb/doc/gdb.texinfo
+
+# FIXME Revert this "gcc295" stuff to just "gcc" when we bring the m68k side
+# up to the single GCC version.
+
+html-gcc295:
+	-@rm -f gcc[_.]*html cpp[_.]*html
+	$(MKHTML) -D USERMANUALONLY -I $(srcdir)/../gcc295/gcc \
+	  $(srcdir)/../gcc295/gcc/gcc.texi
+	$(MKHTML) -I $(srcdir)/../gcc295/gcc $(srcdir)/../gcc295/gcc/cpp.texi
+
+html-make:
+	-@rm -f make[_.]*html
+	$(MKHTML) -I $(srcdir)/../make/doc $(srcdir)/../make/doc/make.texi
+
+html-subtargets:
+	-for d in binutils gcc295 gdb make; do \
+	  if [ -d ../$$d ] || [ -d $(ngdir)/$$d ]; then echo html-$$d; fi; \
+	done > $@
+	$(MAKE) "MAKEHTML=$(MAKEHTML)" "MAKEHTMLFLAGS=$(MAKEHTMLFLAGS)" `cat $@`
+
+
+clean:
+	-rm -f prc-tools.info* *.1
+	-rm -f *.aux *.log *.toc *.fn *.vr *.cp *.pg *.ky *.tp *.cps *.fns
+	-rm -f prc-tools.dvi prc-tools.ps
+	-rm -f html-subtargets *.html
