@@ -44,6 +44,12 @@ compilation is specified by a string called a "spec".  */
 #define exit __posix_exit
 #endif
 
+/* Provided for systems that don't differentiate between text and
+      binary file types; those that need this will define it. */
+#ifndef O_TEXT
+#define O_TEXT 0
+#endif
+
 /* By default there is no special suffix for executables.  */
 #ifdef EXECUTABLE_SUFFIX
 #define HAVE_EXECUTABLE_SUFFIX
@@ -1367,6 +1373,8 @@ static const char *gcc_exec_prefix;
 #undef MD_EXEC_PREFIX
 #undef MD_STARTFILE_PREFIX
 #undef MD_STARTFILE_PREFIX_1
+/* @@@ JWM: Hack on!  It's a cross compiler.  I reckon we don't want .exe */
+#undef HAVE_EXECUTABLE_SUFFIX
 #endif
 
 #ifndef STANDARD_EXEC_PREFIX
@@ -1461,7 +1469,7 @@ read_specs (filename, main_p)
     notice ("Reading specs from %s\n", filename);
 
   /* Open and stat the file.  */
-  desc = open (filename, O_RDONLY, 0);
+  desc = open (filename, O_RDONLY|O_TEXT, 0);
   if (desc < 0)
     pfatal_with_name (filename);
   if (stat (filename, &statbuf) < 0)

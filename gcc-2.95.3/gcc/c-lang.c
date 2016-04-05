@@ -35,6 +35,16 @@ extern cpp_reader  parse_in;
 extern cpp_options parse_options;
 #endif
 
+/* Language-independent access to the value of an identifier.
+   ??? But which value?  Hopefully continuing to use the global value will
+   be good enough.  */
+tree       
+lang_identifier_value (node)
+     tree node;
+{
+  return IDENTIFIER_GLOBAL_VALUE (node);
+}
+
 /* Each of the functions defined here
    is an alternative to a function in objc-actions.c.  */
    

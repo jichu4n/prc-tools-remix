@@ -107,7 +107,7 @@ union long_double_long
 
 /* convert int to double */
 double
-__floatsidf (int a1)
+__floatsidf (long a1)
 {
   long sign = 0, exp = 31 + EXCESSD;
   union double_long dl;
@@ -124,7 +124,7 @@ __floatsidf (int a1)
       a1 = -a1;
       if (a1 < 0)
 	{
-	  dl.l.upper = SIGNBIT | ((32 + EXCESSD) << 20L);
+	  dl.l.upper = SIGNBIT | ((32L + EXCESSD) << 20L);
 	  dl.l.lower = 0;
 	  return dl.d;
         }
@@ -153,7 +153,7 @@ __floatsidf (int a1)
 
 /* convert int to float */
 float
-__floatsisf (int l)
+__floatsisf (long l)
 {
   double foo = __floatsidf (l);
   return foo;
@@ -222,7 +222,7 @@ __truncdfsf2 (double a1)
 }
 
 /* convert double to int */
-int
+long
 __fixdfsi (double a1)
 {
   register union double_long dl1;
@@ -254,7 +254,7 @@ __fixdfsi (double a1)
 }
 
 /* convert float to int */
-int
+long
 __fixsfsi (float a1)
 {
   double foo = a1;
@@ -268,12 +268,12 @@ __fixsfsi (float a1)
    We assume all numbers are normalized, don't do any rounding, etc.  */
 
 /* Prototypes for the above in case we use them.  */
-double __floatsidf (int);
-float __floatsisf (int);
+double __floatsidf (long);
+float __floatsisf (long);
 double __extendsfdf2 (float);
 float __truncdfsf2 (double);
-int __fixdfsi (double);
-int __fixsfsi (float);
+long __fixdfsi (double);
+long __fixsfsi (float);
 
 /* convert double to long double */
 long double

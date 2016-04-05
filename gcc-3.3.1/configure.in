@@ -66,7 +66,7 @@ target_libs="target-libiberty \
 		target-newlib \
 		${libstdcxx_version} \
 		target-libf2c \
-		${libgcj}
+		${libgcj} \
 		target-libobjc"
 
 # these tools are built using the target libs, and are intended to run only
@@ -360,6 +360,9 @@ case "${target}" in
     ;;
   arm-*-riscix*)
     noconfigdirs="$noconfigdirs ld target-libgloss ${libgcj}"
+    ;;
+  arm-*-palmos*)
+    noconfigdirs="$noconfigdirs ${target_libs} ${target_tools}"
     ;;
   avr-*-*)
     noconfigdirs="$noconfigdirs target-libiberty ${libstdcxx_version} ${libgcj}"

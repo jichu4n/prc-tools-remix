@@ -740,6 +740,10 @@ arm*-*-oabi)
 	tm_file="arm/unknown-elf-oabi.h dbxelf.h elfos.h arm/unknown-elf.h arm/elf.h arm/aout.h arm/arm.h"
 	tmake_file=arm/t-arm-elf
 	;;
+arm*-*-palmos*)
+	tm_file="dbxelf.h elfos.h arm/unknown-elf.h arm/elf.h arm/aout.h arm/arm.h palmos.h arm/palmos.h"
+	tmake_file="arm/t-arm-elf t-palmos"
+	;;
 arm-*-pe*)
 	tm_file="arm/semi.h arm/aout.h arm/arm.h arm/coff.h arm/pe.h"
 	tmake_file=arm/t-pe

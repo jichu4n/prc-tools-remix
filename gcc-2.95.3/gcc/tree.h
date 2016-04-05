@@ -2252,6 +2252,7 @@ extern void incomplete_type_error	PROTO ((tree, tree));
 
 /* In c-lang.c */
 extern void print_lang_statistics	PROTO ((void));
+extern tree lang_identifier_value	PROTO ((tree));
 
 /* In c-common.c */
 extern tree truthvalue_conversion	PROTO ((tree));

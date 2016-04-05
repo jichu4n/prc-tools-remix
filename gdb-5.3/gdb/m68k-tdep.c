@@ -967,6 +967,11 @@ m68k_saved_pc_after_call (struct frame_info *frame)
     return read_memory_integer (read_register (SP_REGNUM) + 4, 4);
   else
 #endif /* SYSCALL_TRAP */
+#ifdef MAC_SYSCALL_TRAP
+  if (frame->pc == MAC_SYSCALL_TRAP)
+    return read_memory_integer (read_register (SP_REGNUM) + 2, 4) + 2;
+  else
+#endif /* MAC_SYSCALL_TRAP */
     return read_memory_integer (read_register (SP_REGNUM), 4);
 }
 

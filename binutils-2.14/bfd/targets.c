@@ -678,6 +678,8 @@ extern const bfd_target pef_vec;
 extern const bfd_target pef_xlib_vec;
 extern const bfd_target pmac_xcoff_vec;
 extern const bfd_target ppcboot_vec;
+extern const bfd_target prc_littlearm_vec;
+extern const bfd_target prc_m68k_vec;
 extern const bfd_target riscix_vec;
 extern const bfd_target rs6000coff64_vec;
 extern const bfd_target rs6000coff_vec;
@@ -1014,6 +1016,11 @@ static const bfd_target * const _bfd_target_vector[] = {
 	&pmac_xcoff_vec,
 #endif
 	&ppcboot_vec,
+#if 0
+	/* Palm OS PRC format has no useful magic numbers.  */
+	&prc_littlearm_vec,
+	&prc_m68k_vec,
+#endif
 #if 0
 	/* We have no way of distinguishing these from other a.out variants.  */
 	&riscix_vec,

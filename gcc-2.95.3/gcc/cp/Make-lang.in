@@ -218,7 +218,9 @@ c++.install-common:
 	    $(INSTALL_PROGRAM) g++-cross$(exeext) $(bindir)/$(GXX_CROSS_NAME)$(exeext); \
 	    chmod a+x $(bindir)/$(GXX_CROSS_NAME)$(exeext); \
 	    rm -f $(bindir)/$(CXX_CROSS_NAME)$(exeext); \
-	    $(LN) $(bindir)/$(GXX_CROSS_NAME)$(exeext) $(bindir)/$(CXX_CROSS_NAME)$(exeext); \
+	    $(LN) $(bindir)/$(GXX_CROSS_NAME)$(exeext) $(bindir)/$(CXX_CROSS_NAME)$(exeext) >/dev/null 2>&1 \
+	     || ( $(INSTALL_PROGRAM) g++-cross$(exeext) $(bindir)/$(CXX_CROSS_NAME)$(exeext); \
+		  chmod a+x $(bindir)/$(CXX_CROSS_NAME)$(exeext) ); \
 	  else \
 	    rm -f $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
 	    $(INSTALL_PROGRAM) g++$(exeext) $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \

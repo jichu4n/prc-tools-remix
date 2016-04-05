@@ -41,7 +41,7 @@ SUBDIRS =@subdirs@
 # Selection of languages to be made.
 # This is overridden by configure.
 CONFIG_LANGUAGES = @all_languages@
-LANGUAGES = c proto gcov$(exeext) $(CONFIG_LANGUAGES)
+LANGUAGES = c $(CONFIG_LANGUAGES)
 
 # Languages should create dependencies of $(INTL_TARGETS) on generated
 # sources in Make-lang.in.  Example:
@@ -198,7 +198,7 @@ AR_FOR_TARGET = ` \
     if [ "$(host_canonical)" = "$(target)" ] ; then \
       echo ar; \
     else \
-       t='$(program_transform_name)'; echo ar | sed -e $$t ; \
+       t='$(program_transform_cross_name)'; echo ar | sed -e $$t ; \
     fi; \
   fi`
 AR_FLAGS_FOR_TARGET = rc
@@ -209,7 +209,7 @@ RANLIB_FOR_TARGET = ` \
     if [ "$(host_canonical)" = "$(target)" ] ; then \
       echo ranlib; \
     else \
-       t='$(program_transform_name)'; echo ranlib | sed -e $$t ; \
+       t='$(program_transform_cross_name)'; echo ranlib | sed -e $$t ; \
     fi; \
   fi`
 RANLIB_TEST_FOR_TARGET = \
@@ -485,6 +485,7 @@ GCOV_INSTALL_NAME = `t='$(program_transform_name)'; echo gcov | sed -e $$t`
 
 # Actual name to use when installing a cross-compiler.
 GCC_CROSS_NAME = `t='$(program_transform_cross_name)'; echo gcc | sed -e $$t`
+CPP_CROSS_NAME = `t='$(program_transform_cross_name)'; echo cpp | sed -e $$t`
 PROTOIZE_CROSS_NAME = `t='$(program_transform_cross_name)'; echo protoize | sed -e $$t`
 UNPROTOIZE_CROSS_NAME = `t='$(program_transform_cross_name)'; echo unprotoize | sed -e $$t`
 
@@ -1965,6 +1966,9 @@ cexp.o: $(srcdir)/cexp.c $(CONFIG_H) system.h
 $(srcdir)/cexp.c: $(srcdir)/cexp.y
 	cd $(srcdir); $(BISON) -o cexp.c cexp.y
 
+# [PRC-TOOLS-LOCAL] This change to CROSS_INCLUDE_DIR is a nasty hack, but
+# it'll do the trick for now.
+
 # We use $(libsubdir)/$(unlibsubdir) to match the
 # -iprefix argument which gcc will pass if GCC_EXEC_PREFIX is used.
 cccp.o: cccp.c $(CONFIG_H) intl.h pcp.h version.c config.status system.h \
@@ -1973,7 +1977,7 @@ cccp.o: cccp.c $(CONFIG_H) intl.h pcp.h version.c config.status system.h \
 	  -DGCC_INCLUDE_DIR=\"$(libsubdir)/include\" \
 	  -DGPLUSPLUS_INCLUDE_DIR=\"$(gcc_gxx_include_dir)\" \
 	  -DLOCAL_INCLUDE_DIR=\"$(includedir)\" \
-	  -DCROSS_INCLUDE_DIR=\"$(gcc_tooldir)/sys-include\" \
+	  -DCROSS_INCLUDE_DIR=\"$(datadir)/prc-tools/include\" \
 	  -DTOOL_INCLUDE_DIR=\"$(gcc_tooldir)/include\" \
 	  -c `echo $(srcdir)/cccp.c | sed 's,^\./,,'`
 
@@ -2450,17 +2454,28 @@ install-cross-rest: install-float-h-cross
 
 # Handle cpp installation.
 install-cpp: cpp$(exeext)
-	-rm -f $(bindir)/$(CPP_INSTALL_NAME)$(exeext)
-	$(INSTALL_PROGRAM) -m 755 cpp$(exeext) $(bindir)/$(CPP_INSTALL_NAME)$(exeext)
-	if [ x$(cpp_install_dir) != x ]; then \
-	  rm -f $(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \
-	  $(INSTALL_PROGRAM) -m 755 cpp$(exeext) $(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \
-	else true; fi
+	-if [ -f gcc-cross$(exeext) ] ; then \
+	  rm -f $(bindir)/$(CPP_CROSS_NAME)$(exeext); \
+	  $(INSTALL_PROGRAM) -m 755 cpp$(exeext) $(bindir)/$(CPP_CROSS_NAME)$(exeext); \
+	  if [ x$(cpp_install_dir) != x ]; then \
+	    rm -f $(prefix)/$(cpp_install_dir)/$(CPP_CROSS_NAME)$(exeext); \
+	    $(INSTALL_PROGRAM) -m 755 cpp$(exeext) $(prefix)/$(cpp_install_dir)/$(CPP_CROSS_NAME)$(exeext); \
+	  else true; fi; \
+	else \
+	  rm -f $(bindir)/$(CPP_INSTALL_NAME)$(exeext); \
+	  $(INSTALL_PROGRAM) -m 755 cpp$(exeext) $(bindir)/$(CPP_INSTALL_NAME)$(exeext); \
+	  if [ x$(cpp_install_dir) != x ]; then \
+	    rm -f $(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \
+	    $(INSTALL_PROGRAM) -m 755 cpp$(exeext) $(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \
+	  else true; fi; \
+	fi
 
 uninstall-cpp:
-	-rm -f $(bindir)/cpp
+	-rm -f $(bindir)/$(CPP_INSTALL_NAME)$(exeext)
+	-rm -f $(bindir)/$(CPP_CROSS_NAME)$(exeext)
 	-if [ x$(cpp_install_dir) != x ]; then \
-	  rm -f $(prefix)/$(cpp_install_dir)/cpp; \
+	  rm -f $(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \
+	  rm -f $(prefix)/$(cpp_install_dir)/$(CPP_CROSS_NAME)$(exeext); \
 	else true; fi
 
 # Install float.h for cross compiler.

@@ -1700,6 +1700,19 @@ __bb_exit_func (void)
     }
 }
 
+#ifdef PALMOS
+#include "palmos-mem.h"
+void _exit(int val)
+{
+    ErrDisplayFileLineMsg(__FILE__, __LINE__, "_exit called by program");
+}
+
+void abort(void)
+{
+    ErrDisplayFileLineMsg(__FILE__, __LINE__, "abort called by program");
+}
+#endif
+
 void
 __bb_init_func (struct bb *blocks)
 {
@@ -2446,7 +2459,7 @@ stack_overflow:;
 #endif /* L_bb */
 
 #ifdef L_shtab
-unsigned int __shtab[] = {
+unsigned long __shtab[] = {
     0x00000001, 0x00000002, 0x00000004, 0x00000008,
     0x00000010, 0x00000020, 0x00000040, 0x00000080,
     0x00000100, 0x00000200, 0x00000400, 0x00000800,

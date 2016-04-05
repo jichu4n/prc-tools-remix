@@ -1373,7 +1373,7 @@ ALLDEPFILES = a68v-nat.c \
 	procfs.c \
 	remote-array.c remote-e7000.c \
 	remote-es.c remote-hms.c remote-mips.c \
-	remote-rdp.c remote-sim.c \
+	remote-palmos.c remote-rdp.c remote-sim.c \
 	remote-st.c remote-utils.c dcache.c \
 	remote-vx.c \
 	rs6000-nat.c rs6000-tdep.c \
@@ -2015,6 +2015,10 @@ remote-mips.o: remote-mips.c $(defs_h) $(inferior_h) $(bfd_h) $(symfile_h) \
 # OBSOLETE remote-nindy.o: remote-nindy.c
 # OBSOLETE remote-nrom.o: remote-nrom.c
 # OBSOLETE remote-os9k.o: remote-os9k.c
+remote-palmos.o: remote-palmos.c $(defs_h) $(gdb_string_h) $(frame_h) \
+	$(inferior_h) $(bfd_h) $(symfile_h) $(target_h) $(gdb_wait_h) \
+	$(gdbcmd_h) $(objfiles_h) $(gdb_stabs_h) $(gdbthread_h) \
+	$(serial_h) $(xmodem_h)
 remote-rdi.o: remote-rdi.c $(defs_h) $(gdb_string_h) $(frame_h) \
 	$(inferior_h) $(bfd_h) $(symfile_h) $(target_h) $(gdbcmd_h) \
 	$(objfiles_h) $(gdb_stabs_h) $(gdbthread_h) $(gdbcore_h) \

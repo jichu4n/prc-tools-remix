@@ -1190,6 +1190,8 @@ while(0)
    of a local variable as a function of frame_pointer_needed, which
    is hard.  */
 
+#define EXTRA_REGISTER_SAVE(REGNO) 0
+
 #define INITIAL_FRAME_POINTER_OFFSET(DEPTH)			\
 { int regno;							\
   int offset = -4;						\
@@ -1197,7 +1199,8 @@ while(0)
     if (regs_ever_live[regno] && ! call_used_regs[regno])	\
       offset += 12;						\
   for (regno = 0; regno < 16; regno++)				\
-    if (regs_ever_live[regno] && ! call_used_regs[regno])	\
+    if ((regs_ever_live[regno] && ! call_used_regs[regno])	\
+	|| EXTRA_REGISTER_SAVE (regno))				\
       offset += 4;						\
   if (flag_pic && current_function_uses_pic_offset_table)	\
     offset += 4;						\
@@ -1434,7 +1437,7 @@ __transfer_from_trampoline ()					\
    || (GET_CODE (X) == PLUS && XEXP (X, 0) == pic_offset_table_rtx 	\
        && flag_pic && GET_CODE (XEXP (X, 1)) == SYMBOL_REF)		\
    || (GET_CODE (X) == PLUS && XEXP (X, 0) == pic_offset_table_rtx 	\
-       && flag_pic && GET_CODE (XEXP (X, 1)) == LABEL_REF))		\
+       && flag_pic && GET_CODE (XEXP (X, 1)) == LABEL_REF))
 
 #define GO_IF_NONINDEXED_ADDRESS(X, ADDR)  \
 { if (INDIRECTABLE_1_ADDRESS_P (X)) goto ADDR; }

@@ -6275,6 +6275,8 @@ do
     pdp11_aout_vec)		tb="$tb pdp11.lo" ;;
     pmac_xcoff_vec)		tb="$tb coff-rs6000.lo xcofflink.lo" ;;
     ppcboot_vec)		tb="$tb ppcboot.lo" ;;
+    prc_littlearm_vec)		tb="$tb prc-arm.lo prc.lo" ;;
+    prc_m68k_vec)		tb="$tb prc-m68k.lo prc.lo" ;;
     riscix_vec)			tb="$tb aout32.lo riscix.lo" ;;
     rs6000coff64_vec)		tb="$tb coff64-rs6000.lo xcofflink.lo aix5ppc-core.lo"; target_size=64 ;;
     rs6000coff_vec)		tb="$tb coff-rs6000.lo xcofflink.lo" ;;

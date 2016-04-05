@@ -3997,7 +3997,7 @@ real_yylex ()
 	(void) local_mbtowc (NULL_PTR, NULL_PTR, 0);
 #endif
 
-	max_chars = TYPE_PRECISION (integer_type_node) / width;
+	max_chars = TYPE_PRECISION (long_integer_type_node) / width;
 	if (wide_flag)
 	  width = WCHAR_TYPE_SIZE;
 
@@ -4142,7 +4142,7 @@ real_yylex ()
 	    if (chars_seen <= 1)
 	      TREE_TYPE (yylval.ttype) = char_type_node;
 	    else
-	      TREE_TYPE (yylval.ttype) = integer_type_node;
+	      TREE_TYPE (yylval.ttype) = long_integer_type_node;
 	  }
 	else
 	  {

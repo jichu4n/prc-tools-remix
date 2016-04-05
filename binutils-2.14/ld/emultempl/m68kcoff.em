@@ -88,22 +88,25 @@ gld${EMULATION_NAME}_after_open ()
 	{
 	  asection *relsec;
 
-	  relsec = bfd_make_section (abfd, ".emreloc");
+	  relsec = bfd_make_section (abfd, ".reloc");
 	  if (relsec == NULL
 	      || ! bfd_set_section_flags (abfd, relsec,
-					  (SEC_ALLOC
-					   | SEC_LOAD
-					   | SEC_HAS_CONTENTS
+					  (SEC_HAS_CONTENTS
 					   | SEC_IN_MEMORY))
 	      || ! bfd_set_section_alignment (abfd, relsec, 2)
 	      || ! bfd_set_section_size (abfd, relsec,
 					 datasec->reloc_count * 12))
-	    einfo ("%F%B: can not create .emreloc section: %E\n");
+	    einfo ("%F%B: can not create .reloc section: %E\n");
 	}
 
       /* Double check that all other data sections are empty, as is
          required for embedded PIC code.  */
+#if 0
+      /* This is NOT required for embedded PIC.  In fact, since we have
+	 sections like [be]hook which can be data sections on input but
+	 are output in the .text section, this is wrong wrong wrong.  */
       bfd_map_over_sections (abfd, check_sections, (PTR) datasec);
+#endif
     }
 }
 
@@ -146,7 +149,7 @@ gld${EMULATION_NAME}_after_allocation ()
       if (datasec == NULL || datasec->reloc_count == 0)
 	continue;
 
-      relsec = bfd_get_section_by_name (abfd, ".emreloc");
+      relsec = bfd_get_section_by_name (abfd, ".reloc");
       ASSERT (relsec != NULL);
 
       if (! bfd_m68k_coff_create_embedded_relocs (abfd, &link_info,

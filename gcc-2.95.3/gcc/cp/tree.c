@@ -177,7 +177,18 @@ lvalue_or_else (ref, string)
     error ("non-lvalue in %s", string);
   return win;
 }
+
+/* Language-independent access to the value of an identifier.
+   ??? But which value?  Hopefully continuing to use the global value will
+   be good enough.  */ 
 
+tree
+lang_identifier_value (node)
+     tree node;
+{
+  return IDENTIFIER_GLOBAL_VALUE (node);
+}
+
 /* INIT is a CALL_EXPR which needs info about its target.
    TYPE is the type that this initialization should appear to have.
 

@@ -285,6 +285,10 @@ case $basic_machine in
 		echo Invalid configuration \`$1\': machine \`$basic_machine\' not recognized 1>&2
 		exit 1
 		;;
+	m68k-palmos)
+		basic_machine=m68k-unknown
+		os=-palmos
+		;;
 	# Recognize the basic CPU types with company name.
 	580-* \
 	| a29k-* \

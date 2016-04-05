@@ -1345,7 +1345,11 @@ process_reg_param (map, loc, copy)
     {
       rtx temp = copy_to_mode_reg (GET_MODE (loc), copy);
       REG_USERVAR_P (temp) = REG_USERVAR_P (loc);
-      if (CONSTANT_P (copy) || FIXED_BASE_PLUS_P (copy))
+      if (CONSTANT_P (copy) || FIXED_BASE_PLUS_P (copy)
+#ifdef PALMOS
+	  && !(flag_pic && GET_CODE (copy) == SYMBOL_REF)
+#endif
+	  )
 	SET_CONST_EQUIV_DATA (map, temp, copy, CONST_AGE_PARM);
       copy = temp;
     }
@@ -2673,7 +2677,12 @@ copy_rtx_and_substitute (orig, map)
 	 forced into a register for cse.  This is undesirable
 	 if function-address cse isn't wanted or if we won't do cse.  */
 #ifndef NO_FUNCTION_CSE
+#ifdef FORBID_FUNCTION_CSE_P
+      if (! (optimize && ! flag_no_function_cse
+	     && ! FORBID_FUNCTION_CSE_P (XEXP (XEXP (orig, 0), 0))))
+#else
       if (! (optimize && ! flag_no_function_cse))
+#endif
 #endif
 	return gen_rtx_CALL (GET_MODE (orig),
 			     gen_rtx_MEM (GET_MODE (XEXP (orig, 0)),

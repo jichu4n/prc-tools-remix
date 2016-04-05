@@ -1,1 +1,4 @@
 timestamp
+# This apparently useless patch simply touches this file so that it is
+# up-to-date relative to gcc/configure.in, thus preventing autoheader from
+# being invoked unnecessarily.  See Makefile.in.

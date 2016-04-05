@@ -2175,7 +2175,7 @@ yylex ()
 	tail = 2;
     }
 
-#ifdef OBJ_ELF
+#if defined OBJ_ELF || defined COFF_RELEND_RELOC
   {
     /* Look for @PLTPC, etc.  */
     char *cp;
@@ -2205,6 +2205,11 @@ yylex ()
 	else if (strncmp (cp - 4, "@GOT", 4) == 0)
 	  {
 	    yylval.exp.pic_reloc = pic_got_off;
+	    tail += 4;
+	  }
+	else if (strncmp (cp - 4, "@END", 4) == 0)
+	  {
+	    yylval.exp.pic_reloc = pic_endrel;
 	    tail += 4;
 	  }
       }

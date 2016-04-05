@@ -126,6 +126,392 @@ override_options ()
     m68k_align_funcs = def_align;
 }
 
+#ifdef PALMOS
+/* Either %a4 or %a5, depending on `-mown-gp'.  Always accessed via
+   `PIC_OFFSET_TABLE_REGNUM' or `pic_offset_table_rtx'.  */
+int palmos_pic_reg;
+
+#define TREE_LIST_CDR(NODE) \
+  ((NODE != NULL_TREE)? TREE_CHAIN (NODE) : NULL_TREE)
+
+#define SET_IF_PRESENT(VAR, NODE) \
+  (VAR = ((NODE) != NULL_TREE && TREE_STRING_LENGTH (TREE_VALUE (NODE)) > 1)? \
+	 TREE_STRING_POINTER (TREE_VALUE (NODE)) : VAR)
+
+#if 0
+tree
+palmos_wibble (num, attrs)
+     int num;
+     tree attrs;
+{
+  tree a;
+
+  switch (num) {
+    case 0:  printf ("--  - - to get\n");  break;
+    case 1:  printf ("-- merge machine attrs\n");  break;
+    case 2:  printf ("--  - - with\n");  break;
+    }
+
+  /* debug_tree (attrs); */
+  for (a = attrs; a; a = TREE_CHAIN (a))
+    printf ("   %s",  IDENTIFIER_POINTER (TREE_PURPOSE (a)));
+
+  printf ("\n");
+
+  if (num == 0) printf ("-- end\n");
+  return attrs;
+}
+#endif
+
+/* Return nonzero if ATTR is a valid attribute for DECL.
+   ATTRIBUTES are any existing attributes and ARGS are the arguments
+   supplied with ATTR.  */
+int
+palmos_valid_machine_decl_attribute (decl, attributes, attr, args)
+     tree decl;
+     tree attributes;
+     tree attr;
+     tree args;
+{
+  switch (TREE_CODE (decl))
+    {
+    case FUNCTION_DECL:
+      if (is_attribute_p ("systrap", attr))
+	{
+	  tree trap_expr;
+
+	  if (list_length (args) != 1)
+	    return 0;
+
+	  trap_expr = TREE_VALUE (args);
+
+	  if (TREE_CODE (trap_expr) == IDENTIFIER_NODE)
+	    {
+	      tree trap_value = lang_identifier_value (trap_expr);
+	      if (! trap_value)
+		{
+		  error ("undeclared identifier `%s'", 
+			 IDENTIFIER_POINTER (trap_expr));
+		  return 0;
+		}
+	      
+	      if (TREE_CODE (trap_value) == CONST_DECL)
+		trap_expr = DECL_INITIAL (trap_value);
+	      else
+		trap_expr = trap_value;
+	    }
+
+	  /* Strip any NOPs of any kind.  */
+	  while (TREE_CODE (trap_expr) == NOP_EXPR
+		 || TREE_CODE (trap_expr) == CONVERT_EXPR
+		 || TREE_CODE (trap_expr) == NON_LVALUE_EXPR)
+	    trap_expr = TREE_OPERAND (trap_expr, 0);
+
+	  if (TREE_CODE (trap_expr) == INTEGER_CST)
+	    {
+	      char *name = IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (decl));
+	      char *coding = alloca (32 + strlen (name));
+	      sprintf (coding, "=trap #15; dc.w 0x%04x\036%s",
+		       TREE_INT_CST_LOW (trap_expr), name);
+	      DECL_ASSEMBLER_NAME (decl) = get_identifier (coding);
+#if 0
+	      warning
+		("the `systrap' attribute will go away in the next release");
+	      warning ("please use `callseq' instead");
+#endif
+	      return 1;
+	    }
+	  else
+	    {
+	      error ("trap number is not a constant");
+	      return 0;
+	    }
+	}
+      else if (is_attribute_p ("callseq", attr))
+	{
+	  tree prev;
+
+	  if (list_length (args) != 1
+	      || TREE_CODE (TREE_VALUE (args)) != STRING_CST)
+	    {
+	      error ("calling sequence attribute requires one string argument");
+	      return 0;
+	    }
+
+	  /* JWM @@@ This is brutal test code */
+	  {
+	    char *fmt = TREE_STRING_POINTER (TREE_VALUE (args));
+	    int warn = 0;
+	    char *s;
+
+	    for (s = fmt; (s = index (s, '#')) != NULL; s++) {
+	      while (s[1] == '(')  s++;
+	      if (s[1] && !isdigit (s[1]))  warn = 1;
+	      }
+
+	    for (s = fmt; (s = strstr (s, "dc.w ")) != NULL; s++) {
+	      while (s[5] == '(')  s++;
+	      if (s[5] && !isdigit (s[5]))  warn = 1;
+	      }
+
+	    if (warn)  warning ("possibly bad __callseq__ `%s'", fmt);
+	  }
+
+	  prev = lookup_attribute ("callseq", attributes);
+	  if (prev != NULL_TREE
+	      && strcmp (TREE_STRING_POINTER (TREE_VALUE (TREE_VALUE (prev))),
+			 TREE_STRING_POINTER (TREE_VALUE (args))) != 0)
+	    {
+	      error ("calling sequence conflicts with previous declaration");
+	      return 0;
+	    }
+
+	  return 1;
+	}
+      else if (is_attribute_p ("extralogue", attr))
+	{
+	  int n;
+
+	  for (n = 0; args; args = TREE_CHAIN (args), n++)
+	    if (TREE_CODE (TREE_VALUE (args)) != STRING_CST)
+	      {
+		error ("extralogue argument #%d is not a string constant", n+1);
+		return 0;
+	      }
+
+	  if (n > 8)
+	    {
+	      error ("extralogue has too many arguments");
+	      return 0;
+	    }
+
+	  return 1;
+	}
+      else if (is_attribute_p ("owngp", attr))
+	{
+	  return (list_length (args) == 0);
+	}
+      break;
+
+    default:
+      break;
+    }
+    
+  return 0;
+}
+
+
+/* Encode DECL's section name into SYM's name as `@section|symname'.  */
+/* @@@ JWM fix the comment */
+void
+palmos_encode_section_info (sym, funcdecl, section_only)
+     rtx sym;
+     tree funcdecl;
+     int section_only;
+{
+  char *name, *section, *callseq;
+  int offset, section_offset, callseq_offset;
+  tree a;
+
+  name = XSTR (XEXP (sym, 0), 0);
+  offset = 0;
+
+  if (DECL_SECTION_NAME (funcdecl) != NULL_TREE && ! index (name, '@'))
+    {
+      section_offset = offset;
+      section = TREE_STRING_POINTER (DECL_SECTION_NAME (funcdecl));
+      offset += 1 + strlen (section) + 1;
+    }
+  else
+    section = NULL;
+
+  a = lookup_attribute ("callseq", DECL_MACHINE_ATTRIBUTES (funcdecl));
+  if (!section_only && a != NULL_TREE && ! index (name, '='))
+    {
+      callseq_offset = offset;
+      callseq = TREE_STRING_POINTER (TREE_VALUE (TREE_VALUE (a)));
+      offset += 1 + strlen (callseq) + 1;
+    }
+  else
+    callseq = NULL;
+
+  if (offset != 0)
+    {
+      char *newname = permalloc (offset + strlen (name) + 1);
+
+      if (section)
+        sprintf (newname + section_offset, "@%s\036", section);
+
+      if (callseq)
+        sprintf (newname + callseq_offset, "=%s\036", callseq);
+
+      sprintf (newname + offset, "%s", name);
+
+      XSTR (XEXP (sym, 0), 0) = newname;
+    }
+}
+
+
+static int
+section_differs_from_current_p (callee_name)
+     char *callee_name;
+{
+  char *caller, *callee;
+  int callee_len;
+
+  if (DECL_SECTION_NAME (current_function_decl) != NULL_TREE)
+    caller = TREE_STRING_POINTER (DECL_SECTION_NAME (current_function_decl));
+  else
+    caller = "";
+
+  if (index (callee_name, '@'))
+    {
+      callee = index (callee_name, '@') + 1;
+      callee_len = index (callee, '\036') - callee;
+    }
+  else
+    {
+      callee = "";
+      callee_len = 0;
+    }
+
+  return ! (strlen (caller) == callee_len
+	    && strncmp (caller, callee, callee_len) == 0);
+}
+
+/* Build a symbol_ref of the form `__text__SEC' from an encoded name like
+   `@SEC|func'.  Note that the symbol we generate is in the data section,
+   so we do *not* set the symbol_ref's SYMBOL_REF_FLAG.  */
+static rtx
+gen_section_symbol_ref (name)
+     char *name;
+{
+  char *section_name;
+  tree node;
+
+  section_name = alloca (8 + strlen (name) + 1);
+  strcpy (section_name, "__text__");
+  if (name[0] == '@')
+    {
+      char *s = name+1;
+      char *t = section_name+8;
+      while (*s != '\036')
+	*t++ = *s++;
+      *t = '\0';
+    }
+
+  /* Ensure the pointer is unique so that CSE will notice the similarity.  */
+  node = get_identifier (section_name);
+
+  return gen_rtx_SYMBOL_REF (SImode, IDENTIFIER_POINTER (node));
+#if 0
+  char *section, *section_name;
+  int section_len;
+  tree node;
+
+  pull_encoded_section (&section, &section_len, name);
+
+  section_name = alloca (8 + section_len + 1);
+  sprintf (section_name, "__text__%.*s", section_len, section);
+
+  /* Ensure the pointer is unique so that CSE will notice the similarity.  */
+  node = get_identifier (section_name);
+
+  return gen_rtx_SYMBOL_REF (SImode, IDENTIFIER_POINTER (node));
+#endif
+}
+
+static void
+output_extralogue (action, operand1)
+     char *action;
+     rtx operand1;
+{
+  if (action)
+    {
+      rtx operands[3];
+      tree section = DECL_SECTION_NAME (current_function_decl);
+      char *name;
+
+      if (section != NULL_TREE)
+	{
+	  name = alloca (1 + TREE_STRING_LENGTH (section) - 1 + 2 + 1);
+	  sprintf (name, "@%s@x", TREE_STRING_POINTER (section));
+	}
+      else
+	name = "x";
+
+      operands[0] = operand1;
+      operands[1] = gen_section_symbol_ref (name);
+      operands[2] = gen_rtx_MEM (Pmode,
+				 gen_rtx_PLUS (SImode,
+					       pic_offset_table_rtx,
+					       gen_section_symbol_ref ("x")));
+      output_asm_insn (action, operands);
+    }
+}
+
+void
+output_callseq (operand1)
+     rtx operand1;
+{
+  rtx operands[2];
+  char *encoded_name = XSTR (operand1, 0);
+  char *action = alloca (strlen (encoded_name+1) + 1);
+
+  strcpy (action, encoded_name+1);
+  *index (action, '\036') = '\0';
+
+  operands[0] = operand1;
+  operands[1] = pic_offset_table_rtx;
+  app_enable ();
+  output_asm_insn (action, operands);
+  app_disable ();
+}
+
+
+/* Output a MacsBug debugger symbol.  When SIZE is 0 and NAME is eight or
+   sixteen chars, we could save a few bytes by using the old fixed-length
+   MacsBug format.  But apparently nobody does that, and some versions of
+   the Palm OS emulator don't handle fixed-length symbols well, so we
+   won't use them.  */
+
+static void
+output_macsbug_epilogue (stream, name, size)
+     FILE *stream;
+     const char *name;
+     int size;
+{
+  int len = strlen (name);
+  int printed = 0;
+
+  if (len == 0)
+    abort ();
+  else if (len > 255)
+    len = 255;
+
+  if (len < 32)
+    {
+      ASM_OUTPUT_BYTE (stream, len | 0x80);
+      printed += 1;
+    }
+  else
+    {
+      ASM_OUTPUT_BYTE (stream, 0x80);
+      ASM_OUTPUT_BYTE (stream, len);
+      printed += 2;
+    }
+  
+  assemble_string (name, len);
+  printed += len;
+
+  if (printed & 1)
+    ASM_OUTPUT_BYTE (stream, 0);
+  
+  ASM_OUTPUT_SHORT (stream, GEN_INT (size));
+}
+
+#endif /* PALMOS */
+
 /* This function generates the assembly code for function entry.
    STREAM is a stdio stream to output the code to.
    SIZE is an int: how many units of temporary storage to allocate.
@@ -150,6 +536,15 @@ output_function_prologue (stream, size)
   extern char call_used_regs[];
   int fsize = (size + 3) & -4;
   int cfa_offset = INCOMING_FRAME_SP_OFFSET, cfa_store_offset = cfa_offset;
+
+#if 0
+  printf ("@@@ dump(%s) (in section `%s'):\n",
+	  current_function_name, (DECL_SECTION_NAME(current_function_decl))? 
+	  TREE_STRING_POINTER (DECL_SECTION_NAME(current_function_decl)) : "<<NONE>>");
+  debug_tree (current_function_decl);
+  printf ("@     and mach attrs:\n");
+  debug_tree (DECL_MACHINE_ATTRIBUTES (current_function_decl));
+#endif
   
 
   if (frame_pointer_needed)
@@ -346,7 +741,8 @@ output_function_prologue (stream, size)
       num_saved_regs = 0;
     }
   for (regno = 0; regno < 16; regno++)
-    if (regs_ever_live[regno] && ! call_used_regs[regno])
+    if ((regs_ever_live[regno] && ! call_used_regs[regno])
+	|| EXTRA_REGISTER_SAVE (regno))
       {
         mask |= 1 << (15 - regno);
         num_saved_regs++;
@@ -356,11 +752,15 @@ output_function_prologue (stream, size)
       mask &= ~ (1 << (15 - FRAME_POINTER_REGNUM));
       num_saved_regs--;
     }
+#if 0
+/* @@@ This got added by law in July in cvs chg # 1.29 or so.
+   Need to figure out why or just add && !fixed_reg[PIC_OFFSET_TABLE_REGNUM] */
   if (flag_pic && regs_ever_live[PIC_OFFSET_TABLE_REGNUM])
     {
       mask |= 1 << (15 - PIC_OFFSET_TABLE_REGNUM);
       num_saved_regs++;
     }
+#endif
 
 #if NEED_PROBE
 #ifdef MOTOROLA
@@ -462,6 +862,38 @@ output_function_prologue (stream, size)
 				  -cfa_store_offset + n_regs++ * 4);
 	}
     }
+
+#ifdef PALMOS
+  if (flag_pic && TARGET_PCREL)
+    {
+      tree attr = lookup_attribute ("extralogue",
+			    DECL_MACHINE_ATTRIBUTES (current_function_decl));
+      if (TARGET_EXTRALOGUES && attr)
+	{
+	  rtx param;
+	  char *action = NULL;
+
+	  attr = TREE_VALUE (attr);
+	  SET_IF_PRESENT (action, attr /*[0]*/);
+	  attr = TREE_LIST_CDR (TREE_LIST_CDR
+				    (TREE_LIST_CDR (TREE_LIST_CDR (attr))));
+	  if (DECL_SECTION_NAME (current_function_decl))
+	    SET_IF_PRESENT (action, attr /*[4]*/);
+
+	  if (frame_pointer_needed)
+	    param = gen_rtx_PLUS (Pmode, frame_pointer_rtx, GEN_INT (8));
+	  else
+	    {
+	      int off;
+	      INITIAL_FRAME_POINTER_OFFSET (off);
+	      param = gen_rtx_PLUS (Pmode, stack_pointer_rtx, GEN_INT (8+off));
+	    }
+
+	  output_extralogue (action, gen_rtx_MEM (VOIDmode, param));
+	}
+    }
+  else
+#endif
   if (flag_pic && current_function_uses_pic_offset_table)
     {
 #ifdef MOTOROLA
@@ -491,8 +923,22 @@ use_return_insn ()
      separate layout routine to perform the common work.  */
   
   for (regno = 0 ; regno < FIRST_PSEUDO_REGISTER ; regno++)
-    if (regs_ever_live[regno] && ! call_used_regs[regno])
+    if ((regs_ever_live[regno] && ! call_used_regs[regno])
+	|| EXTRA_REGISTER_SAVE (regno))
       return 0;
+
+#ifdef PALMOS
+  if (TARGET_DEBUG_LABELS)
+    return 0;
+
+  if (TARGET_PCREL)
+    {
+      tree attrs = DECL_MACHINE_ATTRIBUTES (current_function_decl);
+      if ((TARGET_OWN_GP && lookup_attribute ("owngp", attrs))
+          || (TARGET_EXTRALOGUES && lookup_attribute ("extralogue", attrs)))
+	return 0;
+    }
+#endif
   
   return 1;
 }
@@ -538,6 +984,64 @@ output_function_epilogue (stream, size)
     }
 #endif
 
+#ifdef PALMOS
+  if (flag_pic && TARGET_PCREL)
+    {
+      tree attr = lookup_attribute ("extralogue",
+			    DECL_MACHINE_ATTRIBUTES (current_function_decl));
+      if (TARGET_EXTRALOGUES && attr)
+	{
+	  char buffer[16];
+	  int nregs;
+	  char *action = NULL;
+	  rtx save_rtx = current_function_return_rtx;
+
+	  if (save_rtx && REG_P (save_rtx))
+	    {
+	      nregs = (GET_MODE_SIZE (GET_MODE (save_rtx)) + 3) / 4;
+	      if (nregs > 1)
+		{
+		  sprintf (buffer, "*%s-%s",
+			   reg_names[REGNO (save_rtx)],
+			   reg_names[REGNO (save_rtx) + nregs-1]);
+		  /* This is a hack.  Unfortunately, print_operand doesn't
+		     support anything sensible like const_string.  */
+		  save_rtx =
+		      gen_rtx_MEM (VOIDmode,
+				   gen_rtx_SYMBOL_REF (VOIDmode, buffer));
+		}
+	    }
+	  else
+	    {
+	      nregs = 0;
+	      save_rtx = gen_rtx_REG (VOIDmode, 8);
+	    }
+
+	  attr = TREE_LIST_CDR (TREE_VALUE (attr));
+	  SET_IF_PRESENT (action, attr /*[1]*/);
+	  attr = TREE_LIST_CDR (attr);
+	  if (nregs <= 1)
+	    SET_IF_PRESENT (action, attr /*[2]*/);
+	  attr = TREE_LIST_CDR (attr);
+	  if (nregs == 0)
+	    SET_IF_PRESENT (action, attr /*[3]*/);
+	  if (DECL_SECTION_NAME (current_function_decl))
+	    {
+	      attr = TREE_LIST_CDR (TREE_LIST_CDR (attr));
+	      SET_IF_PRESENT (action, attr /*[5]*/);
+	      attr = TREE_LIST_CDR (attr);
+	      if (nregs <= 1)
+		SET_IF_PRESENT (action, attr /*[6]*/);
+	      attr = TREE_LIST_CDR (attr);
+	      if (nregs == 0)
+		SET_IF_PRESENT (action, attr /*[7]*/);
+	    }
+
+	  output_extralogue (action, save_rtx);
+	}
+    }
+#endif
+
 #ifdef FUNCTION_EXTRA_EPILOGUE
   FUNCTION_EXTRA_EPILOGUE (stream, size);
 #endif
@@ -563,16 +1067,21 @@ output_function_epilogue (stream, size)
   if (frame_pointer_needed)
     regs_ever_live[FRAME_POINTER_REGNUM] = 0;
   for (regno = 0; regno < 16; regno++)
-    if (regs_ever_live[regno] && ! call_used_regs[regno])
+    if ((regs_ever_live[regno] && ! call_used_regs[regno])
+	|| EXTRA_REGISTER_SAVE (regno))
       {
         nregs++;
 	mask |= 1 << regno;
       }
+#if 0
+/* @@@ This got added by law in July in cvs chg # 1.29 or so.
+   Need to figure out why or just add && !fixed_reg[PIC_OFFSET_TABLE_REGNUM] */
   if (flag_pic && regs_ever_live[PIC_OFFSET_TABLE_REGNUM])
     {
       nregs++;
       mask |= 1 << PIC_OFFSET_TABLE_REGNUM;
     }
+#endif
   offset = foffset + nregs * 4;
   /* FIXME : leaf_function_p below is too strong.
      What we really need to know there is if there could be pending
@@ -832,6 +1341,17 @@ output_function_epilogue (stream, size)
     asm_fprintf (stream, "\trtd %0I%d\n", current_function_pops_args);
   else
     fprintf (stream, "\trts\n");
+
+#ifdef PALMOS
+  if (TARGET_DEBUG_LABELS)
+    {
+      /* This is sure to be the mangled function name -- toplev.c just
+	 went through the same sequence to get it.  */
+      char *name = XSTR (XEXP (DECL_RTL (current_function_decl), 0), 0);
+      STRIP_NAME_ENCODING (name, name);
+      output_macsbug_epilogue (stream, name, 0);
+    }
+#endif /* PALMOS */
 }
 
 /* Similar to general_operand, but exclude stack_pointer_rtx.  */
@@ -1317,6 +1837,61 @@ extend_operator(x, mode)
    That (in a nutshell) is how *all* symbol and label references are 
    handled.  */
 
+/* IT'S COMPLETELY DIFFERENT ON PALM OS!  Read the code -- sorry.  */
+
+#ifdef PALMOS
+rtx
+legitimize_pic_text_address (orig, calling)
+     rtx orig;
+     int calling;
+{
+  rtx pic_ref = orig;
+
+  if (GET_CODE (orig) == LABEL_REF)
+    {
+      pic_ref = gen_rtx_PLUS (Pmode, pc_rtx, orig);
+    }
+  else if (GET_CODE(orig) == SYMBOL_REF && SYMBOL_REF_FLAG (orig))
+    {
+      char *name = XSTR (orig, 0);
+
+      if (name[0] == '=')
+	{
+	  if (calling)
+	    pic_ref = gen_rtx_UNSPEC (GET_MODE (orig), gen_rtvec (1, orig), 28);
+	  else
+	    {
+	      error ("address of systrap function requested");
+	      pic_ref = const0_rtx;  /* Hah!  That should stop 'em!  */
+	    }
+	}
+      else if (section_differs_from_current_p (name))
+	{
+	  rtx section_base, section_base_reg;
+
+	  /* This would be too late to be creating new pseudo-regs.  */
+	  if (reload_in_progress)
+	    abort ();
+
+	  section_base = gen_rtx_MEM (Pmode,
+		legitimize_pic_address (gen_section_symbol_ref (name),
+					Pmode,
+					gen_reg_rtx (Pmode)));
+	  RTX_UNCHANGING_P (section_base) = 1;
+
+	  section_base_reg = gen_reg_rtx (Pmode);
+	  emit_move_insn (section_base_reg, section_base);
+	  
+	  pic_ref = gen_rtx_PLUS (Pmode, section_base_reg, orig);
+	}
+      else
+	pic_ref = gen_rtx_PLUS (Pmode, pc_rtx, orig);
+    }
+
+  return pic_ref;
+}
+#endif
+
 rtx
 legitimize_pic_address (orig, mode, reg)
      rtx orig, reg;
@@ -1330,6 +1905,17 @@ legitimize_pic_address (orig, mode, reg)
       if (reg == 0)
 	abort ();
 
+#ifdef PALMOS
+      if (GET_CODE (orig) == SYMBOL_REF && ! SYMBOL_REF_FLAG (orig))
+	{
+	  pic_ref = gen_rtx_PLUS (Pmode, pic_offset_table_rtx, orig);
+	  current_function_uses_pic_offset_table = 1;
+	  if (reload_in_progress)
+	    regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
+	}
+      else
+	pic_ref = legitimize_pic_text_address (orig, 0);
+#else
       pic_ref = gen_rtx_MEM (Pmode,
 			     gen_rtx_PLUS (Pmode,
 					   pic_offset_table_rtx, orig));
@@ -1337,6 +1923,7 @@ legitimize_pic_address (orig, mode, reg)
       if (reload_in_progress)
 	regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
       RTX_UNCHANGING_P (pic_ref) = 1;
+#endif
       emit_move_insn (reg, pic_ref);
       return reg;
     }
@@ -1523,12 +2110,28 @@ output_move_simode (operands)
   else if ((GET_CODE (operands[1]) == SYMBOL_REF
 	    || GET_CODE (operands[1]) == CONST)
 	   && push_operand (operands[0], SImode))
-    return "pea %a1";
+    {
+      if (TARGET_PCREL && SYMBOL_REF_FLAG (operands[1]))
+        return "pea %a1(%%pc)";
+      else 
+        return "pea %a1";
+    }
   else if ((GET_CODE (operands[1]) == SYMBOL_REF
 	    || GET_CODE (operands[1]) == CONST)
 	   && ADDRESS_REG_P (operands[0]))
-    return "lea %a1,%0";
-  return "move%.l %1,%0";
+    {
+      if (TARGET_PCREL && SYMBOL_REF_FLAG (operands[1]))
+        return "lea %a1(%%pc),%0";
+      else 
+        return "lea %a1,%0";
+    }
+
+  if ((GET_CODE (operands[1]) == SYMBOL_REF
+       || GET_CODE (operands[1]) == CONST)
+      && TARGET_PCREL && SYMBOL_REF_FLAG (operands[1]))
+    return "pea %a1(%%pc); move%.l (%%sp)+,%0";
+  else
+    return "move%.l %1,%0";
 }
 
 char *
@@ -1606,6 +2209,7 @@ output_move_qimode (operands)
 {
   rtx xoperands[4];
 
+#ifndef PALMOS
   /* This is probably useless, since it loses for pushing a struct
      of several bytes a byte at a time.	 */
   /* 68k family always modifies the stack pointer by at least 2, even for
@@ -1635,6 +2239,7 @@ output_move_qimode (operands)
 	output_asm_insn ("move%.b %1,%-\n\tmove%.b %@,%2", xoperands);
       return "";
     }
+#endif
 
   /* clr and st insns on 68000 read before writing.
      This isn't so on the 68010, but we have no TARGET_68010.  */
@@ -2116,7 +2721,7 @@ output_addsi3 (operands)
 	 stack slots over 64k from the frame pointer.  */
       if (GET_CODE (operands[2]) == CONST_INT
 	  && INTVAL (operands[2]) + 0x8000 >= (unsigned) 0x10000)
-        return "move%.l %2,%0\n\tadd%.l %1,%0";
+        return "move%.l %2,%0\n\tadd%.l %1,%0 /*JANE1*/";
 #ifdef SGS
       if (GET_CODE (operands[2]) == REG)
 	return "lea 0(%1,%2.l),%0";
@@ -2181,7 +2786,7 @@ output_addsi3 (operands)
 #endif
 	}
     }
-  return "add%.l %2,%0";
+  return "add%.l %2,%0 /*JANE2*/";
 }
 
 /* Store in cc_status the expressions that the condition codes will
@@ -3085,6 +3690,17 @@ print_operand_address (file, addr)
 		output_addr_const (file, addr);
 	        if (flag_pic && (breg == pic_offset_table_rtx))
 		  {
+#ifdef PALMOS
+		    if (TARGET_PCREL)
+		      {
+			/* If it doesn't have its own local global pointer,
+			   a PalmOS program uses A5, which points to the
+			   _end_ of the global section.  */
+			if (! TARGET_OWN_GP)
+			  fprintf (file, "@END");
+		      }
+		    else
+#endif
 		    fprintf (file, "@GOT");
 		    if (flag_pic == 1)
 		      fprintf (file, ".w");

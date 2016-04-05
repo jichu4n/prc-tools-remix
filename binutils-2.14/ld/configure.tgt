@@ -247,6 +247,7 @@ arm-*-oabi)		targ_emul=armelf_oabi ;;
 arm*-*-linux-gnu*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
 arm*-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
 arm*-*-conix*)		targ_emul=armelf ;;
+arm*-*-palmos*)		targ_emul=armpalmos; targ_extra_emuls=armelf ;;
 thumb-*-linux-gnu* | thumb-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
 strongarm-*-coff)	targ_emul=armcoff ;;
 strongarm-*-elf)	targ_emul=armelf ;;
@@ -364,6 +365,7 @@ m68*-*-netbsdaout* | m68*-*-netbsd*)
 m68*-*-psos*)		targ_emul=m68kpsos ;;
 m68*-*-rtemscoff*)	targ_emul=m68kcoff ;;
 m68*-*-rtems*)		targ_emul=m68kelf ;;
+m68*-*-palmos*)		targ_emul=m68kpalmos ;;
 hppa*64*-*-linux-gnu*)	targ_emul=hppa64linux ;;
 hppa*64*-*)		targ_emul=elf64hppa ;;
 hppa*-*-linux-gnu*)	targ_emul=hppalinux ;;

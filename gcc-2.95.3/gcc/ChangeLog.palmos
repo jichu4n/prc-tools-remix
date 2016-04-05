@@ -1,0 +1,321 @@
+Tue Nov 17 14:59:49 1998  John Marshall  <jmarshall@acm.org>
+
+	* cp/decl2.c (lang_decode_option) [PALMOS]: Stop `-Wall' from
+	implying `-Wmultichar'.  (It's already that way in C.)
+
+Thu Nov 12 05:46:53 1998  John Marshall  <jmarshall@acm.org>
+
+	* config/m68k/m68kpalmos.h (LINK_SPEC): Use `--embedded-relocs'
+	instead of `-r', so we get new-style data relocations.  For
+	cosmetic reasons, also add `-N' and remove `-dc'.
+	(LIBGCC_SPEC): Added `-lcrt' / `-lscrt' which now contain parts of
+	the startup code.
+
+	* config/m68k/palmos_link.ld: `coderes' origin changed to 0.
+
+Fri Nov  6 16:34:23 1998  John Marshall  <jmarshall@acm.org>
+
+	* config/m68k/m68k.h (INITIAL_FRAME_POINTER_OFFSET): Reserves stack
+	space for EXTRA_REGISTER_SAVE registers.
+	* config/m68k/m68k.c (output_function_prologue, use_return_insn,
+	output_function_epilogue): Save/restore EXTRA_REGISTER_SAVE registers.
+	(finalize_pic): Removed patch.  It seems to "just know" that the
+	PIC register is live anyway.
+	* config/m68k/m68kpalmos.h (EXTRA_REGISTER_SAVE): New macro.  Forces
+	save/restore of A4 for "owngp" functions.
+	* reload1.c: Needs to include `tree.h'.
+
+Mon Nov  2 12:57:01 1998  John Marshall  <jmarshall@acm.org>
+
+	* config/m68k/m68kpalmos.h (PCC_STATIC_STRUCT_RETURN,
+	STRUCT_VALUE_REGNUM, STRUCT_VALUE, STRUCT_VALUE_INCOMING): Address for
+	returning large structs changed from A1 to a hidden first parameter.
+	This avoids conflicts with A1 usage in the GLib dispatch code.
+
+Fri Oct 23 22:04:19 1998  John Marshall  <jmarshall@acm.org>
+
+	* config/m68k/m68kpalmos.h (FORBID_FUNCTION_CSE_P): New macro.
+	* calls.c (prepare_call_address): Check it.
+	* integrate.c (copy_rtx_and_substitute): Likewise.
+
+Fri Oct 16 17:10:37 1998  John Marshall  <jmarshall@acm.org>
+
+	* config/m68k/m68k.c (legitimize_pic_text_address): New function to
+	handle text pointers, including inter-section calls and systraps.
+	(legitimize_pic_address): Call it.
+	* config/m68k/m68k.md (call, call_value): Likewise.
+	(new call and call_value insns): Match the three new calling
+	patterns -- intra-section, inter-section, and systrap -- generated
+	by legitimize_pic_text_address().
+
+Sun Oct 11 23:29:38 1998  John Marshall  <jmarshall@acm.org>
+
+	* tree.h (lang_identifier_value): New function declaration (it's
+	a bit of a hack).  "systrap" needs to look up the value of an
+	identifier, and used to do this with IDENTIFIER_GLOBAL_VALUE.  This
+	only coincidentally worked, because the C and C++ versions of that
+	macro happened to be identical.  This is no longer the case.
+	* c-lang.c, cp/tree.c (lang_identifier_value): Define it.
+
+	* config/m68k/m68kpalmos.h (VALID_MACHINE_DECL_ATTRIBUTE): New macro.
+	* config/m68k/m68k.c (palmos_valid_machine_decl_attribute): New
+	function to implement "systrap", "owngp", and "extralogue" function
+	attributes.  Uses lang_identifier_value to handle "systrap".
+	* c-common.c: Removed PalmOS attribute patches.
+
+	* config/m68k/m68k.c (output_function_prologue,
+	output_function_epilogue) [TARGET_EXTRALOGUES]: Output extralogues
+	for functions that have them.
+	(gen_section_symbol_ref, output_extralogue): New functions.
+	(print_operand_address) [!TARGET_OWN_GP]: Output references to
+	global data which use the PIC register as `var@END(%a5)'.
+
+	* config/m68k/m68kpalmos.h (FIXED_REGISTERS, CALL_USED_REGISTERS,
+	PIC_OFFSET_TABLE_REGNUM): Updated to reflect the PIC register now
+	normally being A5.
+	(TARGET_DEBUG_LABELS, TARGET_PCREL): Renumbered so as not to
+	conflict with those in config/m68k/m68k.h.
+	(TARGET_VOLATILE_GP): Removed.
+	(TARGET_OWN_GP, TARGET_EXTRALOGUES): New target flags.
+	(SUBTARGET_SWITCHES, TARGET_DEFAULT): Defines `-mown-gp' and
+	`-mextralogues'.  Removed `-mvolatile-gp'.
+	(CC1_SPEC): Removed `-mpcrel'.  Now that all the MASK_* values are
+	unique, TARGET_DEFAULT works again.  Groan.
+	(SUBTARGET_OVERRIDE_OPTIONS): Pick the PIC register.
+	(CONDITIONAL_REGISTER_USAGE): New macro.
+	* config/m68k/m68k.c (palmos_pic_reg): New variable.
+
+Wed Oct  7 15:24:15 1998  John Marshall  <jmarshall@acm.org>
+
+	* Merged the work I've been doing with Todd's egcs-1.1 patches.
+
+	* calls.c: Corrected for non-__STDC__ compilers.  (This fix is
+	due to Mark Eichin, from a pilot-unix message on 30 April 1997.)
+
+Sun Oct  4 14:20:18 1998  Simon Burge  <simonb@telstra.com.au>
+                          John Marshall  <jmarshall@acm.org>
+
+	* config/m68k/m68kpalmos.h (CPP_SUBTARGET_SPEC,
+	SUBTARGET_EXTRA_SPECS): Added `-palmosX' option to select Palm OS
+	system header directory tree.
+	(CPP_SPEC, INCLUDE_DEFAULTS): Removed.
+
+Fri Oct  2 10:36:46 1998  Todd Mokros  <tmokros@rumken.com>
+
+	* libgcc2.c: Removed the malloc replacement code since
+	new/delete were moved to new1.cc and new2.cc.
+
+	* new1.cc: PALMOS: added #define malloc until the libc is changed.
+
+	* new2.cc: PALMOS: added #define free until the libc is changed.
+
+	* config/m68k/m68kpalmos.h (INCLUDE_DEFAULTS): Added component field
+	to entries.
+
+	* configure.in: merged changes made to configure
+
+	* version.c: Updated for egcs-1.1 release.
+
+Thu Oct  1 00:15:57 1998  John Marshall  <jmarshall@acm.org>
+
+	* config/m68k/m68k.md (strlensi): New define_expand to make strlen()
+	a built-in function.
+
+Tue Sep  1 21:28:42 1998  John Marshall  <jmarshall@acm.org>
+
+	* config/m68k/m68k.c (palmos_encode_section_info,
+	pull_encoded_section, palmos_strip_name_encoding,
+	section_differs_from_current_p): New functions.
+	* config/m68k/m68kpalmos.h (ENCODE_SECTION_INFO, STRIP_NAME_ENCODING,
+	ASM_OUTPUT_LABELREF): Record the callee's section in call insns.
+
+	* config/m68k/m68kpalmos.h (RECALL_CONSTANT_NAME_SECTION_INFO,
+	READONLY_DATA_SECTION): Put string constants etc in the current
+	function's text section, rather than the default ".text" section.
+	(EXTRA_SECTION_FUNCTIONS): Define curfunc_section().  Use of this
+	macro clashes with its use in config/m68k/coff.h, so we duplicate
+	that here.
+	(JUMP_TABLES_IN_TEXT_SECTION): Handle jump tables separately from
+	other readonly data -- but they end up in the same place, namely
+	the current function's text section.
+	* varasm.c [RECALL_CONSTANT_NAME_SECTION_INFO] (first_encoding):
+	New variable.
+	(output_constant_def): Check RECALL_CONSTANT_NAME_SECTION_INFO.
+
+	* varasm.c (output_constant_def): Misleading code simplified.
+
+	* config/m68k/m68kpalmos.h (DEFAULT_SHORT_ENUMS): Defined this
+	instead of using "-fshort-enums" in CC1_SPEC.
+	(CONSTANT_POOL_BEFORE_FUNCTION, CONSTANT_AFTER_FUNCTION_P): Put
+	string constants etc after the function that uses them, so jumping
+	to the start of code resources is safer.
+
+Mon Jul 27 11:48:20 1998  Peter Trommler  <trp@zurich.ibm.com>
+
+	* config/m68k/m68kpalmos.h: PalmOS alignment for parameters on the
+	stack is always 16 bit.
+	(PARM_BOUNDARY): Defined 16 regardless of TARGET_SHORT.
+
+Sun Jul 12 22:02:37 1998  John Marshall  <jmarshall@acm.org>
+
+	* Updated kgpd PalmOS patches to apply to egcs-1.0.3.
+	Changes as follows:
+
+	* config/m68k/m68k.c & config/m68k/m68k.md: Some patches have
+	moved from .md to .c with the creation of output_move_simode().
+
+	* config/m68k/m68k.md (beq0_di, bne0_di, bge0_di, blt0_di): These
+	patches have been removed since egcs has what appears to be a better
+	version of the same modification.  (See +/m68k.md..beq ChangeLog.11)
+
+	* config/m68k/m68kpalmos.h (CC1_SPEC): Added -mpcrel.  It seems
+	that the winner of a battle between TARGET_DEFAULT and CC1_SPEC
+	has changed.
+	(CC1PLUS_SPEC): Added -fno-exceptions and -fno-rtti.  (Note that
+	C++ gets -mpcrel etc from CC1_SPEC too.)
+
+	* longlong.h: egcs already includes this patch; removed.
+
+	* version.c: Updated for egcs-1.0.3 release.
+
+Tue Nov 11 09:50:58 1997  Ian Goldberg  <iang@cs.berkeley.edu>
+
+	* config/m68k/palmos_link.ld: Added support for construction/
+	destruction of global C++ objects.
+	* configure: ditto (use_collect2).
+	* libgcc2.c: ditto.
+	* palmos-mem.h: ditto.
+	
+Fri Jun 27 13:12:25 1997  Donald Jeff Dionne  <jeff@pfnet.com>
+
+	* config/m68k/m68k.c (output_function_prologue): Generate code for
+	PalmOS style PIC only when TARGET_VOLATILE_GP is on
+
+	* config/m68k/m68kpalmos.h (SUBTARGET_SWITCHES): Defines 
+	-mvolatile-gp and -mpcrel
+	(TARGET_PCREL): New macro.
+	(TARGET_VOLATILE_GP): New macro.
+
+	* config/m68k/m68k.h (SUBTARGET_SWITCHES): Define for -mpcrel
+	moved to m68kpalmos.h
+
+Thu Jun 12 22:11:22 1997  Keith Packard  <keithp@ncd.com>
+
+	* config/m68k/m68kpalmos.h (FUNCTION_VALUE): Fix case of function
+	called indirect, wrong register was expected.
+	(FUNCTION_ARG_PADDING): Pack byte args compatible with PalmOS
+
+
+Wed Mar  5 19:49:16 1997  Kresten Krab Thorup  <krab@california.daimi.aau.dk>
+
+	* config/m68k/m68k.md (movqi): For PALMOS, use simple move for push.
+
+	* config/m68k/m68k.c (output_function_epilogue): Only emit it
+	TARGET_DEBUG_LABELS is on.
+
+	* config/m68k/m68kpalmos.h (LIB_SPEC): Removed definition.
+	(SUBTARGET_SWITCHES): Defines -mdebug-labels
+	(TARGET_DEBUG_LABELS): New macro.
+
+
+Fri Feb 21 00:31:25 1997  Kresten Krab Thorup  <krab@california.daimi.aau.dk>
+
+	* config/m68k/lb1sf68palmos.asm: Changed all jbsr to bst.
+
+	* config/m68k/m68k.c (output_function_epilogue): Emit function
+	name for PalmOS stack unwinding.
+
+	* config/m68k/m68kpalmos.h: #undef PROMOTE_PROTOTYPES 
+	(CC1_SPEC): Added -fshort-enums.
+
+Wed Feb 19 17:25:01 1997  Kresten Krab Thorup  <krab@california.daimi.aau.dk>
+
+	* config/m68k/m68kpalmos.h (CALL_USED_REGISTERS): Updated to
+	reflect that a5 is fixed.
+	(FUNCTION_VALUE): Added to reflect MetroWerks calling convention
+	to support systraps correctly.
+
+	* config/m68k/m68kpalmos.h (LINK_SPEC): Changed to use pilot.ld
+
+	* config/m68k/palmos_link.ld: New file.
+
+	* config/m68k/t-m68kpalmos (EXTRA_PARTS): Added pilot.ld
+
+	* c-common.c (decl_attributes): Added "systrap" attribute. 
+
+	* config/m68k/m68k.md (call_value, call): Added support for
+	systraps in calls.
+
+	
+	
+Fri Feb 14 12:29:02 1997  Kresten Krab Thorup  <krab@california.daimi.aau.dk>
+
+	* config/m68k/m68kpalmos.h (CC1_SPEC): Disable multi-char
+	character constant warnings.
+
+	* toplev.c (warn_multi_char_constant): New variable.
+
+	* c-lex.c (yylex): Use long_integer_type_node for character
+	constants so that Mac style resource strings work on a machine
+	with 16-bit integers.  Also use new warning flag.
+	
+	* cp/lex.c (real_yylex): Same as above.
+
+Wed Feb 12 13:34:11 1997  Kresten Krab Thorup  <krab@california.daimi.aau.dk>
+
+	* config/m68k/m68k.c (legitimize_pic_address): Handle
+	pic-addressing for labels in palmos.  (makes goto and switch work)
+
+	* config/m68k/t-m68kpalmos (stmp-palmos-headers): Fixed so it
+	calls install-dir manually, resulting in less invocations of this
+	target. 
+	(TARGET_LIBGCC2_CFLAGS): Added includes for PalmOS headers.
+	
+Tue Feb 11 19:02:16 1997  Kresten Krab Thorup  <krab@california.daimi.aau.dk>
+
+	* config/m68k/t-m68kpalmos (LIBGCC2_DEP): Added dependency on
+	stmp-install-palmos-headers.
+
+Sun Feb  9 22:12:42 1997  Kresten Krab Thorup  <krab@california.daimi.aau.dk>
+
+	* configure: New configuration for m68k-palmos-coff.
+	
+	* libgcc2.c (__builtin_new, __builtin_delete): Generate calls to
+	PalmOS memory management routines.
+
+	* longlong.h (count_leading_zeros): Cast 1 to USItype before
+	shifting.  Makes long long work for sizeof(int) != sizeof(long).
+
+	* varasm.c (assemble_variable): Invoke ENCODE_SECTION_INFO for
+	assembled variable.  
+
+	* integrate.c (expand_inline_function): Fixed problem with equiv
+	and -fpic code.  inline foo(void*x) { asm("..." : : "g"); } doesn't
+	work right with foo(&bar), the &bar isn't pic-ified.
+
+	* config/m68k/m68k.md: New insn pattern for loading pc-relative
+	addresses. 
+	(movsi instruction pattern): Generate pc-relative loads of text
+	addresses. 
+	(call, call_value): Generate .w versions of 
+
+	* config/m68k/m68k.h (TARGET_PCREL): New target flag -mpcrel
+	generates all text references pc-relative.
+
+	* config/m68k/m68k.c (output_function_prologue): Generate code for
+	palmos style pic code.
+	(legitimize_pic_address): Generate pattern for loading addresses
+	using pic code.
+	(print_operand_address): Don't emit @GOT for pic labels.
+
+	* config/m68k/fpgnulib.c (__floatsidf): declared argument long in
+	stead of int.  Changed 32 to 32L.
+	(__floatsisf): Same as above.
+
+	* config/m68k/lb1sf68palmos.asm: New file made from lb1sf68.asm
+
+	* calls.c (emit_library_call, emit_library_call_value): Set
+	SYMBOL_REF_FLAG of call SYMBOL_REF if PALMOS is defined. 
+
+	* config/m68k/m68kpalmos.h, config/m68k/t-m68kpalmos,
+	config/m68k/palmos_crt0.S: new files. 

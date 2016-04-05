@@ -597,6 +597,9 @@ case "${target}" in
            target_configdirs="${target_configdirs} target-bsp target-libstub target-cygmon"
     fi
     ;;
+  arm-*-palmos*)
+    noconfigdirs="$noconfigdirs target-libiberty target-libgloss target-newlib target-libio target-librx target-libstdc++ target-libg++ target-examples"
+    ;;
   c4x-*-*)
     noconfigdirs="$noconfigdirs target-libg++ target-libstdc++ target-libio target-librx target-libgloss"
     ;;
@@ -728,6 +731,9 @@ case "${target}" in
     ;;
   m68k-apollo-*)
     noconfigdirs="$noconfigdirs ld binutils gprof target-libgloss"
+    ;;
+  m68k-palmos-*)
+    noconfigdirs="$noconfigdirs target-libiberty target-libgloss target-newlib target-libio target-librx target-libstdc++ target-libg++ target-examples"
     ;;
   mips*-*-irix5*)
     # The GNU linker does not support shared libraries.

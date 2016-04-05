@@ -405,9 +405,7 @@ do { fputs (integer_asm_op (POINTER_SIZE / UNITS_PER_WORD, TRUE), FILE); \
 /* By default, the preprocessor should be invoked the same way in C++
    as in C.  */
 #ifndef CPLUSPLUS_CPP_SPEC
-#ifdef CPP_SPEC
-#define CPLUSPLUS_CPP_SPEC CPP_SPEC
-#endif
+#define CPLUSPLUS_CPP_SPEC 0
 #endif
 
 #ifndef ACCUMULATE_OUTGOING_ARGS

@@ -67,6 +67,8 @@ static reloc_howto_type *m68kcoff_common_addend_rtype_to_howto
 #define RELOC_SPECIAL_FN m68kcoff_common_addend_special_fn
 #endif
 
+static bfd_boolean coff_m68k_bfd_print_private_bfd_data
+  PARAMS ((bfd *, PTR));
 static bfd_boolean m68k_coff_is_local_label_name
   PARAMS ((bfd *, const char *));
 
@@ -108,6 +110,7 @@ reloc_howto_type m68kcoff_howto_table[] =
     HOWTO (R_PCRWORD,	       0,  1, 	16, TRUE,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP16",   TRUE, 0x0000ffff,0x0000ffff, FALSE),
     HOWTO (R_PCRLONG,	       0,  2, 	32, TRUE,  0, complain_overflow_signed,   RELOC_SPECIAL_FN, "DISP32",   TRUE, 0xffffffff,0xffffffff, FALSE),
     HOWTO (R_RELLONG_NEG,      0, -2, 	32, FALSE, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "-32",	TRUE, 0xffffffff,0xffffffff, FALSE),
+    HOWTO (R_RELENDWORD,       0,  1, 	16, FALSE, 0, complain_overflow_bitfield, RELOC_SPECIAL_FN, "END16",	TRUE, 0x0000ffff,0x0000ffff, FALSE),
   };
 #endif /* not ONLY_DECLARE_RELOCS */
 
@@ -150,6 +153,7 @@ m68k_rtype2howto(internal, relocentry)
     case R_PCRWORD:	internal->howto = m68kcoff_howto_table + 4; break;
     case R_PCRLONG:	internal->howto = m68kcoff_howto_table + 5; break;
     case R_RELLONG_NEG:	internal->howto = m68kcoff_howto_table + 6; break;
+    case R_RELENDWORD:	internal->howto = m68kcoff_howto_table + 7; break;
     }
 }
 
@@ -157,6 +161,9 @@ STAT_REL int
 m68k_howto2rtype (internal)
      reloc_howto_type *internal;
 {
+  if (internal->type == R_RELENDWORD)
+    return R_RELENDWORD;
+
   if (internal->pc_relative)
     {
       switch (internal->bitsize)
@@ -194,6 +201,7 @@ m68k_reloc_type_lookup (abfd, code)
     case BFD_RELOC_16_PCREL:	return m68kcoff_howto_table + 4;
     case BFD_RELOC_32_PCREL:	return m68kcoff_howto_table + 5;
       /* FIXME: There doesn't seem to be a code for R_RELLONG_NEG.  */
+      /* FIXME: Nor for R_RELENDWORD.  */
     }
   /*NOTREACHED*/
 }
@@ -208,6 +216,46 @@ m68k_reloc_type_lookup (abfd, code)
 
 #define coff_bfd_reloc_type_lookup m68k_reloc_type_lookup
 
+#ifndef coff_rtype_to_howto
+/* If this is not yet defined, one of the following definitions will be
+   used.  Both need this helper function.  */
+
+static bfd_vma m68kcoff_global_data_size
+  PARAMS ((bfd *, asection *, struct internal_reloc *,
+	   struct coff_link_hash_entry *));
+
+static bfd_vma
+m68kcoff_global_data_size (abfd, sec, rel, h)
+     bfd *abfd;
+     asection *sec;
+     struct internal_reloc *rel;
+     struct coff_link_hash_entry *h;
+{
+  struct bfd_link_info *info;
+  struct coff_link_hash_entry *edata;
+
+  info = coff_data (sec->output_section->owner)->link_info;
+
+  edata = coff_link_hash_lookup (coff_hash_table (info), "edata",
+				 FALSE, FALSE, TRUE);
+
+  if (edata && (edata->root.type == bfd_link_hash_defined
+		|| edata->root.type == bfd_link_hash_defweak))
+    {
+      return edata->root.u.def.value;
+    }
+  else
+    {
+      (*info->callbacks->warning) (info,
+				   "END16 relocation failed without `edata'",
+				   h? h->root.root.string : NULL, abfd, sec,
+				   rel->r_vaddr - sec->vma);
+      return 0;
+    }
+}
+
+#endif
+
 #ifndef COFF_COMMON_ADDEND
 #ifndef coff_rtype_to_howto
 
@@ -220,10 +268,10 @@ static reloc_howto_type *m68kcoff_rtype_to_howto
 
 static reloc_howto_type *
 m68kcoff_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
-     bfd *abfd ATTRIBUTE_UNUSED;
+     bfd *abfd;
      asection *sec;
      struct internal_reloc *rel;
-     struct coff_link_hash_entry *h ATTRIBUTE_UNUSED;
+     struct coff_link_hash_entry *h;
      struct internal_syment *sym ATTRIBUTE_UNUSED;
      bfd_vma *addendp;
 {
@@ -236,6 +284,9 @@ m68kcoff_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
 
   if (howto->pc_relative)
     *addendp += sec->vma;
+
+  if (rel->r_type == R_RELENDWORD)
+    *addendp -= m68kcoff_global_data_size (abfd, sec, rel, h);
 
   return howto;
 }
@@ -380,7 +431,7 @@ m68kcoff_common_addend_special_fn (abfd, reloc_entry, symbol, data,
 
 static reloc_howto_type *
 m68kcoff_common_addend_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
-     bfd *abfd ATTRIBUTE_UNUSED;
+     bfd *abfd;
      asection *sec;
      struct internal_reloc *rel;
      struct coff_link_hash_entry *h;
@@ -396,6 +447,9 @@ m68kcoff_common_addend_rtype_to_howto (abfd, sec, rel, h, sym, addendp)
 
   if (howto->pc_relative)
     *addendp += sec->vma;
+
+  if (rel->r_type == R_RELENDWORD)
+    *addendp -= m68kcoff_global_data_size (abfd, sec, rel, h);
 
   if (sym != NULL && sym->n_scnum == 0 && sym->n_value != 0)
     {
@@ -506,20 +560,193 @@ bfd_m68k_coff_create_embedded_relocs (abfd, info, datasec, relsec, errmsg)
 	    targetsec = NULL;
 	}
 
+      bfd_put_16 (abfd, 1, p);
+      bfd_put_16 (abfd, datasec->output_section->index, p + 2);
       bfd_put_32 (abfd,
-		  (irel->r_vaddr - datasec->vma + datasec->output_offset), p);
-      memset (p + 4, 0, 8);
+		  (irel->r_vaddr - datasec->vma + datasec->output_offset),
+		  p + 4);
       if (targetsec != NULL)
-	strncpy (p + 4, targetsec->output_section->name, 8);
+	bfd_put_16 (abfd, targetsec->output_section->index, p + 8);
+      else
+	{
+	  /* Probably can't happen, but let's try to be compatible with the
+	     previous version.  */
+	  p -= 12;
+	}
+      bfd_put_16 (abfd, 0, p + 10);
     }
 
   return TRUE;
 }
 #endif /* neither ONLY_DECLARE_RELOCS not STATIC_RELOCS  */
 
+/* Print the contents of ABFD's `.reloc' section to the file PTR.  */
+static bfd_boolean
+coff_m68k_bfd_print_private_bfd_data (abfd, ptr)
+     bfd *abfd;
+     PTR ptr;
+{
+  FILE *f = (FILE *) ptr;
+  asection *relocs_sec, *held_relsec;
+  bfd_byte *relocs, *rel, *relsec_contents;
+  bfd_size_type relocs_size, relsec_size = 0;
+
+  relocs_sec = bfd_get_section_by_name (abfd, ".reloc");
+  if (relocs_sec == NULL)
+    return TRUE;
+
+  fprintf (f, "\nEMBEDDED RELOCATION RECORDS:");
+
+  relocs_size = bfd_section_size (abfd, relocs_sec);
+  if (relocs_size == 0)
+    {
+      fprintf (f, " (none)\n\n");
+      return TRUE;
+    }
+  else
+    fprintf (f, "\n");
+  
+  relocs = (bfd_byte *) bfd_malloc ((size_t) relocs_size);
+  bfd_get_section_contents (abfd, relocs_sec, (PTR) relocs, 0, relocs_size);
+
+  /* Get column headers lined up reasonably.  */
+  {
+    static int width;
+    if (width == 0)
+      {
+	char buf[30];
+	sprintf_vma (buf, (bfd_vma) -1);
+	width = strlen (buf) - 7;
+      }
+    fprintf (f, "SECTION+OFFSET    %*s TYPE %*s VALUE \n", width, "", 12, "");
+  }
+
+  held_relsec = NULL;
+  relsec_contents = NULL;
+
+  for (rel = relocs; rel < relocs + relocs_size; rel += 12)
+    {
+      bfd_vma type, reloffset, value;
+      int relsecndx, symsecndx;
+      reloc_howto_type *howto;
+      asection *sec, *relsec, *symsec;
+      CONST char *relsecname, *symsecname;
+      char relbuffer[32], symbuffer[32];
+
+      type      = bfd_get_16 (abfd, rel);
+      relsecndx = bfd_get_16 (abfd, rel+2);
+      reloffset = bfd_get_32 (abfd, rel+4);
+      symsecndx = bfd_get_16 (abfd, rel+8);
+
+      /* Decode the embedded relocation type.  See also the corresponding
+         encoding table in _bfd_m68kcoff_create_embedded_relocs().  */
+      switch (type)
+	{
+	case 1:
+	  type = BFD_RELOC_32;
+	  break;
+
+	default:
+	  type = BFD_RELOC_UNUSED;  /* Something definitely unknown.  */
+	  break;
+	}
+
+      relsec = symsec = NULL;
+      for (sec = abfd->sections; sec; sec = sec->next)
+	{
+	  if (sec->index == relsecndx)
+	    relsec = sec;
+	  if (sec->index == symsecndx)
+	    symsec = sec;
+	}
+
+      sprintf (relbuffer, "[%d?]", (int) relsecndx);
+      relsecname = (relsec)? bfd_section_name (abfd, relsec) : relbuffer;
+
+      sprintf (symbuffer, "[%d?]", (int) symsecndx);
+      symsecname = (symsec)? bfd_section_name (abfd, symsec) : symbuffer;
+
+      fprintf (f, "%s+0x", relsecname);
+      fprintf_vma (f, reloffset);
+      fprintf (f, "%*s", (int) (9 - strlen (relsecname)), "");
+
+      howto = (relsec)? bfd_reloc_type_lookup (abfd, type) : NULL;
+      if (howto == NULL)
+	{
+	  char buf[32];
+	  sprintf (buf, "[0x%x]", (unsigned int) type);
+	  fprintf (f, "%-18.18s%s+?? (%s unknown)\n", buf, symsecname,
+		   (relsec)? "type" : "relocation section");
+	  continue;
+	}
+
+      fprintf (f, "%-18.18s", howto->name);
+
+      if (relsec == NULL)
+	{
+	  fprintf (f, "%s+?? (relocation section unknown)\n", symsecname);
+	  continue;
+	}
+
+      if (held_relsec != relsec)
+	{
+	  free (relsec_contents);
+	  held_relsec = relsec;
+	  relsec_size = bfd_section_size (abfd, relsec);
+	  relsec_contents = (bfd_byte *) bfd_malloc ((size_t) relsec_size);
+	  bfd_get_section_contents (abfd, relsec, (PTR) relsec_contents,
+				    0, relsec_size);
+	}
+
+      if (reloffset > relsec_size - bfd_get_reloc_size (howto))
+	{
+	  fprintf (f, "%s+?? (offset out of range)\n", symsecname);
+	  continue;
+	}
+
+      switch (bfd_get_reloc_size (howto))
+	{
+	default:
+	case 0:
+	  abort ();
+	case 1:
+	  value = bfd_get_8 (abfd, &relsec_contents[reloffset]);
+	  break;
+	case 2:
+	  value = bfd_get_16 (abfd, &relsec_contents[reloffset]);
+	  break;
+	case 4:
+	  value = bfd_get_32 (abfd, &relsec_contents[reloffset]);
+	  break;
+	case 8:
+#ifdef BFD64
+	  value = bfd_get_64 (abfd, &relsec_contents[reloffset]);
+#else
+	  abort ();
+#endif
+	  break;
+	}
+
+      value &= howto->dst_mask;
+      value >>= howto->bitpos;
+      value <<= howto->rightshift;
+
+      fprintf (f, "%s+0x", symsecname);
+      fprintf_vma (f, value - bfd_section_vma (abfd, symsec));
+      fprintf (f, "\n");
+    }
+
+  free (relocs);
+  free (relsec_contents);
+
+  return TRUE;
+}
+
 #define coff_bfd_is_local_label_name m68k_coff_is_local_label_name
 
 #define coff_relocate_section _bfd_coff_generic_relocate_section
+
+#define coff_bfd_print_private_bfd_data coff_m68k_bfd_print_private_bfd_data
 
 #include "coffcode.h"
 

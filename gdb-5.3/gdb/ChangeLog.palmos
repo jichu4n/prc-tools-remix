@@ -1,0 +1,26 @@
+Fri Aug 21 11:08:23 1998  Peter Trommler      <trp@zurich.ibm.com>
+	* ChangeLog.palmos: New file.
+	* upgraded to  gdb-4.17: fixed configure.tgt to use m68kpalmos
+	* remote-palmos.c: changed thread.h to gdbthread.h
+
+Sun Apr 27 20:42:12 1997  Kenneth Albanowski  <kjahds@kjahds.com>
+	* config/m68k/tm-m68kpalmos.h: ints are 16 bits, registers 32
+	* remote-palmos.c: write_memory now works
+
+Fri Mar 28 16:32:13 1997  Kenneth Albanowski  <kjahds@kjahds.com>
+
+	* remote-palmos.c config/m68k/m68kpalmos.mt: Removed
+	dependency on pilot-link library.
+	* ser-unix.c: added support for baud rates above 38400
+
+Sun Mar 23 17:14:35 1997  Kenneth Albanowski  <kjahds@kjahds.com>
+
+	* *palmos*: Renamed to *m68kpalmos*
+	* remote-palmos.c: New file.
+
+Wed Mar  5 21:41:51 1997  Kresten Krab Thorup  <krab@california.daimi.aau.dk>
+
+	* config/m68k/palmos.mt, config/m68k/tm-palmos.h: New files.
+
+	* m68k-tdep.c (m68k_saved_pc_after_call): Added support for
+	MAC_SYSCALL_TRAP style systraps.

@@ -1893,7 +1893,7 @@ yylex ()
 	(void) local_mbtowc (NULL_PTR, NULL_PTR, 0);
 #endif
 
-	max_chars = TYPE_PRECISION (integer_type_node) / width;
+	max_chars = TYPE_PRECISION (long_integer_type_node) / width;
 	if (wide_flag)
 	  width = WCHAR_TYPE_SIZE;
 
@@ -2035,7 +2035,7 @@ yylex ()
 		= build_int_2 (result | ~(~(unsigned HOST_WIDE_INT) 0
 					  >> (HOST_BITS_PER_WIDE_INT - num_bits)),
 			       -1);
-	    TREE_TYPE (yylval.ttype) = integer_type_node;
+	    TREE_TYPE (yylval.ttype) = long_integer_type_node;
 	  }
 	else
 	  {

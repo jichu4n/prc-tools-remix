@@ -39,6 +39,12 @@ typedef unsigned char U_CHAR;
 #include <locale.h>
 #endif /* MULTIBYTE_CHARS */
 
+/* Provided for systems that don't differentiate between text and
+      binary file types; those that need this will define it. */
+#ifndef O_TEXT
+#define O_TEXT 0
+#endif
+
 #ifndef GET_ENV_PATH_LIST
 #define GET_ENV_PATH_LIST(VAR,NAME)	do { (VAR) = getenv (NAME); } while (0)
 #endif
@@ -83,8 +89,9 @@ static int hack_vms_include_specification ();
 #define INCLUDE_LEN_FUDGE 12	/* leave room for VMS syntax conversion */
 #endif /* VMS */
 
-/* Windows does not natively support inodes, and neither does MSDOS.  */
-#if (defined (_WIN32) && ! defined (__CYGWIN__) && ! defined (_UWIN)) \
+/* Windows does not natively support inodes, and neither does MSDOS. 
+   Cygwin's emulation can generate non-unique inodes, so don't use it. */
+#if (defined (_WIN32) && ! defined (_UWIN)) \
   || defined (__MSDOS__)
 #define INO_T_EQ(a, b) 0
 #endif
@@ -2059,7 +2066,7 @@ main (argc, argv)
   if (in_fname == NULL || *in_fname == 0) {
     in_fname = "";
     f = 0;
-  } else if ((f = open (in_fname, O_RDONLY, 0666)) < 0)
+  } else if ((f = open (in_fname, O_RDONLY|O_TEXT, 0666)) < 0)
     goto perror;
 
   if (fstat (f, &st) != 0)
@@ -4700,7 +4707,7 @@ get_filename:
 	do {
 	  sprintf (pcftry, "%s%d", fname, pcfnum++);
 
-	  pcf = open (pcftry, O_RDONLY, 0666);
+	  pcf = open (pcftry, O_RDONLY|O_TEXT, 0666);
 	  if (pcf != -1)
 	    {
 	      struct stat s;
@@ -5072,7 +5079,7 @@ open_include_file (filename, searchptr, importing, pinc)
       || ! inc->control_macro
       || (inc->control_macro[0] && ! lookup (inc->control_macro, -1, -1))) {
 
-    fd = open (fname, O_RDONLY, 0);
+    fd = open (fname, O_RDONLY|O_TEXT, 0);
 
     if (fd < 0)
       {

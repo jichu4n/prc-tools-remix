@@ -536,6 +536,12 @@ print_frame (struct frame_info *fi,
 	  funname = SYMBOL_NAME (msymbol);
 	  funlang = SYMBOL_LANGUAGE (msymbol);
 	}
+      else
+	{
+	  extern char *last_chance_lookup_by_pc (CORE_ADDR);
+	  funname = last_chance_lookup_by_pc (fi->pc);
+	  funlang = language_unknown;
+	}
     }
 
   annotate_frame_begin (level == -1 ? 0 : level, fi->pc);

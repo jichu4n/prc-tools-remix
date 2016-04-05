@@ -240,12 +240,13 @@ struct m68k_indexreg
   int scale;
 };
 
-#ifdef OBJ_ELF
+#if defined OBJ_ELF || defined COFF_RELEND_RELOC
 /* The type of a PIC expression.  */
 
 enum pic_relocation
 {
   pic_none,			/* not pic */
+  pic_endrel,			/* @END (for COFF_RELEND_RELOC) */
   pic_plt_pcrel,		/* @PLTPC */
   pic_got_pcrel,		/* @GOTPC */
   pic_plt_off,			/* @PLT */
@@ -260,7 +261,7 @@ struct m68k_exp
   /* The size to use.  */
   enum m68k_size size;
 
-#ifdef OBJ_ELF
+#if defined OBJ_ELF || defined COFF_RELEND_RELOC
   /* The type of pic relocation if any.  */
   enum pic_relocation pic_reloc;
 #endif

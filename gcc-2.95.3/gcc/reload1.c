@@ -40,6 +40,8 @@ Boston, MA 02111-1307, USA.  */
 #include "real.h"
 #include "toplev.h"
 
+#include "tree.h"
+
 #if !defined PREFERRED_STACK_BOUNDARY && defined STACK_BOUNDARY
 #define PREFERRED_STACK_BOUNDARY STACK_BOUNDARY
 #endif
