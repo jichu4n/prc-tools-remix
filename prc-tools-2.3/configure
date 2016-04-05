@@ -1079,7 +1079,7 @@ if test -z "`${CC-cc} -g -c conftest.c 2>&1`"; then
 else
   ac_cv_prog_cc_g=no
 fi
-rm -f conftest*
+rm -rf conftest*
 
 fi
 
@@ -1222,7 +1222,7 @@ if test -z "`${CXX-g++} -g -c conftest.cc 2>&1`"; then
 else
   ac_cv_prog_cxx_g=no
 fi
-rm -f conftest*
+rm -rf conftest*
 
 fi
 
@@ -1269,7 +1269,7 @@ else
   rm -rf conftest*
   continue
 fi
-rm -f conftest*
+rm -rf conftest*
   cat > conftest.$ac_ext <<EOF
 #line 1275 "configure"
 #include "confdefs.h"
@@ -1285,7 +1285,7 @@ else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
 fi
-rm -f conftest*
+rm -rf conftest*
 done
 if test -n "$ac_declaration"; then
   echo '#ifdef __cplusplus' >>confdefs.h
@@ -1474,7 +1474,7 @@ else
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=no"
 fi
-rm -f conftest*
+rm -rf conftest*
 LIBS="$ac_save_LIBS"
 
 fi
@@ -1548,8 +1548,8 @@ else
   rm -rf conftest*
   ac_cv_cygwin=no
 fi
-rm -f conftest*
-rm -f conftest*
+rm -rf conftest*
+rm -rf conftest*
 fi
 
 echo "$ac_t""$ac_cv_cygwin" 1>&6
@@ -1577,8 +1577,8 @@ else
   rm -rf conftest*
   ac_cv_mingw32=no
 fi
-rm -f conftest*
-rm -f conftest*
+rm -rf conftest*
+rm -rf conftest*
 fi
 
 echo "$ac_t""$ac_cv_mingw32" 1>&6
@@ -1594,20 +1594,20 @@ else
   if test "$CYGWIN" = yes || test "$MINGW32" = yes; then
   ac_cv_exeext=.exe
 else
-  rm -f conftest*
+  rm -rf conftest*
   echo 'int main () { return 0; }' > conftest.$ac_ext
   ac_cv_exeext=
   if { (eval echo configure:1601: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
     for file in conftest.*; do
       case $file in
-      *.c | *.o | *.obj) ;;
+      *.c | *.o | *.obj | *.dSYM) ;;
       *) ac_cv_exeext=`echo $file | sed -e s/conftest//` ;;
       esac
     done
   else
     { echo "configure: error: installation or configuration problem: compiler cannot create executables." 1>&2; exit 1; }
   fi
-  rm -f conftest*
+  rm -rf conftest*
   test x"${ac_cv_exeext}" = x && ac_cv_exeext=no
 fi
 fi
@@ -1666,7 +1666,7 @@ else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
 fi
-rm -f conftest*
+rm -rf conftest*
 test "$ac_cv_search_gettext" = "no" && for i in intl; do
 LIBS="-l$i  $ac_func_search_save_LIBS"
 cat > conftest.$ac_ext <<EOF
@@ -1689,7 +1689,7 @@ else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
 fi
-rm -f conftest*
+rm -rf conftest*
 done
 LIBS="$ac_func_search_save_LIBS"
 fi
