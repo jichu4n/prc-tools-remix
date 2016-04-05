@@ -1175,6 +1175,12 @@ changequote([,])dnl
 		tmake_file=t-freebsd
 		;;
 changequote(,)dnl
+	i[34567]86-*-darwin*)
+changequote([,])dnl
+		tm_file=i386/freebsd.h
+		tmake_file=t-freebsd
+		;;
+changequote(,)dnl
 	i[34567]86-*-netbsd*)
 changequote([,])dnl
 		tm_file=i386/netbsd.h
