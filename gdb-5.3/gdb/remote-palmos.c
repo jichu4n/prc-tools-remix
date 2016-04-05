@@ -128,13 +128,6 @@ static enum target_signal remote_remove_wbreakpoint PARAMS ((void));
 
 extern struct target_ops palmos_ops, pilot_ops;	/* Forward decl */
 
-/* This was 5 seconds, which is a long time to sit and wait.
-   Unless this is going though some terminal server or multiplexer or
-   other form of hairy serial connection, I would think 2 seconds would
-   be plenty.  */
-
-static int remote_timeout = 2;
-
 static CORE_ADDR text_addr=0, data_addr=0, bss_addr=0;
 static CORE_ADDR save_ssp, save_usp;
 static enum target_signal wbreakpoint_signo;
@@ -1052,7 +1045,7 @@ getpkt (buf, forever)
     	        unsigned long mycrc = docrc(buffer,len+10);
     	        crc = (crc<<8)|c;
     	        if ((crc & 0xffff) == mycrc) {
-    	           *buf = buffer;
+    	           *buf = (char*)buffer;
     	           return len+10;
     	        } else 
     	          state = 0;
