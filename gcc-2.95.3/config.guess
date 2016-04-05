@@ -519,6 +519,9 @@ EOF
     i?86:BSD/386:*:* | *:BSD/OS:*:*)
 	echo ${UNAME_MACHINE}-pc-bsdi${UNAME_RELEASE}
 	exit 0 ;;
+    *:Darwin:*:*)
+	echo ${UNAME_MACHINE}-apple-darwin${UNAME_RELEASE}
+	exit 0 ;;
     *:FreeBSD:*:*)
         if test -x /usr/bin/objformat -a "elf" = "`/usr/bin/objformat`"; then
           echo ${UNAME_MACHINE}-unknown-freebsdelf
