@@ -58,7 +58,7 @@ BUILT_GCC_DIR = @gccdir@/gcc
 BUILT_GCC = $(BUILT_GCC_DIR)/xgcc$(exeext)
 INSTALLED_TARGET_GCC = @target_alias@-gcc$(exeext)
 
-target_gcc_flags = @target_gcc_flags@
+target_gcc_flags = @target_gcc_flags@ MAKEINFO=
 targetlib_flags = @targetlib_flags@
 
 # Target libraries will be built against the bootstrap headers.  You can
