@@ -778,7 +778,7 @@ if test -n "$enable_targets"; then
   done
 
   # Ensure that the different targets use different caches
-  configure_args="$configure_args --cache-file=config.cache"
+  configure_args="$configure_args --cache-file=$cache_file"
 
   extra_dependencies=Makefile.extradeps
   > $extra_dependencies
