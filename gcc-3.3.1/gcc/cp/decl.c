@@ -677,6 +677,16 @@ struct cp_binding_level GTY(())
    ? cp_function_chain->bindings		\
    : scope_chain->bindings)
 
+/* We can't use ?: in an lvalue */
+#define SET_CURRENT_BLEVEL(new_level)             \
+  do {                                            \
+    if (cfun && cp_function_chain->bindings) {    \
+      cp_function_chain->bindings = new_level;    \
+    } else {                                      \
+      scope_chain->bindings = new_level;          \
+    }                                             \
+  } while(0)
+
 /* The binding level of the current class, if any.  */
 
 #define class_binding_level scope_chain->class_bindings
@@ -724,7 +734,7 @@ push_binding_level (newlevel, tag_transparent, keep)
      are active.  */
   memset ((char*) newlevel, 0, sizeof (struct cp_binding_level));
   newlevel->level_chain = current_binding_level;
-  current_binding_level = newlevel;
+  SET_CURRENT_BLEVEL(newlevel);
   newlevel->tag_transparent = tag_transparent;
   newlevel->more_cleanups_ok = 1;
 
@@ -780,7 +790,7 @@ pop_binding_level ()
     }
   {
     register struct cp_binding_level *level = current_binding_level;
-    current_binding_level = current_binding_level->level_chain;
+    SET_CURRENT_BLEVEL(current_binding_level->level_chain);
     level->level_chain = free_binding_level;
     if (level->parm_flag != 2)
       binding_table_free (level->type_decls);
@@ -797,7 +807,7 @@ static void
 suspend_binding_level ()
 {
   if (class_binding_level)
-    current_binding_level = class_binding_level;
+    SET_CURRENT_BLEVEL(class_binding_level);
 
   if (NAMESPACE_LEVEL (global_namespace))
     my_friendly_assert (!global_scope_p (current_binding_level), 20030527);
@@ -816,7 +826,7 @@ suspend_binding_level ()
         }
       is_class_level = 0;
     }
-  current_binding_level = current_binding_level->level_chain;
+  SET_CURRENT_BLEVEL(current_binding_level->level_chain);
   find_class_binding_level ();
 }
 
@@ -829,7 +839,7 @@ resume_binding_level (b)
   my_friendly_assert(!class_binding_level, 386);
   /* Also, resuming a non-directly nested namespace is a no-no.  */
   my_friendly_assert(b->level_chain == current_binding_level, 386);
-  current_binding_level = b;
+  SET_CURRENT_BLEVEL(b);
   if (ENABLE_SCOPE_CHECKING)
     {
       b->binding_depth = binding_depth;
@@ -925,7 +935,9 @@ kept_level_p ()
 static void
 declare_namespace_level ()
 {
-  current_binding_level->namespace_p = 1;
+  /* current_binding_level->namespace_p = 1; */
+  struct cp_binding_level *cbl= current_binding_level;
+  cbl->namespace_p=1;
 }
 
 /* Returns nonzero if this scope was created to store template
@@ -1084,16 +1096,21 @@ void
 begin_scope (sk)
      scope_kind sk;
 {
+  struct cp_binding_level *cbl;
   pushlevel (0);
 
   switch (sk)
     {
     case sk_template_spec:
-      current_binding_level->template_spec_p = 1;
+      /* current_binding_level->template_spec_p = 1; */
+      cbl=current_binding_level;
+      cbl->template_spec_p = 1;
       /* Fall through.  */
 
     case sk_template_parms:
-      current_binding_level->template_parms_p = 1;
+      /* current_binding_level->template_parms_p = 1; */
+      cbl=current_binding_level;
+      cbl->template_parms_p = 1;
       break;
 
     default:
@@ -1112,7 +1129,9 @@ finish_scope ()
 void
 note_level_for_for ()
 {
-  current_binding_level->is_for_scope = 1;
+  /* current_binding_level->is_for_scope = 1; */
+  struct cp_binding_level *cbl = current_binding_level;
+  cbl->is_for_scope = 1;
 }
 
 /* Record that the current binding level represents a try block.  */
@@ -1120,7 +1139,9 @@ note_level_for_for ()
 void
 note_level_for_try ()
 {
-  current_binding_level->is_try_scope = 1;
+  /* current_binding_level->is_try_scope = 1; */
+  struct cp_binding_level *cbl = current_binding_level;
+  cbl->is_try_scope = 1;
 }
 
 /* Record that the current binding level represents a catch block.  */
@@ -1128,7 +1149,9 @@ note_level_for_try ()
 void
 note_level_for_catch ()
 {
-  current_binding_level->is_catch_scope = 1;
+  /* current_binding_level->is_catch_scope = 1; */
+  struct cp_binding_level *cbl = current_binding_level;
+  cbl->is_catch_scope = 1;
 }
 
 /* For a binding between a name and an entity at a block scope,
@@ -1522,6 +1545,7 @@ poplevel (keep, reverse, functionbody)
   tree block = NULL_TREE;
   tree decl;
   int leaving_for_scope;
+  struct cp_binding_level *cbl;
 
   timevar_push (TV_NAME_LOOKUP);
 
@@ -1587,8 +1611,12 @@ poplevel (keep, reverse, functionbody)
      But parameter decls were previously put in forward order.  */
 
   if (reverse)
-    current_binding_level->names
+    {
+      cbl = current_binding_level;
+      /* current_binding_level->names */
+      cbl->names 
       = decls = nreverse (current_binding_level->names);
+    }
   else
     decls = current_binding_level->names;
 
@@ -1703,7 +1731,9 @@ poplevel (keep, reverse, functionbody)
 	      /* Add it to the list of dead variables in the next
 		 outermost binding to that we can remove these when we
 		 leave that binding.  */
-	      current_binding_level->level_chain->dead_vars_from_for
+	      /* current_binding_level->level_chain->dead_vars_from_for */
+              cbl = current_binding_level;
+              cbl->level_chain->dead_vars_from_for
 		= tree_cons (NULL_TREE, link,
 			     current_binding_level->level_chain->
 			     dead_vars_from_for);
@@ -1782,18 +1812,24 @@ poplevel (keep, reverse, functionbody)
   if (functionbody)
     DECL_INITIAL (current_function_decl) = block;
   else if (block)
-    current_binding_level->blocks
+    {
+      cbl = current_binding_level;
+    /* current_binding_level->blocks */
+      cbl->blocks
       = chainon (current_binding_level->blocks, block);
+    }
 
   /* If we did not make a block for the level just exited,
      any blocks made for inner levels
      (since they cannot be recorded as subblocks in that level)
      must be carried forward so they will later become subblocks
      of something else.  */
-  else if (subblocks)
-    current_binding_level->blocks
+  else if (subblocks) {
+    cbl = current_binding_level;
+    /* current_binding_level->blocks */
+    cbl->blocks
       = chainon (current_binding_level->blocks, subblocks);
-
+    }
   /* Each and every BLOCK node created here in `poplevel' is important
      (e.g. for proper debugging information) so if we created one
      earlier, mark it as "used".  */
@@ -4529,9 +4565,9 @@ pushdecl_with_scope (x, level)
   else
     {
       b = current_binding_level;
-      current_binding_level = level;
+      SET_CURRENT_BLEVEL(level);
       x = pushdecl (x);
-      current_binding_level = b;
+      SET_CURRENT_BLEVEL(b);
     }
   current_function_decl = function_decl;
   POP_TIMEVAR_AND_RETURN (TV_NAME_LOOKUP, x);
@@ -6933,7 +6969,7 @@ cxx_init_decl_processing ()
   current_lang_name = lang_name_c;
 
   current_function_decl = NULL_TREE;
-  current_binding_level = NULL_BINDING_LEVEL;
+  SET_CURRENT_BLEVEL(NULL_BINDING_LEVEL);
   free_binding_level = NULL_BINDING_LEVEL;
 
   build_common_tree_nodes (flag_signed_char);
@@ -10766,10 +10802,10 @@ grokdeclarator (declarator, declspecs, decl_context, initialized, attrlist)
   if (decl_context == NORMAL && !toplevel_bindings_p ())
     {
       struct cp_binding_level *b = current_binding_level;
-      current_binding_level = b->level_chain;
+      SET_CURRENT_BLEVEL(b->level_chain);
       if (current_binding_level != 0 && toplevel_bindings_p ())
 	decl_context = PARM;
-      current_binding_level = b;
+      SET_CURRENT_BLEVEL(b);
     }
 
   if (name == NULL)
@@ -14406,7 +14442,7 @@ start_function (declspecs, declarator, attrs, flags)
      FIXME factor out the non-RTL stuff.  */
   bl = current_binding_level;
   init_function_start (decl1, input_filename, lineno);
-  current_binding_level = bl;
+  SET_CURRENT_BLEVEL(bl);
 
   /* Even though we're inside a function body, we still don't want to
      call expand_expr to calculate the size of a variable-sized array.
