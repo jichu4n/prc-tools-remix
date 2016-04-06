@@ -1,0 +1,87 @@
+prc-tools remix
+~~~~~~~~~~~~~~~
+
+Overview
+^^^^^^^^
+
+http://prc-tools.sourceforge.net/[prc-tools] is a collection of tools supporting
+C and C++ programming for Palm OS. It supplies a full GCC cross-compilation
+toolchain for https://en.wikipedia.org/wiki/Motorola_68000_series[m68k] and
+https://en.wikipedia.org/wiki/ARM_architecture[ARM], as well as Palm OS-specific
+utilities.
+
+Over the past decade, the Palm OS platform has surely faded into oblivion. The
+last release of prc-tools, version 2.3 released in 2003, no longer even compiles
+under modern versions of GCC and Clang. As a long-time Palm OS user and
+occasional app developer, I decided to do something about it.
+
+This repository is an archive of prc-tools 2.3 (and its GCC cross-compilation
+toolchain), with many patches enabling it to build and run on modern Linux and
+Mac OS X systems.
+
+Building
+^^^^^^^^
+
+Linux
++++++
+
+To build from source on Linux, e.g., on Ubuntu:
+
+[source,bash]
+----
+sudo apt-get install \
+    flex \
+    bison \
+    gperf
+
+git clone git@github.com:jichu4n/prc-tools-remix.git
+cd prc-tools-remix
+
+mkdir build && cd build
+../prc-tools-2.3/configure \
+    --enable-targets=m68k-palmos,arm-palmos \
+    --enable-languages=c,c++ \
+    --disable-nls \
+    --with-palmdev-prefix=/opt/palmdev \
+    --host=i686-linux-gnu
+make
+sudo make install
+----
+
+Mac OS X
+++++++++
+
+On Mac OS X, you can install using http://brew.sh[Homebrew] with:
+
+[source,bash]
+----
+brew tap jichu4n/palm-os
+brew install prc-tools
+----
+
+See the relevant https://github.com/jichu4n/homebrew-palm-os[README] for details.
+
+To build from source on Mac OS X, assuming you have a sane build environment
+from http://brew.sh[Homebrew] / Xcode:
+
+[source,bash]
+----
+git clone git@github.com:jichu4n/prc-tools-remix.git
+cd prc-tools-remix
+
+mkdir build && cd build
+../prc-tools-2.3/configure \
+    --enable-targets=m68k-palmos,arm-palmos \
+    --enable-languages=c,c++ \
+    --disable-nls \
+    --with-palmdev-prefix=/usr/local/opt/palmdev \
+    --host=i686-apple-darwin
+make
+make install
+----
+
+Usage
+^^^^^
+
+Please refer to the http://prc-tools.sourceforge.net/[prc-tools homepage] for
+documentation on usage.
