@@ -33,7 +33,11 @@
 #include <stdio.h>
 #include <string.h>
 
+// Prototype of basename in libiberty conflicts with declaration in standard
+// string.h.
+#define basename dummy_basename_prototype
 #include "libiberty.h"
+#undef basename
 #include "bfd.h"
 
 #include "pfd.hpp"
