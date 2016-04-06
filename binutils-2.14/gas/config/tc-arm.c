@@ -2571,7 +2571,7 @@ validate_immediate (val)
   unsigned int a;
   unsigned int i;
 
-#define rotate_left(v, n) (v << n | v >> (32 - n))
+#define rotate_left(v, n) (v << n | (n == 0 ? 0 : v >> (32 - n)))
 
   for (i = 0; i < 32; i += 2)
     if ((a = rotate_left (val, i)) <= 0xff)
