@@ -30,6 +30,7 @@ To build from source on Linux, e.g., on Ubuntu:
 [source,bash]
 ----
 sudo apt-get install \
+    texinfo \
     flex \
     bison \
     gperf
