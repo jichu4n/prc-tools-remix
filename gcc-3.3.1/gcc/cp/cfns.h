@@ -6,6 +6,9 @@ __inline
 static unsigned int hash PARAMS ((const char *, unsigned int));
 #ifdef __GNUC__
 __inline
+#ifdef __GNUC_STDC_INLINE__
+__attribute__ ((__gnu_inline__))
+#endif
 #endif
 const char * libc_name_p PARAMS ((const char *, unsigned int));
 /* maximum key range = 480, duplicates = 1 */
@@ -75,6 +78,9 @@ hash (str, len)
 
 #ifdef __GNUC__
 __inline
+#ifdef __GNUC_STDC_INLINE__
+__attribute__ ((__gnu_inline__))
+#endif
 #endif
 const char *
 libc_name_p (str, len)
