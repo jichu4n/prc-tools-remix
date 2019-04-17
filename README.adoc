@@ -4,20 +4,20 @@ prc-tools remix
 Overview
 ^^^^^^^^
 
+This repository is an archive of http://prc-tools.sourceforge.net/[prc-tools]
+2.3 (and its GCC cross-compilation toolchain), with patches enabling it to build
+and run on modern Linux and macOS systems.
+
 http://prc-tools.sourceforge.net/[prc-tools] is a collection of tools supporting
 C and C++ programming for Palm OS. It supplies a full GCC cross-compilation
 toolchain for https://en.wikipedia.org/wiki/Motorola_68000_series[m68k] and
 https://en.wikipedia.org/wiki/ARM_architecture[ARM], as well as Palm OS-specific
 utilities.
 
-Over the past decade, the Palm OS platform has surely faded into oblivion. The
-last release of prc-tools, version 2.3 released in 2003, no longer even compiles
-under modern versions of GCC and Clang. As a long-time Palm OS user and
-occasional app developer, I decided to do something about it.
-
-This repository is an archive of prc-tools 2.3 (and its GCC cross-compilation
-toolchain), with many patches enabling it to build and run on modern Linux and
-Mac OS X systems.
+As the Palm OS platform faded into oblivion over the past decade, prc-tools
+appears to be have been unmaintained since 2003 and no longer compiles under
+recent versions of GCC and Clang. This repo includes a number of patches to
+enable it to build and run on modern Linux and macOS systems.
 
 Building
 ^^^^^^^^
@@ -45,14 +45,15 @@ mkdir build && cd build
     --disable-nls \
     --with-palmdev-prefix=/opt/palmdev \
     --host=i686-linux-gnu
+# Use "env SHELL=/bin/sh make" if using a non-POSIX shell like fish
 make
 sudo make install
 ----
 
-Mac OS X
-++++++++
+macOS
++++++
 
-On Mac OS X, you can install using http://brew.sh[Homebrew] with:
+On macOS, you can install using http://brew.sh[Homebrew] with:
 
 [source,bash]
 ----
@@ -60,9 +61,10 @@ brew tap jichu4n/palm-os
 brew install prc-tools
 ----
 
-See the relevant https://github.com/jichu4n/homebrew-palm-os[README] for details.
+See the Homebrew tap
+https://github.com/jichu4n/homebrew-palm-os[jichu4n/palm-os] for details.
 
-To build from source on Mac OS X, assuming you have a sane build environment
+To build from source on macOS, assuming you have a sane build environment
 from http://brew.sh[Homebrew] / Xcode:
 
 [source,bash]
@@ -77,6 +79,7 @@ mkdir build && cd build
     --disable-nls \
     --with-palmdev-prefix=/usr/local/opt/palmdev \
     --host=i686-apple-darwin
+# Use "env SHELL=/bin/sh make" if using a non-POSIX shell like fish
 make
 make install
 ----
