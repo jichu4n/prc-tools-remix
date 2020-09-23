@@ -1,0 +1,10 @@
+language: cpp
+services:
+  - docker
+jobs:
+  include:
+    - env: docker_image=ubuntu:trusty
+    - env: docker_image=i386/ubuntu:trusty
+script:
+  - ci/build-with-docker.sh "${docker_image}"
+
