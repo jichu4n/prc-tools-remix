@@ -1,5 +1,7 @@
-prc-tools remix
+prc-tools-remix
 ~~~~~~~~~~~~~~~
+
+image:https://travis-ci.org/jichu4n/prc-tools-remix.svg?branch=master["Build Status", link="https://travis-ci.org/jichu4n/prc-tools-remix"]
 
 Overview
 ^^^^^^^^
@@ -14,10 +16,10 @@ toolchain for https://en.wikipedia.org/wiki/Motorola_68000_series[m68k] and
 https://en.wikipedia.org/wiki/ARM_architecture[ARM], as well as Palm OS-specific
 utilities.
 
-As the Palm OS platform faded into oblivion over the past decade, prc-tools
-appears to be have been unmaintained since 2003 and no longer compiles under
-recent versions of GCC and Clang. This repo includes a number of patches to
-enable it to build and run on modern Linux and macOS systems.
+As the Palm OS platform faded into oblivion, prc-tools appears to be have been
+unmaintained since 2003 and no longer compiles under recent versions of GCC and
+Clang. This repo includes a number of patches to enable it to build and run on
+modern Linux and macOS systems.
 
 Building
 ^^^^^^^^
@@ -30,12 +32,12 @@ To build from source on Linux, e.g., on Ubuntu:
 [source,bash]
 ----
 sudo apt-get install \
-    texinfo \
-    flex \
-    bison \
-    gperf
+    build-essential autoconf automake \
+    libncurses-dev \
+    flex bison \
+    texinfo gperf
 
-git clone git@github.com:jichu4n/prc-tools-remix.git
+git clone https://github.com/jichu4n/prc-tools-remix.git
 cd prc-tools-remix
 
 mkdir build && cd build
@@ -43,11 +45,13 @@ mkdir build && cd build
     --enable-targets=m68k-palmos,arm-palmos \
     --enable-languages=c,c++ \
     --disable-nls \
-    --with-palmdev-prefix=/opt/palmdev \
-    --host=i686-linux-gnu
+    --build=i686-linux-gnu \
+    --host=i686-linux-gnu \
+    --prefix=/usr \
+    --with-palmdev-prefix=/opt/palmdev
 # Use "env SHELL=/bin/sh make" if using a non-POSIX shell like fish
 make
-sudo make install
+sudo make MAKEINFO=true install
 ----
 
 macOS
@@ -69,7 +73,7 @@ from http://brew.sh[Homebrew] / Xcode:
 
 [source,bash]
 ----
-git clone git@github.com:jichu4n/prc-tools-remix.git
+git clone https://github.com/jichu4n/prc-tools-remix.git
 cd prc-tools-remix
 
 mkdir build && cd build
@@ -77,11 +81,12 @@ mkdir build && cd build
     --enable-targets=m68k-palmos,arm-palmos \
     --enable-languages=c,c++ \
     --disable-nls \
-    --with-palmdev-prefix=/usr/local/opt/palmdev \
-    --host=i686-apple-darwin
+    --build=i686-apple-darwin \
+    --host=i686-apple-darwin \
+    --with-palmdev-prefix=/usr/local/opt/palmdev
 # Use "env SHELL=/bin/sh make" if using a non-POSIX shell like fish
 make
-make install
+make MAKEINFO=true install
 ----
 
 Usage
