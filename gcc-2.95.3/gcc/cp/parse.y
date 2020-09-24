@@ -55,10 +55,6 @@ extern int end_of_file;
 /* Like YYERROR but do call yyerror.  */
 #define YYERROR1 { yyerror ("syntax error"); YYERROR; }
 
-#ifndef YYLEX
-#define YYLEX yylex
-#endif
-
 #define OP0(NODE) (TREE_OPERAND (NODE, 0))
 #define OP1(NODE) (TREE_OPERAND (NODE, 1))
 
@@ -657,7 +653,7 @@ fndef:
 
 constructor_declarator:
 	  nested_name_specifier SELFNAME '(' 
-                { $<ttype>$ = begin_constructor_declarator ($1, $2); }
+                { $$ = begin_constructor_declarator ($1, $2); }
 	  parmlist ')' cv_qualifiers exception_specification_opt
 		{ $$ = make_call_declarator ($<ttype>4, $5, $7, $8); }
 	| nested_name_specifier SELFNAME LEFT_RIGHT cv_qualifiers exception_specification_opt
@@ -665,7 +661,7 @@ constructor_declarator:
 		  $$ = make_call_declarator ($$, empty_parms (), $4, $5);
 		}
 	| global_scope nested_name_specifier SELFNAME '(' 
-                { $<ttype>$ = begin_constructor_declarator ($2, $3); }
+                { $$ = begin_constructor_declarator ($2, $3); }
 	 parmlist ')' cv_qualifiers exception_specification_opt
 		{ $$ = make_call_declarator ($<ttype>5, $6, $8, $9); }
 	| global_scope nested_name_specifier SELFNAME LEFT_RIGHT cv_qualifiers exception_specification_opt
@@ -673,7 +669,7 @@ constructor_declarator:
 		  $$ = make_call_declarator ($$, empty_parms (), $5, $6);
 		}
 	| nested_name_specifier self_template_type '(' 
-                { $<ttype>$ = begin_constructor_declarator ($1, $2); }
+                { $$ = begin_constructor_declarator ($1, $2); }
 	  parmlist ')' cv_qualifiers exception_specification_opt
 		{ $$ = make_call_declarator ($<ttype>4, $5, $7, $8); }
 	| nested_name_specifier self_template_type LEFT_RIGHT cv_qualifiers exception_specification_opt
@@ -681,7 +677,7 @@ constructor_declarator:
 		  $$ = make_call_declarator ($$, empty_parms (), $4, $5);
 		}
 	| global_scope nested_name_specifier self_template_type '(' 
-                { $<ttype>$ = begin_constructor_declarator ($2, $3); }
+                { $$ = begin_constructor_declarator ($2, $3); }
 	 parmlist ')' cv_qualifiers exception_specification_opt
 		{ $$ = make_call_declarator ($<ttype>5, $6, $8, $9); }
 	| global_scope nested_name_specifier self_template_type LEFT_RIGHT cv_qualifiers exception_specification_opt
