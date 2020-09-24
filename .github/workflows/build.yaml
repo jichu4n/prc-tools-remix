@@ -1,0 +1,43 @@
+name: build
+on: [push]
+jobs:
+  build-deb:
+    name: build deb package
+    strategy:
+      matrix:
+        docker_image:
+          - "ubuntu:focal"
+          - "ubuntu:bionic"
+          - "ubuntu:xenial"
+          - "debian:buster"
+          - "debian:stretch"
+        include:
+          - docker_image: "ubuntu:focal"
+            dist: focal
+            arch: amd64
+          - docker_image: "ubuntu:bionic"
+            dist: bionic
+            arch: amd64
+          - docker_image: "ubuntu:xenial"
+            dist: xenial
+            arch: amd64
+          - docker_image: "debian:buster"
+            dist: buster
+            arch: amd64
+          - docker_image: "debian:stretch"
+            dist: stretch
+            arch: amd64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Build deb package
+        run: |
+             tools/build-deb-with-docker.sh \
+               ${{matrix.docker_image}} \
+               ${{matrix.dist}} ${{matrix.arch}}
+      - name: Upload deb package
+        uses: actions/upload-artifact@v2
+        with:
+          path: "*.deb"
+

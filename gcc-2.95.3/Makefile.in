@@ -375,6 +375,7 @@ BASE_FLAGS_TO_PASS = \
 	"CXXFLAGS=$(CXXFLAGS)" \
 	"CXXFLAGS_FOR_TARGET=$(CXXFLAGS_FOR_TARGET)" \
 	"CXX_FOR_TARGET=$(CXX_FOR_TARGET)" \
+	"DESTDIR=$(DESTDIR)" \
 	"DLLTOOL_FOR_TARGET=$(DLLTOOL_FOR_TARGET)" \
 	"INSTALL=$(INSTALL)" \
 	"INSTALL_DATA=$(INSTALL_DATA)" \
@@ -1032,7 +1033,7 @@ do-info: all-texinfo
 install-info: do-install-info dir.info
 	s=`cd $(srcdir); pwd`; export s; \
 	if [ -f dir.info ] ; then \
-	  $(INSTALL_DATA) dir.info $(infodir)/dir.info ; \
+	  $(INSTALL_DATA) dir.info $(DESTDIR)$(infodir)/dir.info ; \
 	else true ; fi
 
 local-clean:
