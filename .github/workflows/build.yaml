@@ -1,0 +1,17 @@
+name: build
+on: [push]
+jobs:
+  build-binary-package:
+    name: build binary package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Build package
+        run: |
+          tools/build-binary-package.sh
+      - name: Upload package
+        uses: actions/upload-artifact@v2
+        with:
+          path: prc-tools-2.3-bin.tar.bz2
+
