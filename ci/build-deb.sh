@@ -26,6 +26,7 @@ function build() {
     --enable-languages=c,c++ \
     --disable-nls \
     --with-palmdev-prefix=/opt/palmdev \
+    --build=i686-linux-gnu \
     --host=i686-linux-gnu
 
   make
