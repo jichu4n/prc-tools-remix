@@ -80,10 +80,6 @@ char *language_string = "GNU C";
 
 /* Cause the `yydebug' variable to be defined.  */
 #define YYDEBUG 1
-
-#ifndef YYLEX
-#define YYLEX yylex()
-#endif
 %}
 
 %start program
@@ -1325,7 +1321,7 @@ enum_head:
 
 structsp:
 	  struct_head identifier '{'
-		{ $<ttype>$ = start_struct (RECORD_TYPE, $2);
+		{ $$ = start_struct (RECORD_TYPE, $2);
 		  /* Start scope of tag before parsing components.  */
 		}
 	  component_decl_list '}' maybe_attribute 
@@ -1337,7 +1333,7 @@ structsp:
 	| struct_head identifier
 		{ $$ = xref_tag (RECORD_TYPE, $2); }
 	| union_head identifier '{'
-		{ $<ttype>$ = start_struct (UNION_TYPE, $2); }
+		{ $$ = start_struct (UNION_TYPE, $2); }
 	  component_decl_list '}' maybe_attribute
 		{ $$ = finish_struct ($<ttype>4, $5, chainon ($1, $7)); }
 	| union_head '{' component_decl_list '}' maybe_attribute
@@ -1348,13 +1344,13 @@ structsp:
 		{ $$ = xref_tag (UNION_TYPE, $2); }
 	| enum_head identifier '{'
 		{ $<itype>3 = suspend_momentary ();
-		  $<ttype>$ = start_enum ($2); }
+		  $$ = start_enum ($2); }
 	  enumlist maybecomma_warn '}' maybe_attribute
 		{ $$= finish_enum ($<ttype>4, nreverse ($5), chainon ($1, $8));
 		  resume_momentary ($<itype>3); }
 	| enum_head '{'
 		{ $<itype>2 = suspend_momentary ();
-		  $<ttype>$ = start_enum (NULL_TREE); }
+		  $$ = start_enum (NULL_TREE); }
 	  enumlist maybecomma_warn '}' maybe_attribute
 		{ $$= finish_enum ($<ttype>3, nreverse ($4), chainon ($1, $7));
 		  resume_momentary ($<itype>2); }
