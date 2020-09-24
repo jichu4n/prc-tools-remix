@@ -9,5 +9,5 @@ docker run \
   --rm \
   -v "$PWD":/work \
   "$docker_image" \
-  "/work/ci/build-deb.sh"
+  "/work/tools/build-binary-package.sh"
 

@@ -17,5 +17,5 @@ jobs:
     - env: docker_image=i386/debian:stretch
       if: branch = master
 script:
-  - ci/build-with-docker.sh "${docker_image}"
+  - tools/build-binary-package-with-docker.sh "${docker_image}"
 
