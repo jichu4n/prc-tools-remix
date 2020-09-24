@@ -25,12 +25,18 @@ function build() {
     --enable-targets=m68k-palmos,arm-palmos \
     --enable-languages=c,c++ \
     --disable-nls \
-    --with-palmdev-prefix=/opt/palmdev \
-    --host=i686-linux-gnu
+    --build=i686-linux-gnu \
+    --host=i686-linux-gnu \
+    --prefix=/usr \
+    --with-palmdev-prefix=/opt/palmdev
 
-  make
+  # We use -w  to suppress compiler warnings. Otherwise, the volume of warnings
+  # is so large when building with a modern compiler that the build will fail
+  # on Travis CI with an "exceeded the maximum log length" error.
+  CFLAGS="-w -O2" make
 
-  $sudo make install MAKEINFO=true
+  # https://github.com/jichu4n/prc-tools-remix/issues/4#issuecomment-502470945
+  $sudo make MAKEINFO=true install
 }
 
 
