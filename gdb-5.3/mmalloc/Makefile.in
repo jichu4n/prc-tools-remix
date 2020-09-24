@@ -156,9 +156,9 @@ check: test1.c
 #	./a.out
 
 install:	all install-info
-		$(INSTALL_DATA) $(TARGETLIB) $(libdir)/$(TARGETLIB)n
-		$(RANLIB) $(libdir)/$(TARGETLIB)n
-		mv -f $(libdir)/$(TARGETLIB)n $(libdir)/$(TARGETLIB)
+		$(INSTALL_DATA) $(TARGETLIB) $(DESTDIR)$(libdir)/$(TARGETLIB)n
+		$(RANLIB) $(DESTDIR)$(libdir)/$(TARGETLIB)n
+		mv -f $(DESTDIR)$(libdir)/$(TARGETLIB)n $(DESTDIR)$(libdir)/$(TARGETLIB)
 
 uninstall:	uninstall-info
 

@@ -36,9 +36,8 @@ function build() {
   CFLAGS="-w -O2" make
 
   # https://github.com/jichu4n/prc-tools-remix/issues/4#issuecomment-502470945
-  $sudo make MAKEINFO=true install
+  make MAKEINFO=true DESTDIR="$PWD/../dist" install
 }
-
 
 set -ex
 
