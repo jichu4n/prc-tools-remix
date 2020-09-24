@@ -101,18 +101,18 @@ $(srcdir)/cp/cfns.h: $(srcdir)/cp/cfns.gperf
 	gperf -o -C -E -k '1-6,$$' -j1 -D -N 'libc_name_p' \
 		$(srcdir)/cp/cfns.gperf > $(srcdir)/cp/cfns.h
 
-$(srcdir)/cp/parse.h: $(srcdir)/cp/parse.c
-$(srcdir)/cp/parse.c: $(srcdir)/cp/parse.y
-	@echo "Expect 33 shift/reduce conflicts and 58 reduce/reduce conflicts."
-	cd $(srcdir)/cp && \
-	if $(BISON) $(BISONFLAGS) -d -o p$$$$.c parse.y; then \
-	  grep '^#define[ 	]*YYEMPTY' p$$$$.c >> p$$$$.h ; \
-	  test -f p$$$$.output && mv -f p$$$$.output parse.output ; \
-	  mv -f p$$$$.c parse.c ; mv -f p$$$$.h parse.h ; \
-	else \
-	  rm -f p$$$$.* ; \
-	  false ; \
-	fi
+# $(srcdir)/cp/parse.h: $(srcdir)/cp/parse.c
+# $(srcdir)/cp/parse.c: $(srcdir)/cp/parse.y
+# 	@echo "Expect 33 shift/reduce conflicts and 58 reduce/reduce conflicts."
+# 	cd $(srcdir)/cp && \
+# 	if $(BISON) $(BISONFLAGS) -d -o p$$$$.c parse.y; then \
+# 	  grep '^#define[ 	]*YYEMPTY' p$$$$.c >> p$$$$.h ; \
+# 	  test -f p$$$$.output && mv -f p$$$$.output parse.output ; \
+# 	  mv -f p$$$$.c parse.c ; mv -f p$$$$.h parse.h ; \
+# 	else \
+# 	  rm -f p$$$$.* ; \
+# 	  false ; \
+# 	fi
 
 gtype-cp.h gt-cp-call.h gt-cp-decl.h gt-cp-decl2.h : s-gtype; @true
 gt-cp-parse.h gt-cp-pt.h gt-cp-repo.h gt-cp-spew.h : s-gtype; @true
