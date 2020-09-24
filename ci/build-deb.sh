@@ -28,6 +28,8 @@ function build() {
     --build=i686-linux-gnu \
     --host=i686-linux-gnu \
     --prefix=/usr \
+    --infodir=/usr/share/info \
+    --mandir=/usr/share/man \
     --with-palmdev-prefix=/opt/palmdev
 
   # We use -w  to suppress compiler warnings. Otherwise, the volume of warnings
