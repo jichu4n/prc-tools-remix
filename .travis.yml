@@ -3,8 +3,18 @@ services:
   - docker
 jobs:
   include:
-    - env: docker_image=ubuntu:trusty
-    - env: docker_image=i386/ubuntu:trusty
+    - env: docker_image=ubuntu:bionic
+    - env: docker_image=i386/ubuntu:bionic
+      if: branch = master
+    - env: docker_image=ubuntu:xenial
+    - env: docker_image=i386/ubuntu:xenial
+      if: branch = master
+    - env: docker_image=debian:buster
+    - env: docker_image=i386/debian:buster
+      if: branch = master
+    - env: docker_image=debian:stretch
+    - env: docker_image=i386/debian:stretch
+      if: branch = master
 script:
   - ci/build-with-docker.sh "${docker_image}"
 
