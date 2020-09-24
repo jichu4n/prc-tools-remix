@@ -3,6 +3,7 @@ services:
   - docker
 jobs:
   include:
+    - env: docker_image=ubuntu:focal
     - env: docker_image=ubuntu:bionic
     - env: docker_image=i386/ubuntu:bionic
       if: branch = master
