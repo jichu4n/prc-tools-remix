@@ -25,9 +25,10 @@ function build() {
     --enable-targets=m68k-palmos,arm-palmos \
     --enable-languages=c,c++ \
     --disable-nls \
-    --with-palmdev-prefix=/opt/palmdev \
     --build=i686-linux-gnu \
-    --host=i686-linux-gnu
+    --host=i686-linux-gnu \
+    --prefix=/usr \
+    --with-palmdev-prefix=/opt/palmdev
 
   # We use -w  to suppress compiler warnings. Otherwise, the volume of warnings
   # is so large when building with a modern compiler that the build will fail
