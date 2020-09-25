@@ -38,8 +38,9 @@ function install() {
 
   cd "$dest_dir"
   rmdir ./usr/include  # empty dir
-  # Delete files installed by gcc, binutils etc that conflict with system
+  # Delete files installed by gcc, binutils etc that conflict with host system
   # packages.
+  rm ./usr/lib/*.a
   rm ./usr/share/info/*
   rm -r ./usr/share/man/man7
   (
