@@ -1,10 +1,8 @@
-prc-tools-remix
-~~~~~~~~~~~~~~~
+= prc-tools-remix
 
 image:https://travis-ci.org/jichu4n/prc-tools-remix.svg?branch=master["Build Status", link="https://travis-ci.org/jichu4n/prc-tools-remix"]
 
-Overview
-^^^^^^^^
+== Overview
 
 This repository is an archive of http://prc-tools.sourceforge.net/[prc-tools]
 2.3 (and its GCC cross-compilation toolchain), with patches enabling it to build
@@ -21,76 +19,59 @@ unmaintained since 2003 and no longer compiles under recent versions of GCC and
 Clang. This repo includes a number of patches to enable it to build and run on
 modern Linux and macOS systems.
 
-Building
-^^^^^^^^
+== Installation
 
-Linux
-+++++
+=== Debian / Ubuntu
 
-To build from source on Linux, e.g., on Ubuntu:
+If you're using a recent 64-bit version of Ubuntu or Debian, you can download
+and install pre-built `.deb` packages for prc-tools-remix from the
+https://github.com/jichu4n/prc-tools-remix/releases[Releases page].
+
+Otherwise, please see "Building from source" below.
+
+=== Arch Linux / Manjaro
+
+You can install prc-tools-remix from the AUR:
+
+```
+yay -S prc-tools-remix
+```
+
+=== Building from source
+
+See
+https://github.com/jichu4n/prc-tools-remix/blob/master/tools/build.sh[`tools/build.sh`]
+for general build steps.
+
+Note that building with GCC 10.x is currently unsupported. Please ensure you are
+using GCC 9.x or lower when building from source.
+
+To build and install using
+https://github.com/jichu4n/prc-tools-remix/blob/master/tools/build.sh[`tools/build.sh`]:
 
 [source,bash]
 ----
+# Install dependencies:
 sudo apt-get install \
     build-essential autoconf automake \
     libncurses-dev \
     flex bison \
     texinfo gperf
 
+# Download code:
 git clone https://github.com/jichu4n/prc-tools-remix.git
 cd prc-tools-remix
 
-mkdir build && cd build
-../prc-tools-2.3/configure \
-    --enable-targets=m68k-palmos,arm-palmos \
-    --enable-languages=c,c++ \
-    --disable-nls \
-    --build=i686-linux-gnu \
-    --host=i686-linux-gnu \
-    --prefix=/usr \
-    --with-palmdev-prefix=/opt/palmdev
-# Use "env SHELL=/bin/sh make" if using a non-POSIX shell like fish
-make
-sudo make MAKEINFO=true install
+# Build and install into "./dist/" directory:
+./tools/build.sh
+
+# To build a binary tarball:
+(cd ./dist && tar cvjf ../prc-tools-remix.tar.bz2 *)
+# To unpack into your system:
+sudo tar xvjf prc-tools-remix.tar.bz2 -C /
 ----
 
-macOS
-+++++
-
-On macOS, you can install using http://brew.sh[Homebrew] with:
-
-[source,bash]
-----
-brew tap jichu4n/palm-os
-brew install prc-tools
-----
-
-See the Homebrew tap
-https://github.com/jichu4n/homebrew-palm-os[jichu4n/palm-os] for details.
-
-To build from source on macOS, assuming you have a sane build environment
-from http://brew.sh[Homebrew] / Xcode:
-
-[source,bash]
-----
-git clone https://github.com/jichu4n/prc-tools-remix.git
-cd prc-tools-remix
-
-mkdir build && cd build
-../prc-tools-2.3/configure \
-    --enable-targets=m68k-palmos,arm-palmos \
-    --enable-languages=c,c++ \
-    --disable-nls \
-    --build=i686-apple-darwin \
-    --host=i686-apple-darwin \
-    --with-palmdev-prefix=/usr/local/opt/palmdev
-# Use "env SHELL=/bin/sh make" if using a non-POSIX shell like fish
-make
-make MAKEINFO=true install
-----
-
-Usage
-^^^^^
+== Usage
 
 Please refer to the http://prc-tools.sourceforge.net/[prc-tools homepage] for
 documentation on usage.
