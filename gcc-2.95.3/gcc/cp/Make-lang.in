@@ -214,29 +214,29 @@ c++.install-normal:
 c++.install-common:
 	-if [ -f cc1plus$(exeext) ] ; then \
 	  if [ -f g++-cross$(exeext) ] ; then \
-	    rm -f $(bindir)/$(GXX_CROSS_NAME)$(exeext); \
-	    $(INSTALL_PROGRAM) g++-cross$(exeext) $(bindir)/$(GXX_CROSS_NAME)$(exeext); \
-	    chmod a+x $(bindir)/$(GXX_CROSS_NAME)$(exeext); \
-	    rm -f $(bindir)/$(CXX_CROSS_NAME)$(exeext); \
-	    $(LN) $(bindir)/$(GXX_CROSS_NAME)$(exeext) $(bindir)/$(CXX_CROSS_NAME)$(exeext) >/dev/null 2>&1 \
-	     || ( $(INSTALL_PROGRAM) g++-cross$(exeext) $(bindir)/$(CXX_CROSS_NAME)$(exeext); \
-		  chmod a+x $(bindir)/$(CXX_CROSS_NAME)$(exeext) ); \
+	    rm -f $(DESTDIR)$(bindir)/$(GXX_CROSS_NAME)$(exeext); \
+	    $(INSTALL_PROGRAM) g++-cross$(exeext) $(DESTDIR)$(bindir)/$(GXX_CROSS_NAME)$(exeext); \
+	    chmod a+x $(DESTDIR)$(bindir)/$(GXX_CROSS_NAME)$(exeext); \
+	    rm -f $(DESTDIR)$(bindir)/$(CXX_CROSS_NAME)$(exeext); \
+	    $(LN) $(DESTDIR)$(bindir)/$(GXX_CROSS_NAME)$(exeext) $(DESTDIR)$(bindir)/$(CXX_CROSS_NAME)$(exeext) >/dev/null 2>&1 \
+	     || ( $(INSTALL_PROGRAM) g++-cross$(exeext) $(DESTDIR)$(bindir)/$(CXX_CROSS_NAME)$(exeext); \
+		  chmod a+x $(DESTDIR)$(bindir)/$(CXX_CROSS_NAME)$(exeext) ); \
 	  else \
-	    rm -f $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
-	    $(INSTALL_PROGRAM) g++$(exeext) $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
-	    chmod a+x $(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
-	    rm -f $(bindir)/$(CXX_INSTALL_NAME)$(exeext); \
-	    $(LN) $(bindir)/$(GXX_INSTALL_NAME)$(exeext) $(bindir)/$(CXX_INSTALL_NAME)$(exeext); \
+	    rm -f $(DESTDIR)$(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
+	    $(INSTALL_PROGRAM) g++$(exeext) $(DESTDIR)$(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
+	    chmod a+x $(DESTDIR)$(bindir)/$(GXX_INSTALL_NAME)$(exeext); \
+	    rm -f $(DESTDIR)$(bindir)/$(CXX_INSTALL_NAME)$(exeext); \
+	    $(LN) $(DESTDIR)$(bindir)/$(GXX_INSTALL_NAME)$(exeext) $(DESTDIR)$(bindir)/$(CXX_INSTALL_NAME)$(exeext); \
 	  fi ; \
 	  if [ x$(DEMANGLER_PROG) != x ] && [ -x "$(DEMANGLER_PROG)" ]; then \
 	    if [ -f g++-cross$(exeext) ] ; then \
-	      rm -f $(bindir)/$(DEMANGLER_CROSS_NAME)$(exeext); \
-	      $(INSTALL_PROGRAM) $(DEMANGLER_PROG) $(bindir)/$(DEMANGLER_CROSS_NAME)$(exeext); \
-	      chmod a+x $(bindir)/$(DEMANGLER_CROSS_NAME)$(exeext); \
+	      rm -f $(DESTDIR)$(bindir)/$(DEMANGLER_CROSS_NAME)$(exeext); \
+	      $(INSTALL_PROGRAM) $(DEMANGLER_PROG) $(DESTDIR)$(bindir)/$(DEMANGLER_CROSS_NAME)$(exeext); \
+	      chmod a+x $(DESTDIR)$(bindir)/$(DEMANGLER_CROSS_NAME)$(exeext); \
 	    else \
-	      rm -f $(bindir)/$(DEMANGLER_INSTALL_NAME)$(exeext); \
-	      $(INSTALL_PROGRAM) $(DEMANGLER_PROG) $(bindir)/$(DEMANGLER_INSTALL_NAME)$(exeext); \
-	      chmod a+x $(bindir)/$(DEMANGLER_INSTALL_NAME)$(exeext); \
+	      rm -f $(DESTDIR)$(bindir)/$(DEMANGLER_INSTALL_NAME)$(exeext); \
+	      $(INSTALL_PROGRAM) $(DEMANGLER_PROG) $(DESTDIR)$(bindir)/$(DEMANGLER_INSTALL_NAME)$(exeext); \
+	      chmod a+x $(DESTDIR)$(bindir)/$(DEMANGLER_INSTALL_NAME)$(exeext); \
 	    fi ; \
 	  fi ; \
 	fi
@@ -246,25 +246,25 @@ c++.install-info:
 c++.install-man: $(srcdir)/cp/g++.1
 	-if [ -f cc1plus$(exeext) ] ; then \
 	  if [ -f g++-cross$(exeext) ] ; then \
-	    rm -f $(man1dir)/$(GXX_CROSS_NAME)$(manext); \
-	    $(INSTALL_DATA) $(srcdir)/cp/g++.1 $(man1dir)/$(GXX_CROSS_NAME)$(manext); \
-	    chmod a-x $(man1dir)/$(GXX_CROSS_NAME)$(manext); \
+	    rm -f $(DESTDIR)$(man1dir)/$(GXX_CROSS_NAME)$(manext); \
+	    $(INSTALL_DATA) $(srcdir)/cp/g++.1 $(DESTDIR)$(man1dir)/$(GXX_CROSS_NAME)$(manext); \
+	    chmod a-x $(DESTDIR)$(man1dir)/$(GXX_CROSS_NAME)$(manext); \
 	  else \
-	    rm -f $(man1dir)/$(GXX_INSTALL_NAME)$(manext); \
-	    $(INSTALL_DATA) $(srcdir)/cp/g++.1 $(man1dir)/$(GXX_INSTALL_NAME)$(manext); \
-	    chmod a-x $(man1dir)/$(GXX_INSTALL_NAME)$(manext); \
+	    rm -f $(DESTDIR)$(man1dir)/$(GXX_INSTALL_NAME)$(manext); \
+	    $(INSTALL_DATA) $(srcdir)/cp/g++.1 $(DESTDIR)$(man1dir)/$(GXX_INSTALL_NAME)$(manext); \
+	    chmod a-x $(DESTDIR)$(man1dir)/$(GXX_INSTALL_NAME)$(manext); \
 	  fi; \
 	else true; fi
 
 c++.uninstall:
-	-rm -rf $(bindir)/$(CXX_INSTALL_NAME)$(exeext)
-	-rm -rf $(bindir)/$(CXX_CROSS_NAME)$(exeext)
-	-rm -rf $(bindir)/$(GXX_INSTALL_NAME)$(exeext)
-	-rm -rf $(bindir)/$(GXX_CROSS_NAME)$(exeext)
-	-rm -rf $(bindir)/$(DEMANGLER_INSTALL_NAME)$(exeext)
-	-rm -rf $(bindir)/$(DEMANGLER_CROSS_NAME)$(exeext)
-	-rm -rf $(man1dir)/$(GXX_INSTALL_NAME)$(manext)
-	-rm -rf $(man1dir)/$(GXX_CROSS_NAME)$(manext)
+	-rm -rf $(DESTDIR)$(bindir)/$(CXX_INSTALL_NAME)$(exeext)
+	-rm -rf $(DESTDIR)$(bindir)/$(CXX_CROSS_NAME)$(exeext)
+	-rm -rf $(DESTDIR)$(bindir)/$(GXX_INSTALL_NAME)$(exeext)
+	-rm -rf $(DESTDIR)$(bindir)/$(GXX_CROSS_NAME)$(exeext)
+	-rm -rf $(DESTDIR)$(bindir)/$(DEMANGLER_INSTALL_NAME)$(exeext)
+	-rm -rf $(DESTDIR)$(bindir)/$(DEMANGLER_CROSS_NAME)$(exeext)
+	-rm -rf $(DESTDIR)$(man1dir)/$(GXX_INSTALL_NAME)$(manext)
+	-rm -rf $(DESTDIR)$(man1dir)/$(GXX_CROSS_NAME)$(manext)
 #
 # Clean hooks:
 # A lot of the ancillary files are deleted by the main makefile.
