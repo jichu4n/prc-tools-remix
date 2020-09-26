@@ -43,9 +43,6 @@ See
 https://github.com/jichu4n/prc-tools-remix/blob/master/tools/build.sh[`tools/build.sh`]
 for general build steps.
 
-Note that building with GCC 10.x is currently unsupported. Please ensure you are
-using GCC 9.x or lower when building from source.
-
 To build and install using
 https://github.com/jichu4n/prc-tools-remix/blob/master/tools/build.sh[`tools/build.sh`]:
 

@@ -24,7 +24,14 @@ function build() {
   # We use -w to suppress compiler warnings. Otherwise, the volume of warnings
   # is so large when building with a modern compiler that the build will fail
   # on Travis CI with an "exceeded the maximum log length" error.
-  CFLAGS="-w -O2" make
+  #
+  # -fcommon is necessary when building with GCC 10.x, as the code contains
+  # variables with multiple definitions across files. Although we could try to
+  # fix the code instead, it would require better understanding of the codebase
+  # and it's much easier to just revert back to the old GCC behavior with
+  # -fcommon instead.
+  # See also: https://gcc.gnu.org/gcc-10/porting_to.html.
+  CFLAGS="-w -O2 -fcommon" make
 }
 
 function install() {
