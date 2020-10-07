@@ -55,17 +55,17 @@ sudo apt-get install \
     flex bison \
     texinfo gperf
 
-# Download code
+# Download code:
 git clone https://github.com/jichu4n/prc-tools-remix.git
 cd prc-tools-remix
 
-# Build and install into "./dist/" directory.
+# Build and install into "./dist/" directory:
 ./tools/build.sh
 
 # To build a binary tarball:
 (cd ./dist && tar cvjf ../prc-tools-remix.tar.bz2 *)
 # To unpack into your system:
-sudo tar xvjf prc-tools-remix.tar.bz2 -c /
+sudo tar xvjf prc-tools-remix.tar.bz2 -C /
 ----
 
 == Usage
