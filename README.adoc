@@ -5,7 +5,7 @@ image:https://travis-ci.org/jichu4n/prc-tools-remix.svg?branch=master["Build Sta
 == Overview
 
 This repository is an archive of http://prc-tools.sourceforge.net/[prc-tools]
-2.3 (and its GCC cross-compilation toolchain), with patches enabling it to build
+2.3 and its GCC cross-compilation toolchain, with patches enabling it to build
 and run on modern Linux and macOS systems.
 
 http://prc-tools.sourceforge.net/[prc-tools] is a collection of tools supporting
@@ -23,19 +23,35 @@ modern Linux and macOS systems.
 
 === Debian / Ubuntu
 
-If you're using a recent 64-bit version of Ubuntu or Debian, you can download
-and install pre-built `.deb` packages for prc-tools-remix from the
+If you're using a recent 64-bit version of Ubuntu or Debian, you can run the following script to set up a full Palm OS development environment that includes prc-tools-remix, Palm
+OS SDKs and PilRC:
+
+* https://github.com/jichu4n/prc-tools-remix/blob/master/tools/setup-palm-os-dev-env-deb.sh[`tools/setup-palm-os-dev-env-deb.sh`]
+
+You can also download and install pre-built `.deb` packages for prc-tools-remix
+from the
 https://github.com/jichu4n/prc-tools-remix/releases[Releases page].
 
 Otherwise, please see "Building from source" below.
 
 === Arch Linux / Manjaro
 
+
 You can install prc-tools-remix from the AUR:
 
-```
+[source,bash]
+----
 yay -S prc-tools-remix
-```
+----
+
+For a full Palm OS development environment that includes prc-tools-remix, Palm
+OS SDKs and PilRC:
+
+[source,bash]
+----
+yay -S prc-tools-remix palm-os-sdk-git pilrc
+----
+
 
 === Building from source
 
@@ -72,3 +88,4 @@ sudo tar xvjf prc-tools-remix.tar.bz2 -C /
 
 Please refer to the http://prc-tools.sourceforge.net/[prc-tools homepage] for
 documentation on usage.
+
