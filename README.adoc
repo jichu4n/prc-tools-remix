@@ -23,13 +23,21 @@ modern Linux and macOS systems.
 
 === Debian / Ubuntu
 
-If you're using a recent 64-bit version of Ubuntu or Debian, you can run the following script to set up a full Palm OS development environment that includes prc-tools-remix, Palm
+If you're using a recent 64-bit version of Ubuntu or Debian, you can run the
+https://github.com/jichu4n/prc-tools-remix/blob/master/tools/setup-palm-os-dev-env-deb.sh[`tools/setup-palm-os-dev-env-deb.sh`]
+script to set up a full Palm OS development environment that includes prc-tools-remix, Palm
 OS SDKs and PilRC:
-
-* https://github.com/jichu4n/prc-tools-remix/blob/master/tools/setup-palm-os-dev-env-deb.sh[`tools/setup-palm-os-dev-env-deb.sh`]
+[source,bash]
+----
+curl -sLO https://github.com/jichu4n/prc-tools-remix/raw/master/tools/setup-palm-os-dev-env-deb.sh
+chmod +x setup-palm-os-dev-env-deb.sh
+./setup-palm-os-dev-env-deb.sh $DIST
+----
+...where `$DIST` can be one of `focal`, `bionic`, `xenial`, `buster`, or
+`stretch`, depending on your distro and version.
 
 You can also download and install pre-built `.deb` packages for prc-tools-remix
-from the
+only from the
 https://github.com/jichu4n/prc-tools-remix/releases[Releases page].
 
 Otherwise, please see "Building from source" below.
