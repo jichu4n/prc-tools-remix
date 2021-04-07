@@ -1,4 +1,4 @@
-name: build
+name: Build
 on:
   push:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     - cron: '0 0 * * 1'
 jobs:
   build-deb:
-    name: build deb package
+    name: Build deb package
     strategy:
       matrix:
         docker_image:
@@ -44,4 +44,28 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: "*.deb"
+  build-hello-world-app:
+    name: Build hello world app
+    needs: build-deb
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Download deb packages
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+      - name: Setup
+        shell: bash
+        run: |
+          sudo dpkg -i artifacts/*/*focal*.deb && \
+          tools/setup-palm-os-sdk.sh && \
+          sudo palmdev-prep -d sdk-5r3
+      - name: Build hello world app
+        shell: bash
+        run: tools/hello-world-app/build.sh
+      - name: Upload hello world app
+        uses: actions/upload-artifact@v2
+        with:
+          path: tools/hello-world-app/build/hello.prc
 

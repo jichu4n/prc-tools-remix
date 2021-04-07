@@ -23,27 +23,25 @@ modern Linux and macOS systems.
 
 === Debian / Ubuntu
 
-If you're using a recent 64-bit version of Ubuntu or Debian, you can run the
-https://github.com/jichu4n/prc-tools-remix/blob/master/tools/setup-palm-os-dev-env-deb.sh[`tools/setup-palm-os-dev-env-deb.sh`]
-script to set up a full Palm OS development environment that includes prc-tools-remix, Palm
-OS SDKs and PilRC:
+If you're using a recent 64-bit version of Ubuntu or Debian, you can download
+and install pre-built `.deb` packages for prc-tools-remix from the
+https://github.com/jichu4n/prc-tools-remix/releases[Releases page].
+
+For a full Palm OS development environment that includes prc-tools-remix, Palm
+OS SDKs and PilRC, you can use the one-click install script
+https://github.com/jichu4n/prc-tools-remix/blob/master/tools/setup-palm-os-dev-env.sh[`tools/setup-palm-os-dev-env.sh`]:
+
 [source,bash]
 ----
-curl -sLO https://github.com/jichu4n/prc-tools-remix/raw/master/tools/setup-palm-os-dev-env-deb.sh
-chmod +x setup-palm-os-dev-env-deb.sh
-./setup-palm-os-dev-env-deb.sh $DIST
+curl -sLO https://github.com/jichu4n/prc-tools-remix/raw/master/tools/setup-palm-os-dev-env.sh
+bash ./setup-palm-os-dev-env.sh $DIST
 ----
 ...where `$DIST` can be one of `focal`, `bionic`, `xenial`, `buster`, or
 `stretch`, depending on your distro and version.
 
-You can also download and install pre-built `.deb` packages for prc-tools-remix
-only from the
-https://github.com/jichu4n/prc-tools-remix/releases[Releases page].
-
 Otherwise, please see "Building from source" below.
 
 === Arch Linux / Manjaro
-
 
 You can install prc-tools-remix from the AUR:
 
