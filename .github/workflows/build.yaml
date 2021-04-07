@@ -1,5 +1,9 @@
 name: build
-on: [push]
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'
 jobs:
   build-deb:
     name: build deb package
