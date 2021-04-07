@@ -26,7 +26,7 @@ function install_palm_os_sdk() {
     echo 'Error: Failed to download Palm OS SDKs.'
     return 1
   fi
-  echo "> Installing from $palm_os_sdk_zip"
+  echo "> Installing Palm OS SDK files from $palm_os_sdk_zip to $palm_os_sdk_dir"
   (set -x && \
     $sudo unzip -q -d "$temp_dir_path" "$palm_os_sdk_zip" && \
     $sudo rm -rf "$palm_os_sdk_dir" && \
@@ -35,6 +35,5 @@ function install_palm_os_sdk() {
 }
 
 set -e
-
 install_palm_os_sdk
 
