@@ -59,8 +59,7 @@ jobs:
         shell: bash
         run: |
           sudo dpkg -i artifacts/*/*focal*.deb && \
-          tools/setup-palm-os-sdk.sh && \
-          sudo palmdev-prep -d sdk-5r3
+          tools/setup-palm-os-sdk.sh
       - name: Build hello world app
         shell: bash
         run: tools/hello-world-app/build.sh

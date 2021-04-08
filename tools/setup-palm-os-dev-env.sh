@@ -25,7 +25,5 @@ read
 echo
 ./setup-palm-os-sdk.sh
 echo
-(set -x; $sudo palmdev-prep -d sdk-5r3)
-echo
 ./install-pilrc.sh "$distro"
 
