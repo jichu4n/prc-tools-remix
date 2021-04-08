@@ -31,7 +31,8 @@ function install_palm_os_sdk() {
     $sudo unzip -q -d "$temp_dir_path" "$palm_os_sdk_zip" && \
     $sudo rm -rf "$palm_os_sdk_dir" && \
     $sudo mv "$temp_dir_path/palm-os-sdk-master" "$palm_os_sdk_dir" && \
-    rm -rf "$temp_dir_path")
+    rm -rf "$temp_dir_path" && \
+    $sudo palmdev-prep -d sdk-5r3)
 }
 
 set -e

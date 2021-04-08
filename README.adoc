@@ -1,6 +1,7 @@
 = prc-tools-remix
 
-image:https://travis-ci.org/jichu4n/prc-tools-remix.svg?branch=master["Build Status", link="https://travis-ci.org/jichu4n/prc-tools-remix"]
+image:https://github.com/jichu4n/prc-tools-remix/actions/workflows/build.yaml/badge.svg["Build", link="https://github.com/jichu4n/prc-tools-remix/actions/workflows/build.yaml"]
+image:https://github.com/jichu4n/prc-tools-remix/actions/workflows/setup-palm-os-dev-env.yaml/badge.svg["Dev env setup", link="https://github.com/jichu4n/prc-tools-remix/actions/workflows/setup-palm-os-dev-env.yaml"]
 
 == Overview
 
@@ -27,8 +28,10 @@ If you're using a recent 64-bit version of Ubuntu or Debian, you can download
 and install pre-built `.deb` packages for prc-tools-remix from the
 https://github.com/jichu4n/prc-tools-remix/releases[Releases page].
 
-For a full Palm OS development environment that includes prc-tools-remix, Palm
-OS SDKs and PilRC, you can use the one-click install script
+For a full Palm OS development environment that includes
+https://github.com/jichu4n/prc-tools-remix[prc-tools-remix],
+https://github.com/jichu4n/palm-os-sdk[Palm OS SDKs] and
+https://github.com/jichu4n/pilrc[PilRC], you can use the one-click install script
 https://github.com/jichu4n/prc-tools-remix/blob/master/tools/setup-palm-os-dev-env.sh[`tools/setup-palm-os-dev-env.sh`]:
 
 [source,bash]
@@ -50,8 +53,10 @@ You can install prc-tools-remix from the AUR:
 yay -S prc-tools-remix
 ----
 
-For a full Palm OS development environment that includes prc-tools-remix, Palm
-OS SDKs and PilRC:
+For a full Palm OS development environment that includes
+https://github.com/jichu4n/prc-tools-remix[prc-tools-remix],
+https://github.com/jichu4n/palm-os-sdk[Palm OS SDKs] and
+https://github.com/jichu4n/pilrc[PilRC]:
 
 [source,bash]
 ----
@@ -89,6 +94,12 @@ cd prc-tools-remix
 # To unpack into your system:
 sudo tar xvjf prc-tools-remix.tar.bz2 -C /
 ----
+
+For a full Palm OS development environment, you'll also need the following:
+
+- https://github.com/jichu4n/palm-os-sdk[Palm OS SDKs]: See https://github.com/jichu4n/prc-tools-remix/blob/master/tools/setup-palm-os-sdk.sh[`tools/setup-palm-os-sdk.sh`]
+- https://github.com/jichu4n/pilrc[PilRC]: Install pre-built `deb` packages from the https://github.com/jichu4n/pilrc/releases/[Releases page], or see https://github.com/jichu4n/pilrc/blob/master/tools/build-deb.sh[PilRC build script] for general build steps
+
 
 == Usage
 
