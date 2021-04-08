@@ -1,0 +1,22 @@
+name: Dev env setup
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'
+jobs:
+  setup:
+    name: Test dev env setup
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Run setup script
+        run: |
+          yes | tools/setup-palm-os-dev-env.sh focal
+      - name: Build hello world app
+        run: tools/hello-world-app/build.sh
+      - name: Upload hello world app
+        uses: actions/upload-artifact@v2
+        with:
+          path: tools/hello-world-app/build/hello.prc
+
