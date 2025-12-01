@@ -1,70 +1,55 @@
 name: Build
-on:
-  push:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * 1'
+on: [push, pull_request]
 jobs:
   build-deb:
     name: Build deb package
     strategy:
       matrix:
         docker_image:
-          - "ubuntu:focal"
-          - "ubuntu:bionic"
-          - "ubuntu:xenial"
-          - "debian:buster"
-          - "debian:stretch"
+          - "ubuntu:jammy"
+          - "ubuntu:noble"
+          - "debian:trixie"
+          - "debian:bookworm"
         include:
-          - docker_image: "ubuntu:focal"
-            dist: focal
+          - docker_image: "ubuntu:jammy"
+            dist: jammy
             arch: amd64
-          - docker_image: "ubuntu:bionic"
-            dist: bionic
+          - docker_image: "ubuntu:noble"
+            dist: noble
             arch: amd64
-          - docker_image: "ubuntu:xenial"
-            dist: xenial
+          - docker_image: "debian:trixie"
+            dist: trixie
             arch: amd64
-          - docker_image: "debian:buster"
-            dist: buster
-            arch: amd64
-          - docker_image: "debian:stretch"
-            dist: stretch
+          - docker_image: "debian:bookworm"
+            dist: bookworm
             arch: amd64
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: Build deb package
         run: |
              tools/build-deb-with-docker.sh \
                ${{matrix.docker_image}} \
                ${{matrix.dist}} ${{matrix.arch}}
+      - name: Find deb package
+        id: find_deb
+        run: echo "name=$(ls *.deb)" >> $GITHUB_OUTPUT
       - name: Upload deb package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          path: "*.deb"
-  build-hello-world-app:
-    name: Build hello world app
-    needs: build-deb
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v2
-      - name: Download deb packages
-        uses: actions/download-artifact@v2
-        with:
-          path: artifacts
-      - name: Setup
+          name: "${{ steps.find_deb.outputs.name }}"
+          path: "${{ steps.find_deb.outputs.name }}"
+      - name: Install deb package and setup SDK
         shell: bash
         run: |
-          sudo dpkg -i artifacts/*/*focal*.deb && \
+          sudo dpkg -i *.deb && \
           tools/setup-palm-os-sdk.sh
       - name: Build hello world app
-        shell: bash
         run: tools/hello-world-app/build.sh
       - name: Upload hello world app
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
+          name: "hello-world-app-${{matrix.dist}}"
           path: tools/hello-world-app/build/hello.prc
 

@@ -12,16 +12,21 @@ dest_dir="${1:-$base_dir/dist}"
 clang_cc_flags="-std=gnu89 -Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion"
 gcc_cc_flags="-std=gnu89"
 cc=${CC:-gcc}
-case "$($cc --version 2>&1)" in
+cc_version="$($cc --version 2>&1)"
+case "$cc_version" in
   *"clang"*)
     cc="$cc $clang_cc_flags"
+    echo "Building with clang: $cc"
+    echo "$cc_version"
     ;;
   *"Free Software Foundation"*)
     cc="$cc $gcc_cc_flags"
+    echo "Building with gcc: $cc"
+    echo "$cc_version"
     ;;
   *)
     echo "Unable to detect compiler version. Output of '$cc --version':"
-    $cc --version
+    echo "$cc_version"
     exit 1
     ;;
 esac
