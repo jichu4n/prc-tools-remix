@@ -6,10 +6,48 @@ cd "$(dirname "$0")/.."
 base_dir="$PWD"
 dest_dir="${1:-$base_dir/dist}"
 
+# Set CC to disable warnings that prevent compilation on modern compilers. We
+# have to set this as part of CC rather than CFLAGS because the latter also
+# applies to the compiled version of GCC, which doesn't recognize these flags.
+clang_cc_flags="-std=gnu89 -Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion"
+gcc_cc_flags="-std=gnu89"
+cc=${CC:-gcc}
+cc_version="$($cc --version 2>&1)"
+case "$cc_version" in
+  *"clang"*)
+    cc="$cc $clang_cc_flags"
+    echo "Building with clang: $cc"
+    echo "$cc_version"
+    ;;
+  *"Free Software Foundation"*)
+    cc="$cc $gcc_cc_flags"
+    echo "Building with gcc: $cc"
+    echo "$cc_version"
+    ;;
+  *)
+    echo "Unable to detect compiler version. Output of '$cc --version':"
+    echo "$cc_version"
+    exit 1
+    ;;
+esac
+
+# Set CFLAGS. We use -w to suppress compiler warnings. Otherwise, the volume of
+# warnings is so large when building with a modern compiler that the build will
+# fail CI with an "exceeded the maximum log length" error.
+#
+# -fcommon is necessary when building with GCC 10.x, as the code contains
+# variables with multiple definitions across files. Although we could try to
+# fix the code instead, it would require better understanding of the codebase
+# and it's much easier to just revert back to the old GCC behavior with
+# -fcommon instead.
+# See also: https://gcc.gnu.org/gcc-10/porting_to.html.
+cflags="-w -O1 -fcommon -fno-strict-aliasing"
+
 function build() {
   cd "$base_dir"
   rm -rf build && mkdir -p build && cd build
 
+  CC="$cc" CFLAGS="$cflags" \
   ../prc-tools-2.3/configure \
     --enable-targets=m68k-palmos,arm-palmos \
     --enable-languages=c,c++ \
@@ -21,17 +59,8 @@ function build() {
     --mandir=/usr/share/man \
     --with-palmdev-prefix=/opt/palmdev
 
-  # We use -w to suppress compiler warnings. Otherwise, the volume of warnings
-  # is so large when building with a modern compiler that the build will fail
-  # on Travis CI with an "exceeded the maximum log length" error.
-  #
-  # -fcommon is necessary when building with GCC 10.x, as the code contains
-  # variables with multiple definitions across files. Although we could try to
-  # fix the code instead, it would require better understanding of the codebase
-  # and it's much easier to just revert back to the old GCC behavior with
-  # -fcommon instead.
-  # See also: https://gcc.gnu.org/gcc-10/porting_to.html.
-  CFLAGS="-w -O2 -fcommon" make
+  CC="$cc" CFLAGS="$cflags" \
+  make -j1
 }
 
 function install() {
