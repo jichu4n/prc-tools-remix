@@ -182,10 +182,11 @@ cp_thing (errfn, atarg1, format, ap)
     {
       char *file = cp_file_of (atarg);
       int   line = cp_line_of (atarg);
-      (*errfn) (file, line, "%s", buf);
+      (*(void (*) PVPROTO ((const char *, int, const char *, ...))) errfn)
+	(file, line, "%s", buf);
     }
   else
-    (*errfn) ("%s", buf);
+    (*(void (*) PVPROTO ((const char *, ...))) errfn) ("%s", buf);
 
 }
 

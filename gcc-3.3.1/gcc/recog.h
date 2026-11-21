@@ -216,7 +216,7 @@ extern struct operand_alternative recog_op_alt[MAX_RECOG_OPERANDS][MAX_RECOG_ALT
 
 typedef int (*insn_operand_predicate_fn) PARAMS ((rtx, enum machine_mode));
 typedef const char * (*insn_output_fn) PARAMS ((rtx *, rtx));
-typedef rtx (*insn_gen_fn) PARAMS ((rtx, ...));
+typedef rtx (*insn_gen_fn) ();
 
 struct insn_operand_data
 {
