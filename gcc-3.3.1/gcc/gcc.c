@@ -6677,7 +6677,7 @@ used_arg (p, len)
 	{
 	  const char *r;
 
-	  for (q = multilib_options; *q != '\0'; q++)
+	  for (q = multilib_options; *q != '\0'; *q && q++)
 	    {
 	      while (*q == ' ')
 		q++;
