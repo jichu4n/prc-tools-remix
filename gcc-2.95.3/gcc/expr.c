@@ -163,10 +163,10 @@ static rtx get_push_address	PROTO ((int));
 static rtx enqueue_insn		PROTO((rtx, rtx));
 static void init_queue		PROTO((void));
 static int move_by_pieces_ninsns PROTO((unsigned int, int));
-static void move_by_pieces_1	PROTO((rtx (*) (rtx, ...), enum machine_mode,
+static void move_by_pieces_1	PROTO((rtx (*) (), enum machine_mode,
 				       struct move_by_pieces *));
 static void clear_by_pieces	PROTO((rtx, int, int));
-static void clear_by_pieces_1	PROTO((rtx (*) (rtx, ...), enum machine_mode,
+static void clear_by_pieces_1	PROTO((rtx (*) (), enum machine_mode,
 				       struct clear_by_pieces *));
 static int is_zeros_p		PROTO((tree));
 static int mostly_zeros_p	PROTO((tree));
@@ -1573,7 +1573,7 @@ move_by_pieces_ninsns (l, align)
 
 static void
 move_by_pieces_1 (genfun, mode, data)
-     rtx (*genfun) PROTO ((rtx, ...));
+     rtx (*genfun) ();
      enum machine_mode mode;
      struct move_by_pieces *data;
 {
@@ -2364,7 +2364,7 @@ clear_by_pieces (to, len, align)
 
 static void
 clear_by_pieces_1 (genfun, mode, data)
-     rtx (*genfun) PROTO ((rtx, ...));
+     rtx (*genfun) ();
      enum machine_mode mode;
      struct clear_by_pieces *data;
 {

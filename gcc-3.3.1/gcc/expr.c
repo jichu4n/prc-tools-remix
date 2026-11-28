@@ -132,7 +132,7 @@ static rtx enqueue_insn		PARAMS ((rtx, rtx));
 static unsigned HOST_WIDE_INT move_by_pieces_ninsns
 				PARAMS ((unsigned HOST_WIDE_INT,
 					 unsigned int));
-static void move_by_pieces_1	PARAMS ((rtx (*) (rtx, ...), enum machine_mode,
+static void move_by_pieces_1	PARAMS ((rtx (*) (), enum machine_mode,
 					 struct move_by_pieces *));
 static bool block_move_libcall_safe_for_call_parm PARAMS ((void));
 static bool emit_block_move_via_movstr PARAMS ((rtx, rtx, rtx, unsigned));
@@ -145,7 +145,7 @@ static void clear_by_pieces	PARAMS ((rtx, unsigned HOST_WIDE_INT,
 					 unsigned int));
 static void store_by_pieces_1	PARAMS ((struct store_by_pieces *,
 					 unsigned int));
-static void store_by_pieces_2	PARAMS ((rtx (*) (rtx, ...),
+static void store_by_pieces_2	PARAMS ((rtx (*) (),
 					 enum machine_mode,
 					 struct store_by_pieces *));
 static bool clear_storage_via_clrstr PARAMS ((rtx, rtx, unsigned));
@@ -1621,7 +1621,7 @@ move_by_pieces_ninsns (l, align)
 
 static void
 move_by_pieces_1 (genfun, mode, data)
-     rtx (*genfun) PARAMS ((rtx, ...));
+     rtx (*genfun) ();
      enum machine_mode mode;
      struct move_by_pieces *data;
 {
@@ -2878,7 +2878,7 @@ store_by_pieces_1 (data, align)
 
 static void
 store_by_pieces_2 (genfun, mode, data)
-     rtx (*genfun) PARAMS ((rtx, ...));
+     rtx (*genfun) ();
      enum machine_mode mode;
      struct store_by_pieces *data;
 {

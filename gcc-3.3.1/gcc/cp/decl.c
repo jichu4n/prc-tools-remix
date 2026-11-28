@@ -10470,6 +10470,7 @@ grokdeclarator (declarator, declspecs, decl_context, initialized, attrlist)
   {
     tree *next = &declarator;
     register tree decl;
+    tree dtor_name;
     name = NULL;
 
     while (next && *next)
@@ -10489,15 +10490,16 @@ grokdeclarator (declarator, declspecs, decl_context, initialized, attrlist)
 
 	  case BIT_NOT_EXPR:	/* For C++ destructors!  */
 	    {
-	      tree name = TREE_OPERAND (decl, 0);
 	      tree rename = NULL_TREE;
+
+	      dtor_name = TREE_OPERAND (decl, 0);
 
 	      my_friendly_assert (flags == NO_SPECIAL, 152);
 	      flags = DTOR_FLAG;
 	      sfk = sfk_destructor;
-	      if (TREE_CODE (name) == TYPE_DECL)
-		TREE_OPERAND (decl, 0) = name = constructor_name (name);
-	      my_friendly_assert (TREE_CODE (name) == IDENTIFIER_NODE, 153);
+	      if (TREE_CODE (dtor_name) == TYPE_DECL)
+		TREE_OPERAND (decl, 0) = dtor_name = constructor_name (dtor_name);
+	      my_friendly_assert (TREE_CODE (dtor_name) == IDENTIFIER_NODE, 153);
 	      if (ctype == NULL_TREE)
 		{
 		  if (current_class_type == NULL_TREE)
@@ -10508,24 +10510,24 @@ grokdeclarator (declarator, declspecs, decl_context, initialized, attrlist)
 		  else
 		    {
 		      tree t = constructor_name (current_class_name);
-		      if (t != name)
+		      if (t != dtor_name)
 			rename = t;
 		    }
 		}
 	      else
 		{
 		  tree t = constructor_name (ctype);
-		  if (t != name)
+		  if (t != dtor_name)
 		    rename = t;
 		}
 
 	      if (rename)
 		{
 		  error ("destructor `%T' must match class name `%T'",
-			    name, rename);
+			    dtor_name, rename);
 		  TREE_OPERAND (decl, 0) = rename;
 		}
-	      next = &name;
+	      next = &dtor_name;
 	    }
 	    break;
 
