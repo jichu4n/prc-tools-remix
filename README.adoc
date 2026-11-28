@@ -70,6 +70,8 @@ See
 https://github.com/jichu4n/prc-tools-remix/blob/master/tools/build.sh[`tools/build.sh`]
 for general build steps.
 
+==== Linux
+
 To build and install using
 https://github.com/jichu4n/prc-tools-remix/blob/master/tools/build.sh[`tools/build.sh`]:
 
@@ -93,6 +95,29 @@ cd prc-tools-remix
 (cd ./dist && tar cvjf ../prc-tools-remix.tar.bz2 *)
 # To unpack into your system:
 sudo tar xvjf prc-tools-remix.tar.bz2 -C /
+----
+
+==== macOS 13+ (including Apple Silicon / ARM)
+
+For macOS systems, including Apple Silicon Macs (M1/M2/M3):
+
+[source,bash]
+----
+# Install dependencies using Homebrew:
+brew install texinfo autoconf automake gperf
+
+# Ensure Xcode Command Line Tools are installed:
+xcode-select --install
+
+# Download code:
+git clone https://github.com/jichu4n/prc-tools-remix.git
+cd prc-tools-remix
+
+# Build and install into "./dist/" directory:
+./tools/build-macos.sh
+
+# To install into your system:
+sudo cp -R ./dist/usr/local/* /usr/local/
 ----
 
 For a full Palm OS development environment, you'll also need the following:
